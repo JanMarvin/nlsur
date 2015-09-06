@@ -1,0 +1,13 @@
+Package: nlsur
+Type: Package
+Version: 0.1
+Date: 2015-09-06
+Title: Estimating Nonlinear Least Squares
+Author: Jan Marvin Garbuszus
+Maintainer: Jan Marvin Garbuszus <jan.garbuszus@ruhr-uni-bochum.de>
+Depends: Matrix, MASS, stats
+Imports: MASS, Matrix, stats
+Description: "Estimation of Nonlinear Least Squares (NLS), Feasibe Generalized
+  NLS (FGNLS) and Iterative FGNLS (IFGNLS) for Systems of Equations."
+License: MIT
+ByteCompile: yes
