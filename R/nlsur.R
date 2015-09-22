@@ -82,15 +82,14 @@ nlsur <- function(eqns, data, startvalues, S = NULL, debug = FALSE,
   z      <- list()
   itr    <- 0
   conv   <- FALSE
-  nobs   <- nrow(data)
 
   lhs    <- list()
   rhs    <- list()
-  residi <- NULL       # residuals equation wise
-  r      <- NULL       # stacked residuals
-  # partial derivatives of the residuals with respect to the parameters
-  dResidTheta  <- NULL
+  residi <- NULL
+  r      <- NULL
   dResidThetai <- list()
+  dResidTheta  <- NULL
+
   eps <- sqrt(.Machine$double.eps)
   # eps    <- 1e-10
   tau    <- 1e-3
@@ -99,7 +98,7 @@ nlsur <- function(eqns, data, startvalues, S = NULL, debug = FALSE,
   # set initial theta
   theta <- startvalues
 
-  ## assign thetas = makes them available for eval
+  ## assign theta: make them available for eval
   for (i in 1:length(theta)) {
     name <- names(theta)[i]
     val <- theta[i]
@@ -141,8 +140,8 @@ nlsur <- function(eqns, data, startvalues, S = NULL, debug = FALSE,
   }
 
   theta.new  <- 1
-  itr     <- 0
-  alpha   <- 1       # stepsizeparameter
+  itr        <- 0
+  alpha      <- 1 # stepsizeparameter
 
   while (!conv) {
 
@@ -153,16 +152,14 @@ nlsur <- function(eqns, data, startvalues, S = NULL, debug = FALSE,
       return(0)
     }
 
-    iter  <- FALSE    # gauss-newton iterative loop
-
     # If alpha < 1 increase it again. Spotted in nls.c
     # if (alpha < 1) alpha  <- alpha*2
     alpha <- min(2*alpha, 1)
 
+    # initiate while loop
     ssr <- ssr.old + 1
 
     while ( ssr > ssr.old )
-      # while ( !iter )
     { # begin iter
 
       if (debug)
@@ -181,13 +178,13 @@ nlsur <- function(eqns, data, startvalues, S = NULL, debug = FALSE,
       }
       if(any(is.infinite(dResidTheta))){
         # dResidTheta[is.infinite(dResidTheta)] <- 1
-        dResidTheta[dResidTheta==Inf] <- +2^1022
+        dResidTheta[dResidTheta==Inf]  <- +2^1022
         dResidTheta[dResidTheta==-Inf] <- -2^1022
         warning("Fix Inf value in dResidTheta!")
       }
       if(any(is.infinite(r))){
         # r[is.infinite(r)] <- 1
-        r[r==Inf] <- +2^1022
+        r[r==Inf]  <- +2^1022
         r[r==-Inf] <- -2^1022
         warning("Fix Inf value in r!")
       }
@@ -223,9 +220,9 @@ nlsur <- function(eqns, data, startvalues, S = NULL, debug = FALSE,
         gH <- as.matrix(coef(MASS::lm.gls(r ~ 0 + dResidTheta, W = S)))
         # Note: Das funktioniert nicht, mit meiner gigantischen S Matrix. Damit
         # die Gewichte beruecksichtigt werden, wird zunächst mit der Matrix ge-
-        # wichtet. Dabei wird der eigen() aufgerufen. Das produziert eine normale
-        # Matrix. Meine Matrix::Diagonal() wird mit as.matrix() behandelt und das
-        # RAM Problem taucht wieder auf.
+        # wichtet. Dabei wird eigen() aufgerufen. Das produziert eine normale
+        # Matrix. Meine Matrix::Diagonal() wird mit as.matrix() behandelt und
+        # das RAM Problem taucht wieder auf.
       }
 
       # Sometimes gH will return a NA value. To get resonable results when
@@ -277,8 +274,8 @@ nlsur <- function(eqns, data, startvalues, S = NULL, debug = FALSE,
       rhs    <- list()
       residi <- NULL
       r      <- NULL
-      dResidTheta  <- NULL
       dResidThetai <- list()
+      dResidTheta  <- NULL
 
       for (i in 1:length(eqns)) {
         lhs[[i]] <- as.matrix(eval(as.formula(eqns[[i]])[[2]], envir = data))
@@ -396,7 +393,7 @@ nlsur <- function(eqns, data, startvalues, S = NULL, debug = FALSE,
     if(debug)
       print(itr)
 
-    # not needed?
+    # residi are expected to be in a matrix not a list
     if ( conv ) {
       residi <- matrix(unlist(residi), ncol = length(eqns))
     }
@@ -405,36 +402,16 @@ nlsur <- function(eqns, data, startvalues, S = NULL, debug = FALSE,
 
   z$coefficients <- theta
   z$residuals <- residi
-  z$lhs <- eqnames
+  z$eqnames <- eqnames
+
+  z$lhs <- lhs
+  z$rhs <- rhs
 
   attr(z, "class") <- "nlsur"
 
   z
 
 }
-
-#' #### fgnls ####
-#' #' @export
-#' fgnls <- function(eqns, data, startvalues, S = NULL, debug = FALSE,
-#'                   trace = FALSE, solvetol = .Machine$double.eps) {
-#'
-#'   erg <- nlsur( eqns = eqns, data = data, startvalues = startvalues,
-#'                 debug = debug, nls = TRUE, trace = trace,
-#'                 solvetol = solvetol)
-#'
-#'   S <- Matrix::kronecker((qr.solve(1/nrow(data) *
-#'                                      Matrix::crossprod(erg$residuals),
-#'                            tol = solvetol)),
-#'                  Matrix::Diagonal(nrow(data)))
-#'
-#'   erg <- nlsur(eqns = eqns, data = data, startvalues = erg$coefficients, S = S,
-#'                debug = debug, fgnls = TRUE, trace = trace,
-#'                solvetol = solvetol)
-#'
-#'   erg$nlsur <- "FGNLS"
-#'
-#'   return(erg)
-#' }
 
 #' @export
 ifgnls <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
@@ -506,20 +483,24 @@ ifgnls <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
 
         z.old <- z
         rss.old <- as.vector(Matrix::crossprod(
-          Matrix::t(Matrix::crossprod(r, S)), r))
+          Matrix::t(Matrix::crossprod(r, S)), r)
+          )
         # rss.old <- sum(S)
 
         S <- Matrix::kronecker(qr.solve(1/nrow(data) *
                                           Matrix::crossprod(z$residuals),
                                         tol = solvetol),
-                               Matrix::Diagonal(nrow(data)))
+                               Matrix::Diagonal(nrow(data))
+                               )
 
         z <- nlsur(eqns = eqns, data = data, startvalues = z$coefficients,
                    S = S, debug = debug, nls = FALSE, solvetol = solvetol,
                    MASS = MASS)
 
         r <- matrix(z$residuals, ncol=1)
-        rss <- as.vector(Matrix::crossprod(Matrix::t(Matrix::crossprod(r, S)), r))
+        rss <- as.vector(Matrix::crossprod(
+          Matrix::t(Matrix::crossprod(r, S)), r)
+          )
         # rss <- sum(S)
 
         eps <- 1e-5; tau <- 1e-3; iter <- iter +1
@@ -535,7 +516,6 @@ ifgnls <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
 
       }
       message <- paste("Convergence after iteration:", iter,".")
-      # nlsur3 <<- erg
 
       S <- 1/nrow(data) * crossprod(z$residuals)
       N <- nrow(data)
@@ -553,15 +533,6 @@ ifgnls <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
 
 
   #### 2. Estimation of covariance matrix, standard errors and t-values ####
-  theta <- z$coefficients
-
-  # get the values of the parameters
-  for (i in 1:length(theta)) {
-    name <- names(theta)[i]
-    val <- theta[i]
-    storage.mode(val) <- "double"
-    assign(name, val)
-  }
 
   ## get the rank for the eqns, compute the first-stage
   ## cov matrix to finish the SUR and 3SLS methods
@@ -581,17 +552,29 @@ ifgnls <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
   r2      <- array(0, c(G))      # R-squared value
   adjr2   <- array(0, c(G))      # adjusted R-squared value
 
-  # you're working on parsing out the parameters and the estiamtes for the return structure...
+  # Get theta, lhs, rhs and residuals from the last estimation.
+  theta   <- z$coefficients
+  lhs     <- z$lhs
+  rhs     <- z$rhs
+
+  # Get the values of the parameters
+  for (i in 1:length(theta)) {
+    name <- names(theta)[i]
+    val <- theta[i]
+    storage.mode(val) <- "double"
+    assign(name, val)
+  }
+
+  # Estimate jacobian for later use in OLS
   for (i in 1:length(eqns)) {
-    lhs[[i]] <- as.matrix(eval(as.formula(eqns[[i]])[[2]], envir = data))
-    rhs[[i]] <- as.matrix(eval(as.formula(eqns[[i]])[[3]], envir = data))
-    residi[[i]] <- lhs[[i]] - rhs[[i]]
     derivs[[i]] <- deriv(as.formula(eqns[[i]]), names(theta))
 
-    # computing the jacobian for OLS
+    # computing the jacobian for covb and additional statistics
     jacobian <- attr(eval(derivs[[i]], envir = data), "gradient")
+    residi[[i]]  <- lhs[[i]] - rhs[[i]]
+    r <- cbind(r, residi[[i]])
 
-    n[i]     <-  length(lhs[[i]])
+    n[i]     <- length(lhs[[i]])
     k[i]     <- qr(jacobian)$rank
     df[i]    <- n[i] - k[i]
 
@@ -599,23 +582,24 @@ ifgnls <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
     mse[i]   <- ssr[i] / (n[i] - k[i])
     rmse[i]  <- sqrt(mse[i])
 
-    r2[i]    <- 1 - ssr[i] / ((crossprod(lhs[[i]])) - mean(lhs[[i]]) ^ 2 * n[i])
+    r2[i]    <- 1 - ssr[i] /
+      ((crossprod(lhs[[i]])) - mean(lhs[[i]]) ^ 2 * n[i])
     adjr2[i] <- 1 - ((n[i] - 1) / df[i]) * (1 - r2[i])
 
     X        <- rbind(X, jacobian)
-    r        <- cbind(r, residi[[i]])
   }
 
-  zi <- list()
-  zi$ssr <- ssr
-  zi$mse <- mse
-  zi$rmse <- rmse
-  zi$n <- n
-  zi$k <- k
-  zi$df <- df
-  zi$r2 <- r2
+  zi       <- list()
+  zi$ssr   <- ssr
+  zi$mse   <- mse
+  zi$rmse  <- rmse
+  zi$n     <- n
+  zi$k     <- k
+  zi$df    <- df
+  zi$r2    <- r2
   zi$adjr2 <- adjr2
 
+  # Estimate sigma and S matrix for covb
   sigma <- 1/nrow(data) * crossprod(r)
   S <- Matrix::kronecker(
     qr.solve(sigma), Matrix::Diagonal(n[1])
@@ -660,7 +644,7 @@ summary.nlsur <- function(x) {
   rmse <- z$zi$rmse
   r2   <- z$zi$r2
   zi   <- cbind(n, k, rmse, r2)
-  dimnames(zi) <- list(as.character(x$lhs),
+  dimnames(zi) <- list(as.character(x$eqnames),
                        c("n", "k", "RMSE", "R-squared"))
 
 
