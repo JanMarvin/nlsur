@@ -3,6 +3,5 @@
 S3method(print,nlsur)
 S3method(print,summary.nlsur)
 S3method(summary,nlsur)
-export(fgnls)
 export(ifgnls)
 export(nlsur)

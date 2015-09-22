@@ -69,14 +69,14 @@ nlsur <- function(eqns, data, startvalues, S = NULL, debug = FALSE,
                   solvetol = .Machine$double.eps)
 {
 
-#   # Allow passing a single formula to nlsur
-#   if (length(eqns)==1 & formula(eqns))
-#     eqns <- list(eqns)
+  #   # Allow passing a single formula to nlsur
+  #   if (length(eqns)==1 & formula(eqns))
+  #     eqns <- list(eqns)
 
   if ((MASS & is.null(S)) | is.null(S)) {
-      S <- Matrix::kronecker(
-        Matrix::Diagonal(length(eqns)),
-        Matrix::Diagonal(nrow(data)))
+    S <- Matrix::kronecker(
+      Matrix::Diagonal(length(eqns)),
+      Matrix::Diagonal(nrow(data)))
   }
 
   z      <- list()
@@ -162,7 +162,7 @@ nlsur <- function(eqns, data, startvalues, S = NULL, debug = FALSE,
     ssr <- ssr.old + 1
 
     while ( ssr > ssr.old )
-    # while ( !iter )
+      # while ( !iter )
     { # begin iter
 
       if (debug)
@@ -213,11 +213,11 @@ nlsur <- function(eqns, data, startvalues, S = NULL, debug = FALSE,
               Matrix::t(Matrix::crossprod(dResidTheta, S)),
               dResidTheta),
             tol = solvetol
-            ) %*% (
-              # t(dResidTheta)%*%S%*%r
-              Matrix::crossprod(
-                Matrix::t(Matrix::crossprod(dResidTheta, S)), r)
-            )
+          ) %*% (
+            # t(dResidTheta)%*%S%*%r
+            Matrix::crossprod(
+              Matrix::t(Matrix::crossprod(dResidTheta, S)), r)
+          )
         }
       } else{
         gH <- as.matrix(coef(MASS::lm.gls(r ~ 0 + dResidTheta, W = S)))
@@ -339,10 +339,10 @@ nlsur <- function(eqns, data, startvalues, S = NULL, debug = FALSE,
       # for nls iteration stops if SSR(betaN) < SSR(beta)
       # else the alogrithm tries to maximize ssr
 
-#       if ( ifgnls )
-#         iter <- !isTRUE(ssr > ssr.old)
-#       else
-#         iter <- !isTRUE(ssr >= ssr.old)
+      #       if ( ifgnls )
+      #         iter <- !isTRUE(ssr > ssr.old)
+      #       else
+      #         iter <- !isTRUE(ssr >= ssr.old)
 
 
     } # end iter
@@ -363,12 +363,12 @@ nlsur <- function(eqns, data, startvalues, S = NULL, debug = FALSE,
     # Stopping rule. [Gallant (1987) p.29]
     # Note: R uses a different convergence criterium
 
-#     # ssr: |ssr.old - ssr| < eps | ssr.old + tau|
-#     conv1 <- abs(ssr.old - ssr) < eps * (ssr.old + tau)
-#
-#     # theta: ||theta - theta.new|| < eps (||theta|| + tau)
-#         conv2 <- norm(as.matrix(theta - theta.new)) <
-#           eps * (norm(as.matrix(theta)) + tau)
+    #     # ssr: |ssr.old - ssr| < eps | ssr.old + tau|
+    #     conv1 <- abs(ssr.old - ssr) < eps * (ssr.old + tau)
+    #
+    #     # theta: ||theta - theta.new|| < eps (||theta|| + tau)
+    #         conv2 <- norm(as.matrix(theta - theta.new)) <
+    #           eps * (norm(as.matrix(theta)) + tau)
 
     # no idea why, but Stata uses this
     # Stata uses this
@@ -398,12 +398,162 @@ nlsur <- function(eqns, data, startvalues, S = NULL, debug = FALSE,
 
     # not needed?
     if ( conv ) {
-      residi <- Matrix::Matrix(unlist(residi), ncol = length(eqns))
+      residi <- matrix(unlist(residi), ncol = length(eqns))
     }
 
   }
 
+  z$coefficients <- theta
+  z$residuals <- residi
+  z$lhs <- eqnames
+
+  attr(z, "class") <- "nlsur"
+
+  z
+
+}
+
+#' #### fgnls ####
+#' #' @export
+#' fgnls <- function(eqns, data, startvalues, S = NULL, debug = FALSE,
+#'                   trace = FALSE, solvetol = .Machine$double.eps) {
+#'
+#'   erg <- nlsur( eqns = eqns, data = data, startvalues = startvalues,
+#'                 debug = debug, nls = TRUE, trace = trace,
+#'                 solvetol = solvetol)
+#'
+#'   S <- Matrix::kronecker((qr.solve(1/nrow(data) *
+#'                                      Matrix::crossprod(erg$residuals),
+#'                            tol = solvetol)),
+#'                  Matrix::Diagonal(nrow(data)))
+#'
+#'   erg <- nlsur(eqns = eqns, data = data, startvalues = erg$coefficients, S = S,
+#'                debug = debug, fgnls = TRUE, trace = trace,
+#'                solvetol = solvetol)
+#'
+#'   erg$nlsur <- "FGNLS"
+#'
+#'   return(erg)
+#' }
+
+#' @export
+ifgnls <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
+                   trace = FALSE, solvetol = .Machine$double.eps, nls = nls,
+                   MASS = FALSE) {
+
+  fgnls  <- FALSE
+  ifgnls <- FALSE
+  z      <- NULL
+  zi     <- NULL
+
+  #
+  if (!is.null(type)) {
+    if(type == "NLS" | type == 1) {
+      type <- NULL
+    } else {
+      if (type == "FGNLS" | type == 2) {
+        fgnls <- TRUE
+      } else {
+        if (type == "IFGNLS" | type == 3) {
+          fgnls  <- TRUE
+          ifgnls <- TRUE
+        }
+      }
+    }
+  }
+
+  # Estimation of NLS
+  # nls
+  if (trace)
+    cat("-- NLS\n")
+
+  z <- nlsur( eqns = eqns, data = data, startvalues = startvalues, S = S,
+              debug = debug, nls = TRUE, trace = trace, solvetol = solvetol,
+              MASS = MASS)
+
+  z$nlsur <- "NLS"
+
+  # Estimation of FGNLS
+  if (fgnls) {
+    # fgnls
+    if (trace)
+      cat("-- FGNLS\n")
+
+    S <- Matrix::kronecker( qr.solve(1/nrow(data) *
+                                       Matrix::crossprod(z$residuals),
+                                     tol = solvetol),
+                            Matrix::Diagonal(nrow(data)) )
+
+    z <- nlsur(eqns = eqns, data = data, startvalues = z$coefficients,
+               S = S, debug = debug, nls = FALSE, trace = trace,
+               solvetol = solvetol, MASS = MASS)
+
+
+    z$nlsur <- "FGNLS"
+
+    # Estimation of IFGNLS
+    if (ifgnls) {
+
+      if (trace)
+        cat("-- IFGNLS\n")
+
+      conv <- FALSE
+      iter <- 0
+      while (!conv)
+      {
+
+        r <- matrix(z$residuals, ncol=1)
+
+        z.old <- z
+        rss.old <- as.vector(Matrix::crossprod(
+          Matrix::t(Matrix::crossprod(r, S)), r))
+        # rss.old <- sum(S)
+
+        S <- Matrix::kronecker(qr.solve(1/nrow(data) *
+                                          Matrix::crossprod(z$residuals),
+                                        tol = solvetol),
+                               Matrix::Diagonal(nrow(data)))
+
+        z <- nlsur(eqns = eqns, data = data, startvalues = z$coefficients,
+                   S = S, debug = debug, nls = FALSE, solvetol = solvetol,
+                   MASS = MASS)
+
+        r <- matrix(z$residuals, ncol=1)
+        rss <- as.vector(Matrix::crossprod(Matrix::t(Matrix::crossprod(r, S)), r))
+        # rss <- sum(S)
+
+        eps <- 1e-5; tau <- 1e-3; iter <- iter +1
+
+        conv1 <- abs(rss.old - rss) < eps * (rss.old + tau)
+        conv2 <- norm(as.matrix(z.old$coefficients - z$coefficients)) <
+          eps * (norm(as.matrix(z.old$coefficients)) + tau)
+
+        conv <- all(conv1, conv2)
+
+        if (trace)
+          cat("Iteration", iter, ": SSR", rss, "\n")
+
+      }
+      message <- paste("Convergence after iteration:", iter,".")
+      # nlsur3 <<- erg
+
+      S <- 1/nrow(data) * crossprod(z$residuals)
+      N <- nrow(data)
+      M <- nrow(S)
+
+      LL <- -(M*N)/2 * (1 + log(2*pi)) - N/2 * log(det(S))
+
+      z$message <- message
+      z$LL <- LL
+      z$sigma <- S
+      z$nlsur <- "IFGNLS"
+
+    }
+  }
+
+
   #### 2. Estimation of covariance matrix, standard errors and t-values ####
+  theta <- z$coefficients
 
   # get the values of the parameters
   for (i in 1:length(theta)) {
@@ -419,6 +569,8 @@ nlsur <- function(eqns, data, startvalues, S = NULL, debug = FALSE,
   r       <- NULL
   residi  <- list()
   derivs  <- list()
+  lhs     <- list()
+  rhs     <- list()
   G       <- length(eqns)
   n       <- array(0, c(G))      # number of observations in each equation
   k       <- array(0, c(G))      # number of (unrestricted) coefficients/regressors in each equation
@@ -436,7 +588,7 @@ nlsur <- function(eqns, data, startvalues, S = NULL, debug = FALSE,
     residi[[i]] <- lhs[[i]] - rhs[[i]]
     derivs[[i]] <- deriv(as.formula(eqns[[i]]), names(theta))
 
-    # computing the jacobian to get the rank to get the number of variables...
+    # computing the jacobian for OLS
     jacobian <- attr(eval(derivs[[i]], envir = data), "gradient")
 
     n[i]     <-  length(lhs[[i]])
@@ -447,8 +599,7 @@ nlsur <- function(eqns, data, startvalues, S = NULL, debug = FALSE,
     mse[i]   <- ssr[i] / (n[i] - k[i])
     rmse[i]  <- sqrt(mse[i])
 
-    r2[i]    <- 1 - ssr[i] /
-      ((crossprod(lhs[[i]])) - mean(lhs[[i]]) ^ 2 * n[i])
+    r2[i]    <- 1 - ssr[i] / ((crossprod(lhs[[i]])) - mean(lhs[[i]]) ^ 2 * n[i])
     adjr2[i] <- 1 - ((n[i] - 1) / df[i]) * (1 - r2[i])
 
     X        <- rbind(X, jacobian)
@@ -468,7 +619,7 @@ nlsur <- function(eqns, data, startvalues, S = NULL, debug = FALSE,
   sigma <- 1/nrow(data) * crossprod(r)
   S <- Matrix::kronecker(
     qr.solve(sigma), Matrix::Diagonal(n[1])
-    )
+  )
 
   # Estimate covb
   covb <- qr.solve(
@@ -481,129 +632,15 @@ nlsur <- function(eqns, data, startvalues, S = NULL, debug = FALSE,
   se <- sqrt(diag(covb))
   tval <- theta / se
 
-  z$coefficients <- theta
   z$se <- se
   z$t <- tval
   z$residuals <- r
   z$covb <- covb
   z$sigma <- sigma
   z$zi <- zi
-  z$lhs <- eqnames
   z$model <- eqns
-  z$nlsur <- "NLS"
-
-  attr(z, "class") <- "nlsur"
 
   z
-
-}
-
-#### fgnls ####
-#' @export
-fgnls <- function(eqns, data, startvalues, S = NULL, debug = FALSE,
-                  trace = FALSE, solvetol = .Machine$double.eps) {
-
-  erg <- nlsur( eqns = eqns, data = data, startvalues = startvalues,
-                debug = debug, nls = TRUE, trace = trace,
-                solvetol = solvetol)
-
-  S <- Matrix::kronecker((qr.solve(1/nrow(data) *
-                                     Matrix::crossprod(erg$residuals),
-                           tol = solvetol)),
-                 Matrix::Diagonal(nrow(data)))
-
-  erg <- nlsur(eqns = eqns, data = data, startvalues = erg$coefficients, S = S,
-               debug = debug, fgnls = TRUE, trace = trace,
-               solvetol = solvetol)
-
-  erg$nlsur <- "FGNLS"
-
-  return(erg)
-}
-
-#' @export
-ifgnls <- function(eqns, data, startvalues, S = NULL, debug = FALSE,
-                   trace = FALSE, solvetol = .Machine$double.eps) {
-  # nls
-  if (trace)
-    cat("-- NLS\n")
-
-  erg <- nlsur( eqns = eqns, data = data, startvalues = startvalues, S = S,
-                debug = debug, nls = TRUE, trace = trace, solvetol = solvetol)
-
-  # nlsur1 <<- erg
-
-  # fgnls
-  if (trace)
-    cat("-- FGNLS\n")
-
-  S <- Matrix::kronecker( qr.solve(1/nrow(data) *
-                                     Matrix::crossprod(erg$residuals),
-                           tol = solvetol),
-                  Matrix::Diagonal(nrow(data)) )
-
-  erg <- nlsur(eqns = eqns, data = data, startvalues = erg$coefficients,
-               S = S, debug = debug, fgnls = TRUE, trace = trace,
-               solvetol = solvetol)
-
-
-  # nlsur2 <<- erg
-
-  if (trace)
-    cat("-- IFGNLS\n")
-
-  conv <- FALSE
-  iter <- 0
-  while (!conv)
-  {
-
-    r <- matrix(erg$residuals, ncol=1)
-
-    erg.old <- erg
-    rss.old <- as.vector(Matrix::crossprod(
-      Matrix::t(Matrix::crossprod(r, S)), r))
-    # rss.old <- sum(S)
-
-    S <- Matrix::kronecker(qr.solve(1/nrow(data) *
-                                      Matrix::crossprod(erg$residuals),
-                            tol = solvetol),
-                   Matrix::Diagonal(nrow(data)))
-
-    erg <- nlsur(eqns = eqns, data = data, startvalues = erg$coefficients,
-                 S = S, debug = debug, ifgnls = TRUE,
-                 solvetol = solvetol)
-
-    r <- matrix(erg$residuals, ncol=1)
-    rss <- as.vector(Matrix::crossprod(Matrix::t(Matrix::crossprod(r, S)), r))
-    # rss <- sum(S)
-
-    eps <- 1e-5; tau <- 1e-3; iter <- iter +1
-
-    conv1 <- abs(rss.old - rss) < eps * (rss.old + tau)
-    conv2 <- norm(as.matrix(erg.old$coefficients - erg$coefficients)) <
-      eps * (norm(as.matrix(erg.old$coefficients)) + tau)
-
-    conv <- all(conv1, conv2)
-
-    if (trace)
-      cat("Iteration", iter, ": SSR", rss, "\n")
-
-  }
-  message <- paste("Convergence after iteration:", iter,".")
-  # nlsur3 <<- erg
-
-  S <- 1/nrow(data) * crossprod(erg$residuals)
-  N <- nrow(data)
-  M <- nrow(S)
-
-  LL <- -(M*N)/2 * (1 + log(2*pi)) - N/2 * log(det(S))
-
-  erg$message <- message
-  erg$LL <- LL
-  erg$sigma <- S
-  erg$nlsur <- "IFGNLS"
-
-  return(erg)
 }
 
 # [Gallant, A. Ronald (1987): Nonlinear Statistical Models. Wiley: New York]
@@ -641,7 +678,7 @@ summary.nlsur <- function(x) {
   # ans$coefficients <- z[c("coefficients", "se", "t")]
   ans$coefficients <- cbind(est, se, t, prob)
   dimnames(ans$coefficients) <- list(names(x$coefficients),
-    c("Estimate", "Std. Error", "t value", "Pr(>|t|)"))
+                                     c("Estimate", "Std. Error", "t value", "Pr(>|t|)"))
 
   ans$residuals <- r
   ans$df        <- df
@@ -660,9 +697,9 @@ summary.nlsur <- function(x) {
 print.summary.nlsur <- function(x) {
   cat("NLSUR Object of type:", x$nlsur, "\n\n")
   print(x$zi)
-    cat("\n")
-    cat("Coefficientients:\n")
-    coefs <- x$coefficients
+  cat("\n")
+  cat("Coefficientients:\n")
+  coefs <- x$coefficients
   printCoefmat(coefs)
 
   if (x$nlsur == "IFGNLS")
