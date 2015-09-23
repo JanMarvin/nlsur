@@ -14,9 +14,9 @@ model <- list(p1 ~ b1 * b2 ^ time,
 startvalues <- c(b1=1e-01, b2=1e-01,
                 g1=1e-01, g2=1e-01)
 
-erg1 <- nlsur(eqns = model, startvalues = startvalues, data = dat, nls = TRUE)
-erg2 <- fgnls(eqns = model, startvalues = startvalues, data = dat)
-erg3 <- ifgnls(eqns = model, startvalues = startvalues, data = dat)
+erg1 <- ifgnls(eqns = model, startvalues = startvalues, data = dat, type = 1)
+erg2 <- ifgnls(eqns = model, startvalues = startvalues, data = dat, type = 2)
+erg3 <- ifgnls(eqns = model, startvalues = startvalues, data = dat, type = 3)
 
 # startvalues <- c(b1=0,b2=0,g1=0,g2=0)
 # startvalues <- c(b1=1e-03, b2=1e-03,
@@ -32,8 +32,8 @@ for (a in sequenz) {
 
         startvalues <- c(b1 = a, b2 = b, g1 = c, g2 = d)
 
-        erg1 <- nlsur(eqns = model, startvalues = startvalues,
-                      data = dat, nls = TRUE)
+        erg1 <- ifgnls(eqns = model, startvalues = startvalues,
+                       data = dat, type = 1)
         cat(coef(erg1), " || ", startvalues, "\n")
 
       }
