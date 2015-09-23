@@ -533,9 +533,6 @@ ifgnls <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
 
 
   #### 2. Estimation of covariance matrix, standard errors and t-values ####
-
-  ## get the rank for the eqns, compute the first-stage
-  ## cov matrix to finish the SUR and 3SLS methods
   X       <- NULL
   r       <- NULL
   residi  <- list()
@@ -545,10 +542,11 @@ ifgnls <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
   G       <- length(eqns)
   n       <- array(0, c(G))      # number of observations in each equation
   k       <- array(0, c(G))      # number of (unrestricted) coefficients/regressors in each equation
-  df      <- array(0, c(G))      # degrees of freedom in each equation
-  ssr     <- array(0, c(G))      # sum of squared residuals of each equation
-  mse     <- array(0, c(G))      # mean square error (residuals) of each equation
+  df      <- array(0, c(G))      # degrees of freedom
+  ssr     <- array(0, c(G))      # sum of squared residuals
+  mse     <- array(0, c(G))      # mean square error
   rmse    <- array(0, c(G))      # root of mse
+  mae     <- array(0, c(G))      # mean absolute error
   r2      <- array(0, c(G))      # R-squared value
   adjr2   <- array(0, c(G))      # adjusted R-squared value
 
@@ -557,7 +555,6 @@ ifgnls <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
   lhs     <- z$lhs
   rhs     <- z$rhs
 
-  # Get the values of the parameters
   for (i in 1:length(theta)) {
     name <- names(theta)[i]
     val <- theta[i]
@@ -569,7 +566,6 @@ ifgnls <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
   for (i in 1:length(eqns)) {
     derivs[[i]] <- deriv(as.formula(eqns[[i]]), names(theta))
 
-    # computing the jacobian for covb and additional statistics
     jacobian <- attr(eval(derivs[[i]], envir = data), "gradient")
     residi[[i]]  <- lhs[[i]] - rhs[[i]]
     r <- cbind(r, residi[[i]])
@@ -579,8 +575,9 @@ ifgnls <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
     df[i]    <- n[i] - k[i]
 
     ssr[i]   <- as.vector(crossprod(residi[[i]]))
-    mse[i]   <- ssr[i] / (n[i] - k[i])
+    mse[i]   <- ssr[i] / n[i]
     rmse[i]  <- sqrt(mse[i])
+    mae[i]   <- sum(abs(residi[[i]]))/n[i]
 
     r2[i]    <- 1 - ssr[i] /
       ((crossprod(lhs[[i]])) - mean(lhs[[i]]) ^ 2 * n[i])
@@ -593,6 +590,7 @@ ifgnls <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
   zi$ssr   <- ssr
   zi$mse   <- mse
   zi$rmse  <- rmse
+  zi$mae   <- mae
   zi$n     <- n
   zi$k     <- k
   zi$df    <- df
