@@ -73,7 +73,7 @@ nlsur <- function(eqns, data, startvalues, S = NULL, debug = FALSE,
   #   if (length(eqns)==1 & formula(eqns))
   #     eqns <- list(eqns)
 
-  if ((MASS & is.null(S)) | is.null(S)) {
+  if ( MASS & is.null(S) ) {
     S <- Matrix::kronecker(
       Matrix::Diagonal(length(eqns)),
       Matrix::Diagonal(nrow(data)))
