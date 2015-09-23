@@ -148,7 +148,6 @@ nlsur <- function(eqns, data, startvalues, S = NULL, debug = FALSE,
     if (itr == 1000){
       message(paste(itr, "nls iterations and convergence not reached."))
       # stop(itr, " nls iterations and convergence not reached.")
-
       return(0)
     }
 
@@ -178,13 +177,13 @@ nlsur <- function(eqns, data, startvalues, S = NULL, debug = FALSE,
       }
       if(any(is.infinite(dResidTheta))){
         # dResidTheta[is.infinite(dResidTheta)] <- 1
-        dResidTheta[dResidTheta==Inf]  <- +2^1022
+        dResidTheta[dResidTheta==+Inf] <- +2^1022
         dResidTheta[dResidTheta==-Inf] <- -2^1022
         warning("Fix Inf value in dResidTheta!")
       }
       if(any(is.infinite(r))){
         # r[is.infinite(r)] <- 1
-        r[r==Inf]  <- +2^1022
+        r[r==+Inf] <- +2^1022
         r[r==-Inf] <- -2^1022
         warning("Fix Inf value in r!")
       }
@@ -302,13 +301,13 @@ nlsur <- function(eqns, data, startvalues, S = NULL, debug = FALSE,
       }
       if(any(is.infinite(dResidTheta))){
         # dResidTheta[is.infinite(dResidTheta)] <- 1
-        dResidTheta[dResidTheta==Inf] <- +2^1022
+        dResidTheta[dResidTheta==+Inf] <- +2^1022
         dResidTheta[dResidTheta==-Inf] <- -2^1022
         warning("Fix Inf value in dResidTheta!")
       }
       if(any(is.infinite(r))){
         # r[is.infinite(r)] <- 1
-        r[r==Inf] <- +2^1022
+        r[r==+Inf] <- +2^1022
         r[r==-Inf] <- -2^1022
         warning("Fix Inf value in r!")
       }
@@ -418,6 +417,15 @@ ifgnls <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
                    trace = FALSE, solvetol = .Machine$double.eps, nls = nls,
                    MASS = FALSE) {
 
+  # Check if all variables that are not startvalues exist in data.
+  vars <- unlist(lapply(eqns, all.vars))
+  vars <- vars[which(!vars %in% names(startvalues))]
+  ok <- all(vars%in%names(data))
+  if (!ok) {
+    message("Missmatch in model and dataset.")
+    return(0)
+  }
+
   fgnls  <- FALSE
   ifgnls <- FALSE
   z      <- NULL
@@ -485,7 +493,6 @@ ifgnls <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
         rss.old <- as.vector(Matrix::crossprod(
           Matrix::t(Matrix::crossprod(r, S)), r)
           )
-        # rss.old <- sum(S)
 
         S <- Matrix::kronecker(qr.solve(1/nrow(data) *
                                           Matrix::crossprod(z$residuals),
@@ -501,7 +508,6 @@ ifgnls <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
         rss <- as.vector(Matrix::crossprod(
           Matrix::t(Matrix::crossprod(r, S)), r)
           )
-        # rss <- sum(S)
 
         eps <- 1e-5; tau <- 1e-3; iter <- iter +1
 
@@ -586,6 +592,7 @@ ifgnls <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
     X        <- rbind(X, jacobian)
   }
 
+  # Create zi for export per equation results
   zi       <- list()
   zi$ssr   <- ssr
   zi$mse   <- mse
