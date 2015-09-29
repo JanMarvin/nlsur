@@ -193,19 +193,29 @@ nlsur <- function(eqns, data, startvalues, S = NULL, debug = FALSE,
         warning("Fix NA value in r!")
       }
 
-      XDX <- matrix(0, length(theta), length(theta))
-      XDy <- matrix(0, length(theta), 1)
+      if ( nls ) {
+        x <- matrix(x, ncol = length(theta))
+        r <- matrix(r, ncol = 1)
+        gH <- qr.coef(qr(x), r)
+      } else {
+        gH <- qr.coef(qr(x), r)
+        XDX <- matrix(0, length(theta), length(theta))
+        XDy <- matrix(0, length(theta), 1)
 
-      for (i in 1:n){
-        XI <- matrix(x[i, ], nrow = neqs, byrow = T)
-        yi <- matrix(r[i,])
+        for (i in 1:n){
+          XI <- matrix(x[i, ], nrow = neqs, byrow = T)
+          yi <- matrix(r[i,])
 
-        XDX <- XDX + t(XI) %*% qS %*% XI
-        XDy <- XDy + t(XI) %*% qS %*% yi
+          XDX <- XDX + t(XI) %*% qS %*% XI
+          XDy <- XDy + t(XI) %*% qS %*% yi
+        }
+
+        XDX <<- XDX
+        XDy <<- XDy
+
+        # gH is gradient * Hessian
+        gH <- qr.solve(XDX, XDy)
       }
-
-      # gH is gradient * Hessian
-      gH <- qr.solve(XDX, XDy)
 
       # Sometimes gH will return a NA value. To get resonable results when
       # estimating the new theta, NA will be replaced by a Zero. theta.new will
