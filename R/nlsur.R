@@ -93,8 +93,10 @@ nlsur <- function(eqns, data, startvalues, S = NULL, debug = FALSE,
 
   if (is.null(S)){
     S <- diag(neqs)
-    print("S is null")
   }
+  qS <- qr.solve(S)
+  s <- chol(qS)
+
   eps <- sqrt(.Machine$double.eps)
   # eps    <- 1e-10
   tau    <- 1e-3
@@ -102,7 +104,6 @@ nlsur <- function(eqns, data, startvalues, S = NULL, debug = FALSE,
 
   # set initial theta
   theta <- startvalues
-  s <- chol(qr.solve(S))
 
   ## assign theta: make them available for eval
   for (i in 1:length(theta)) {
@@ -128,12 +129,12 @@ nlsur <- function(eqns, data, startvalues, S = NULL, debug = FALSE,
   }
   # ssr.old <- crossprod(matrix(r, ncol= 1))
 
-  lhs <- matrix(unlist(lhs), ncol=neqs)
+  # lhs <- matrix(unlist(lhs), ncol=neqs)
 
   ssr.old <- 0
   for (j in 1:neqs) {
     for (i in 1:n){
-      ssr.old <- ssr.old + (lhs[i,] %*% s[,j])^2
+      ssr.old <- ssr.old + (r[i,] %*% s[,j])^2
     }
   }
 
@@ -225,7 +226,6 @@ nlsur <- function(eqns, data, startvalues, S = NULL, debug = FALSE,
         warning("Fix NA value in r!")
       }
 
-      qS <- qr.solve(S)
       XPX <- matrix(0, length(theta), length(theta))
       XPy <- matrix(0, length(theta), 1)
 
@@ -373,12 +373,12 @@ nlsur <- function(eqns, data, startvalues, S = NULL, debug = FALSE,
       #     Matrix::t(Matrix::crossprod(r, S)), r) )
       # }
 
-      lhs <- matrix(unlist(lhs), ncol=neqs)
+      # lhs <- matrix(unlist(lhs), ncol=neqs)
 
       ssr <- 0
       for (j in 1:neqs) {
         for (i in 1:n){
-          ssr <- ssr + (lhs[i,] %*% s[,j])^2
+          ssr <- ssr + (r[i,] %*% s[,j])^2
         }
       }
       # stop("STOP!")
@@ -429,8 +429,7 @@ nlsur <- function(eqns, data, startvalues, S = NULL, debug = FALSE,
     conv1 <- !isTRUE(abs(ssr.old - ssr) > eps * (ssr.old + tau))
     # conv1 <- TRUE
 
-    conv2 <- !isTRUE(all( alpha * abs(theta - theta.new) >
-                            eps * (abs(theta) + tau) ))
+    conv2 <- !isTRUE(all( alpha * abs(gH) > eps * (abs(theta) + tau) ))
     # conv2 <- TRUE
 
     # and this is what Stata documents what they do for nl
@@ -451,17 +450,12 @@ nlsur <- function(eqns, data, startvalues, S = NULL, debug = FALSE,
     if(debug)
       print(itr)
 
-    # residi are expected to be in a matrix not a list
-    if ( conv ) {
-      residi <- matrix(unlist(ri), ncol = neqs)
-    }
-
   }
 
   z$coefficients <- theta
-  z$residuals <- residi
+  z$residuals <- r
   z$eqnames <- eqnames
-  # z$sigma <- S
+  z$sigma <- 1/n * S
 
   z$lhs <- lhs
   z$rhs <- rhs
