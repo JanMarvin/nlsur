@@ -5,7 +5,7 @@ erg2 <- NULL
 erg3 <- NULL
 
 # inst/extdata/dat is mfgcost data from Stata 13.
-source("inst/extdata/mfgcoast.R")
+source("~/Source/nlsur/inst/extdata/mfgcoast.R")
 
 # model
 model <- list(
