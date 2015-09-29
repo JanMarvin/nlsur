@@ -127,12 +127,14 @@ nlsur <- function(eqns, data, startvalues, S = NULL, debug = FALSE,
     }
   }
 
-  if ( any (is.nan(x))){
-    # eval might return NaN. lm.gls will complain, since r is smaller than S.
-    # Fix this by changing its value to zero.
-    x[is.nan(x)] <- 0
-    warning("1. Fix NaN value in x!")
-  }
+
+  # if ( any (is.nan(x))){
+  #   # eval might return NaN. lm.gls will complain, since r is smaller than S.
+  #   # Fix this by changing its value to zero.
+  #   x[is.nan(x)] <- 0
+  #   warning("1. Fix NaN value in x!")
+  # }
+
 
   theta.new  <- 1
   itr        <- 0
@@ -140,13 +142,15 @@ nlsur <- function(eqns, data, startvalues, S = NULL, debug = FALSE,
 
   while (!conv) {
 
-    if (itr == 1000){
-      message(paste(itr, "nls iterations and convergence not reached."))
+    if (itr == 10000){
+      message(paste(itr, "nls iterations and convergence not reached."),
+              paste("Last theta is: \n", theta, "\n"))
       return(0)
     }
 
     # If alpha < 1 increase it again. Spotted in nls.c
-    alpha <- min(2*alpha, 1)
+    # alpha <- min(2*alpha, 1)
+    alpha <- 1
 
     # initiate while loop
     ssr <- ssr.old + 1
@@ -287,14 +291,16 @@ nlsur <- function(eqns, data, startvalues, S = NULL, debug = FALSE,
 
       # for nls iteration stops if SSR(betaN) < SSR(beta)
       # else the alogrithm tries to maximize ssr
-      if (is.null(ssr) | is.nan(ssr))
-        ssr <- ssr.old+1
+      if (is.null(ssr) | is.nan(ssr)){
+        message("SSR is NULL or NaN.")
+        ssr <- Inf
+      }
+
 
     } # end iter
 
     if (trace)
       cat("SSR: ", ssr, "\n")
-
 
     if(debug){
       print(warnings())
@@ -313,12 +319,13 @@ nlsur <- function(eqns, data, startvalues, S = NULL, debug = FALSE,
     #           eps * (norm(as.matrix(theta)) + tau)
 
     # no idea why, but Stata uses this
-    # Stata uses this
     conv1 <- !isTRUE(abs(ssr.old - ssr) > eps * (ssr.old + tau))
     # conv1 <- TRUE
 
     conv2 <- !isTRUE(all( alpha * abs(gH) > eps * (abs(theta) + tau) ))
-    # conv2 <- TRUE
+    # conv2 <- !isTRUE( alpha * all(abs(theta - theta.new) > eps * (theta + tau)) )
+    # print(theta)
+    # conv2 <- FALSE
 
     # and this is what Stata documents what they do for nl
     # conv2 <- all( alpha * abs(theta.new) <= eps * (abs(theta) + tau) )
@@ -332,7 +339,6 @@ nlsur <- function(eqns, data, startvalues, S = NULL, debug = FALSE,
     itr <- itr + 1
     theta <- theta.new
     ssr.old <- ssr
-
 
 
     if(debug)
@@ -497,7 +503,7 @@ ifgnls <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
   G       <- neqs
   n       <- array(0, c(G))      # number of observations in each equation
   k       <- array(0, c(G))      # number of (unrestricted) coefficients/
-                                 # regressors in each equation
+  # regressors in each equation
   df      <- array(0, c(G))      # degrees of freedom
   ssr     <- array(0, c(G))      # sum of squared residuals
   mse     <- array(0, c(G))      # mean square error
@@ -622,8 +628,10 @@ summary.nlsur <- function(x) {
 
   # ans$coefficients <- z[c("coefficients", "se", "t")]
   ans$coefficients <- cbind(est, se, t, prob)
-  dimnames(ans$coefficients) <- list(names(x$coefficients),
-                                     c("Estimate", "Std. Error", "t value", "Pr(>|t|)"))
+  dimnames(ans$coefficients) <- list(
+    names(x$coefficients),
+    c("Estimate", "Std. Error", "t value", "Pr(>|t|)")
+  )
 
   ans$residuals <- r
   ans$df        <- df
