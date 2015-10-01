@@ -14,11 +14,12 @@ model <- list(p1 ~ b1 * b2 ^ time,
 startvalues <- c(b1=1e-01, b2=1e-01,
                 g1=1e-01, g2=1e-01)
 
+startvalues <- c(b1=0,b2=0,g1=0,g2=0)
 erg1 <- nlsur(eqns = model, startvalues = startvalues, data = dat, nls = TRUE,
               debug = TRUE)
 
 erg1 <- ifgnls(eqns = model, startvalues = startvalues, data = dat, type = 1,
-               trace = TRUE, debug = TRUE)
+               trace = T)
 erg2 <- ifgnls(eqns = model, startvalues = startvalues, data = dat, type = 2,
                trace = T)
 erg3 <- ifgnls(eqns = model, startvalues = startvalues, data = dat, type = 3,
