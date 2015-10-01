@@ -39,8 +39,8 @@ for (a in sequenz) {
 
         startvalues <- c(b1 = a, b2 = b, g1 = c, g2 = d)
 
-        erg1 <- nlsur(eqns = model, startvalues = startvalues,
-                      data = dat, nls = TRUE)
+        erg1 <- ifgnls(eqns = model, startvalues = startvalues, data = dat,
+                       type = 1)
         cat(coef(erg1), " || ", startvalues, "\n")
 
       }
