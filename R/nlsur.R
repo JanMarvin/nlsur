@@ -68,10 +68,6 @@ nlsur <- function(eqns, data, startvalues, S = NULL, debug = FALSE,
                   MASS = FALSE, trace = FALSE,
                   solvetol = .Machine$double.eps)
 {
-
-  #   # Allow passing a single formula to nlsur
-  #   if (neqs==1 & formula(eqns))
-  #     eqns <- list(eqns)
   z    <- list()
   itr  <- 0
   conv <- FALSE
@@ -89,6 +85,8 @@ nlsur <- function(eqns, data, startvalues, S = NULL, debug = FALSE,
     S <- diag(1, ncol=neqs, nrow=neqs)
   }
 
+  print(S)
+
   qS <- qr.solve(S)
   s  <- chol(qS)
 
@@ -105,7 +103,8 @@ nlsur <- function(eqns, data, startvalues, S = NULL, debug = FALSE,
     assign(name, val)
   }
 
-  # Evaluate inital lhs, rhs, residi, r and xi and x
+  #### Initial evaluation ------------------------------------------------------
+  # Evaluate inital lhs, rhs, ri, r and xi and x
   for (i in 1:neqs) {
     eqnames <- c(eqnames, as.formula(eqns[[i]])[[2L]])
     lhs[[i]] <- as.matrix(eval(as.formula(eqns[[i]])[[2L]], envir = data))
@@ -120,102 +119,97 @@ nlsur <- function(eqns, data, startvalues, S = NULL, debug = FALSE,
     x <- cbind(x, xi[[i]])
   }
 
+  print(r)
+
+  # Evaluate initial ssr
   ssr.old <- 0
   for (j in 1:neqs) {
     for (i in 1:n){
       ssr.old <- ssr.old + (r[i,] %*% s[,j])^2
     }
   }
+  if (debug)
+    cat("Initial SSR: ", ssr.old, "\n")
 
-
-  # if ( any (is.nan(x))){
-  #   # eval might return NaN. lm.gls will complain, since r is smaller than S.
-  #   # Fix this by changing its value to zero.
-  #   x[is.nan(x)] <- 0
-  #   warning("1. Fix NaN value in x!")
-  # }
-
-
-  theta.new  <- 1
   itr        <- 0
   alpha      <- 1 # stepsizeparameter
 
   while (!conv) {
 
-    if (itr == 10000){
+    cat("Iteration: ", itr , "\n")
+
+    if (itr == 100){
       message(paste(itr, "nls iterations and convergence not reached."),
               paste("Last theta is: \n", theta, "\n"))
       return(0)
     }
 
     # If alpha < 1 increase it again. Spotted in nls.c
-    # alpha <- min(2*alpha, 1)
-    alpha <- 1
+    alpha <- min(2*alpha, 1)
 
     # initiate while loop
-    ssr <- ssr.old + 1
+    ssr <- Inf
+    theta.old <- theta
 
+    # Weighted regression of residuals on derivation
+    XDX <- matrix(0, length(theta), length(theta))
+    XDy <- matrix(0, length(theta), 1)
+
+    for (i in 1:n){
+      XI <- matrix(x[i, ], nrow = neqs, byrow = T)
+      yi <- matrix(r[i, ])
+      # print(XI)
+      # print(yi)
+
+      XDX <- XDX + t(XI) %*% qS %*% XI
+      XDy <- XDy + t(XI) %*% qS %*% yi
+    }
+    theta_tmp <- theta + alpha * qr.solve(XDX) %*% XDy
+    XDX <- 0.5 * (XDX + t(XDX))
+    print(r)
+
+    print(theta_tmp)
+
+    theta.new <- as.vector( t(qr.solve(XDX, XDy)) )
+    names(theta.new) <- names(theta)
+    theta <- theta.new
+
+    witr <- 0
+    cat("restart while loop\n")
     while ( ssr > ssr.old )
     { # begin iter
+
+      witr <- witr + 1
 
       if (debug)
         cat("alpha: ", alpha, "\n")
 
-      # A few 'random' fixes for values of the function. It these are applied,
-      # results are biased. These fixes allow estimation of the Sigma Matrix
-      # and IFGNL() can be estimated.
-      if ( any (is.na(x))){
-        x[is.na(x)] <- 0
-        warning("2. Fix NA value in x!")
-      }
-      if ( any (is.nan(x))){
-        x[is.nan(x)] <- 0
-        warning("2. Fix NaN value in x!")
-      }
-      if(any(is.infinite(x))){
-        # x[is.infinite(x)] <- 1
-        x[x==+Inf] <- +2^1022
-        x[x==-Inf] <- -2^1022
-        warning("Fix Inf value in x!")
-      }
-      if(any(is.infinite(r))){
-        # r[is.infinite(r)] <- 1
-        r[r==+Inf] <- +2^1022
-        r[r==-Inf] <- -2^1022
-        warning("Fix Inf value in r!")
-      }
-      if(any(is.nan(r))){
-        r[is.nan(r)] <- 0
-        warning("Fix NaN value in r!")
-      }
-      if(any(is.na(r))){
-        r[is.na(r)] <- 0
-        warning("Fix NA value in r!")
-      }
+        # cat("-----------------------------\n")
 
-      if ( nls ) {
-        x <- matrix(x, ncol = length(theta))
-        r <- matrix(r, ncol = 1)
-        gH <- qr.coef(qr(x), r)
-      } else {
-        gH <- qr.coef(qr(x), r)
-        XDX <- matrix(0, length(theta), length(theta))
-        XDy <- matrix(0, length(theta), 1)
+        # XDX <<- XDX
+        # XDy <<- XDy
+        # x <<- x
+        # r <<- r
+        # print(qS)
+        # print(XDX)
+        # print(XDy)
+        # cat("-----------------------------\n")
 
-        for (i in 1:n){
-          XI <- matrix(x[i, ], nrow = neqs, byrow = T)
-          yi <- matrix(r[i,])
+        # XDX <- 0.5 * (XDX + t(XDX))
+        #
+        # theta.old <- theta
+        # theta.new <- t(qr.solve(XDX, XDy))
 
-          XDX <- XDX + t(XI) %*% qS %*% XI
-          XDy <- XDy + t(XI) %*% qS %*% yi
-        }
+        # theta.new <- as.vector(theta.new)
+        # names(theta.new) <- names( theta )
+        # theta <- theta.new
 
-        XDX <<- XDX
-        XDy <<- XDy
 
-        # gH is gradient * Hessian
-        gH <- qr.solve(XDX, XDy)
-      }
+        # print(XDX)
+        # print(theta.new)
+
+        # cat("-----------------------------\n")
+        # stop("STOP!")
 
       # Sometimes gH will return a NA value. To get resonable results when
       # estimating the new theta, NA will be replaced by a Zero. theta.new will
@@ -227,18 +221,20 @@ nlsur <- function(eqns, data, startvalues, S = NULL, debug = FALSE,
 
       # estimate a new theta
       # old theta + scaling-parameter * gH
-      theta.new <- as.vector( theta + alpha * gH )
-      names(theta.new) <- names( theta )
+      # theta.new <- as.vector( theta + alpha * gH )
 
-      if (debug){
-        b <- cbind(theta, theta.new)
-        print(b)
-      }
+      # if (debug){
+      #   b <- cbind(theta.old, theta)
+      #   print(b)
+      # }
+
+
+      print(theta)
 
       ## assign new thetas thetas = makes them available to eval
-      for (i in 1:length(theta.new)) {
-        name <- names(theta.new)[i]
-        val <- theta.new[i]
+      for (i in 1:length(theta)) {
+        name <- names(theta)[i]
+        val <- theta[i]
         storage.mode(val) <- "double"
         assign(name, val)
       }
@@ -260,34 +256,8 @@ nlsur <- function(eqns, data, startvalues, S = NULL, debug = FALSE,
         x <- cbind(x, xi[[i]])
       }
 
-      if ( any (is.na(x))){
-        x[is.na(x)] <- 0
-        warning("2. Fix NA value in x!")
-      }
-      if ( any (is.nan(x))){
-        x[is.nan(x)] <- 0
-        warning("3. Fix NaN value in x!")
-      }
-      if(any(is.infinite(x))){
-        # x[is.infinite(x)] <- 1
-        x[x==+Inf] <- +2^1022
-        x[x==-Inf] <- -2^1022
-        warning("Fix Inf value in x!")
-      }
-      if(any(is.infinite(r))){
-        # r[is.infinite(r)] <- 1
-        r[r==+Inf] <- +2^1022
-        r[r==-Inf] <- -2^1022
-        warning("Fix Inf value in r!")
-      }
-      if(any(is.nan(r))){
-        r[is.nan(r)] <- 0
-        warning("Fix NaN value in r!")
-      }
-      if(any(is.na(r))){
-        r[is.na(r)] <- 0
-        warning("Fix NA value in r!")
-      }
+      cat("___________________\n")
+      print(r)
 
       ssr <- 0
       for (j in 1:neqs) {
@@ -295,16 +265,25 @@ nlsur <- function(eqns, data, startvalues, S = NULL, debug = FALSE,
           ssr <- ssr + (r[i,] %*% s[j,])^2
         }
       }
+      cat("SSR: ", ssr, "\n")
+
+      ssr.old <- ssr
 
       # divide stepsizeparameter
       alpha <- alpha/2
 
+
+      cat("SSR :", ssr, "SSR_Old:", ssr.old, "\n")
+
+      if (witr == 3)
+        stop("STOP!")
+
       # for nls iteration stops if SSR(betaN) < SSR(beta)
       # else the alogrithm tries to maximize ssr
-      if (is.null(ssr) | is.nan(ssr)){
-        message("SSR is NULL or NaN.")
-        ssr <- Inf
-      }
+      # if (is.null(ssr) | is.nan(ssr)){
+      #   message("SSR is NULL or NaN.")
+      #   ssr <- Inf
+      # }
 
 
     } # end iter
@@ -312,9 +291,15 @@ nlsur <- function(eqns, data, startvalues, S = NULL, debug = FALSE,
     if (trace)
       cat("SSR: ", ssr, "\n")
 
+    # stop("HALT!")
+    #
+    #
+    if(itr== 5)
+      stop("HALT")
+
     if(debug){
       print(warnings())
-      b <- cbind(theta, theta.new)
+      b <- cbind(theta.old, theta)
       print(b)
     }
 
@@ -332,10 +317,10 @@ nlsur <- function(eqns, data, startvalues, S = NULL, debug = FALSE,
     conv1 <- !isTRUE(abs(ssr.old - ssr) > eps * (ssr.old + tau))
     # conv1 <- TRUE
 
-    conv2 <- !isTRUE(all( alpha * abs(gH) > eps * (abs(theta) + tau) ))
+    # conv2 <- !isTRUE(any( alpha * abs(gH) > eps * (abs(theta) + tau) ))
     # conv2 <- !isTRUE( alpha * all(abs(theta - theta.new) > eps * (theta + tau)) )
     # print(theta)
-    # conv2 <- FALSE
+    conv2 <- FALSE
 
     # and this is what Stata documents what they do for nl
     # conv2 <- all( alpha * abs(theta.new) <= eps * (abs(theta) + tau) )
