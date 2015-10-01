@@ -160,8 +160,24 @@ nlsur <- function(eqns, data, startvalues, S = NULL, debug = FALSE,
     ssr <- Inf
     theta.old <- theta
 
-    # Weighted regression of residuals on derivation ---
     # begin regression
+    # Regression of residuals on derivs
+    if (nls) {
+
+      r <- matrix(r, ncol = 1)
+      x <- do.call(rbind, xi)
+
+      theta.new <- qr.coef(qr(x), r)
+
+      if (any(is.na(theta.new)))
+        warning("fix NA in theta.new")
+      theta.new[is.na(theta.new)] <- 0
+
+      theta.new <- as.vector(theta.new)
+      names(theta.new) <- names(theta)
+      theta <- theta.new
+    } else {
+    # Weighted regression of residuals on derivs ---
     XDX <- matrix(0, length(theta), length(theta))
     XDy <- matrix(0, length(theta), 1)
 
@@ -177,6 +193,7 @@ nlsur <- function(eqns, data, startvalues, S = NULL, debug = FALSE,
     theta.new <- as.vector( t(qr.solve(XDX, XDy)) )
     names(theta.new) <- names(theta)
     theta <- theta.new
+    }
     # end regression
 
     if (debug)
