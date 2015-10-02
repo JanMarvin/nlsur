@@ -91,8 +91,8 @@ nlsur <- function(eqns, data, startvalues, S = NULL, debug = FALSE,
   qS <- qr.solve(S)
   s  <- chol(qS)
 
-  # eps <- sqrt(.Machine$double.eps)
-  eps    <- 1e-10
+  eps <- sqrt(.Machine$double.eps)
+  # eps    <- 1e-10
   tau    <- 1e-3
   eqnames <- NULL
 
@@ -161,12 +161,12 @@ nlsur <- function(eqns, data, startvalues, S = NULL, debug = FALSE,
     alpha <- min(2*alpha, 1)
 
     # initiate while loop
-    ssr <- ssr.old +1
+    ssr <- Inf
     theta.old <- theta
 
-    r <<- r
-    x <<- x
-    qS <<- qS
+#     r <<- r
+#     x <<- x
+#     qS <<- qS
 
     # begin regression
     # Regression of residuals on derivs
@@ -190,34 +190,41 @@ nlsur <- function(eqns, data, startvalues, S = NULL, debug = FALSE,
       names(theta.new) <- names(theta)
       theta <- theta.new
     } else {
-
-      r <<- r
-      x <<- x
-      qS <<- qS
-
-      # Weighted regression of residuals on derivs ---
-      XDX <- matrix(0, length(theta), length(theta))
-      XDy <- matrix(0, length(theta), 1)
-
-      cat("n:", n, "\n")
-      for (i in 1:n){
-        XI <- matrix(x[i, ], nrow = neqs, byrow = T)
-        yi <- matrix(r[i, ])
-
-        XDX <- XDX + t(XI) %*% qS %*% XI
-        XDy <- XDy + t(XI) %*% qS %*% yi
-      }
-      XDX <- 0.5 * (XDX + t(XDX))
-      print(XDX)
-      print(XDy)
+#
+#       r <<- r
+#       x <<- x
+#       qS <<- qS
+#       theta <<- theta
+#       neqs <<- neqs
+#
+#       # Weighted regression of residuals on derivs ---
+#       XDX <- matrix(0, length(theta), length(theta))
+#       XDy <- matrix(0, length(theta), 1)
+#
+#       cat("n:", n, "\n")
+#       for (i in 1:n){
+#         XI <- matrix(x[i, ], nrow = neqs, byrow = T)
+#         yi <- matrix(r[i, ])
+#
+#         print(yi)
+#
+#         XDX <- XDX + t(XI) %*% qS %*% XI
+#         XDy <- XDy + t(XI) %*% qS %*% yi
+#
+#       }
+#       XDX <- 0.5 * (XDX + t(XDX))
+      # print(XDX)
+      # print(XDy)
 
       theta.new <- as.vector( t(qr.solve(XDX, XDy)) )
       print(theta.new)
 
-      cat("Rcpp-------------------------------------begin\n")
+      # cat("Rcpp-------------------------------------begin\n")
       theta_test <- calc_reg(x, r, qS, length(theta), neqs)
-      print(theta_test)
-      cat("Rcpp---------------------------------------end\n")
+      theta.new <- as.vector(theta_test)
+      # print(theta_test)
+      # cat("Rcpp---------------------------------------end\n")
+
       names(theta.new) <- names(theta)
       theta <- theta.new
     }
@@ -299,7 +306,7 @@ nlsur <- function(eqns, data, startvalues, S = NULL, debug = FALSE,
     conv1 <- !isTRUE(abs(ssr.old - ssr) > eps * (ssr.old + tau))
     # conv1 <- TRUE
 
-    conv2 <- !isTRUE(any( alpha * abs(theta) > eps * (abs(startvalues) + tau) ))
+    conv2 <- !isTRUE(all( alpha * abs(theta) > eps * (abs(startvalues) + tau) ))
     # conv2 <- !isTRUE( alpha * all(abs(theta - theta.new) > eps * (theta + tau)) )
     # print(theta)
     # conv2 <- FALSE
@@ -438,7 +445,7 @@ ifgnls <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
         conv2 <- norm(as.matrix(z.old$coefficients - z$coefficients)) <
           eps * (norm(as.matrix(z.old$coefficients)) + tau)
 
-        conv <- all(conv1, conv2)
+        conv <- any(conv1, conv2)
 
         if (trace)
           cat("Iteration", iter, ": SSR", rss, "\n")

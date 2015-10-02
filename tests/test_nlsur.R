@@ -15,14 +15,14 @@ startvalues <- c(b1=1e-01, b2=1e-01,
                 g1=1e-01, g2=1e-01)
 
 erg1 <- nlsur(eqns = model, startvalues = startvalues, data = dat, nls = TRUE,
-              debug = TRUE)
+              debug = FALSE)
 
 erg1 <- ifgnls(eqns = model, startvalues = startvalues, data = dat, type = 1,
                trace = FALSE)
 erg2 <- ifgnls(eqns = model, startvalues = startvalues, data = dat, type = 2,
                trace = FALSE)
 erg3 <- ifgnls(eqns = model, startvalues = startvalues, data = dat, type = 3,
-               trace = T)
+               trace = TRUE)
 
 # startvalues <- c(b1=0,b2=0,g1=0,g2=0)
 # startvalues <- c(b1=1e-03, b2=1e-03,

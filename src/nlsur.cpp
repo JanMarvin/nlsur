@@ -5,9 +5,9 @@ using namespace Rcpp;
 using namespace arma;
 
 // [[Rcpp::export]]
-SEXP calc_ssr (arma::mat  r, arma::mat s, Rcpp::List eqs) {
+SEXP calc_ssr (arma::Mat<double>  r, arma::Mat<double> s, Rcpp::List eqs) {
 
-  arma::mat ssr(1,1);
+  arma::mat ssr(1,1, fill::zeros);
   int neqs = eqs.size();
   int n    = r.n_rows;
 
@@ -21,7 +21,7 @@ SEXP calc_ssr (arma::mat  r, arma::mat s, Rcpp::List eqs) {
 }
 
 // [[Rcpp::export]]
-arma::mat arma_reshape(arma::mat mm, int sizetheta) {
+arma::Mat<double> arma_reshape(arma::Mat<double> mm, int sizetheta) {
 
   // arma::mat mm = m.row(0);
   arma::vec v = vectorise(mm);
@@ -31,8 +31,8 @@ arma::mat arma_reshape(arma::mat mm, int sizetheta) {
   mm = mm.t();
 
   int k = 0;
-  for (int j = 0; j < mm.n_cols; ++j) {
-    for (int i = 0; i < mm.n_rows; ++i) {
+  for (uint j = 0; j < mm.n_cols; ++j) {
+    for (uint i = 0; i < mm.n_rows; ++i) {
       mm(i,j) = v(k);
       k += +1;
     }
@@ -42,33 +42,36 @@ arma::mat arma_reshape(arma::mat mm, int sizetheta) {
 }
 
 // [[Rcpp::export]]
-SEXP calc_reg (arma::mat x, arma::mat r, arma::mat qS,
+SEXP calc_reg (arma::Mat<double> x, arma::Mat<double> r, arma::Mat<double> qS,
                int sizetheta, int neqs) {
 
-  arma::mat XDX(sizetheta, sizetheta, fill::zeros);
-  arma::mat XDy(sizetheta, 1, fill::zeros);
+  arma::Mat<double> XDX(sizetheta, sizetheta, fill::zeros);
+  arma::Mat<double> XDy(sizetheta, 1, fill::zeros);
 
   int n = r.n_rows;
   int xicol = x.n_cols / neqs;
 
-  Rprintf("Anzahl an Spalten: %d \n", x.n_cols);
-  Rprintf("Anzahl an Gleichungen: %d \n", neqs);
-  Rprintf("Neue Matrix hat dim: %d %d \n", neqs, xicol);
-  Rprintf("n: %d \n", n);
+//   Rprintf("Anzahl an Spalten: %d \n", x.n_cols);
+//   Rprintf("Anzahl an Gleichungen: %d \n", neqs);
+//   Rprintf("Neue Matrix hat dim: %d %d \n", neqs, xicol);
+//   Rprintf("n: %d \n", n);
 
   for (int i = 0; i < n; ++i) {
-    arma::mat xi = x.row(i);
-    arma::mat XI = arma_reshape(xi, xicol);
+    arma::Mat<double> xi = x.row(i);
+    arma::Mat<double> XI = arma_reshape(xi, xicol);
 
-    arma::mat yi = r.row(i);
-    arma::mat YI = arma_reshape(yi, 1);
+    arma::Mat<double> YI = r.row(i).t();
+//     for (int i = 0; i < YI.n_rows; ++i)
+//       Rprintf("%f ", YI(i));
+//     Rcout << " \n ";
 
     XDX += XI.t() * qS * XI;
     XDy += XI.t() * qS * YI;
   }
+
   XDX = 0.5 * ( XDX + XDX.t() );
 
-  // return wrap(solve(XDX, XDy));
-  return wrap(XDX);
-  // return wrap(XDy);
+  // return wrap(solve(XDX, XDy).t());
+  // return wrap(XDX);
+  return wrap(XDy);
 }
