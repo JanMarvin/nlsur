@@ -6,8 +6,9 @@ Title: Estimating Nonlinear Least Squares
 Author: Jan Marvin Garbuszus
 Maintainer: Jan Marvin Garbuszus <jan.garbuszus@ruhr-uni-bochum.de>
 Depends: Matrix, MASS, stats
-Imports: MASS, Matrix, stats
+Imports: MASS, Matrix, stats, RcppArmadillo
 Description: "Estimation of Nonlinear Least Squares (NLS), Feasibe Generalized
   NLS (FGNLS) and Iterative FGNLS (IFGNLS) for Systems of Equations."
 License: MIT
+LinkingTo: Rcpp, RcppArmadillo
 ByteCompile: yes

@@ -130,12 +130,9 @@ nlsur <- function(eqns, data, startvalues, S = NULL, debug = FALSE,
     print(r)
 
   # Evaluate initial ssr
-  ssr.old <- 0
-  for (j in 1:neqs) {
-    for (i in 1:n){
-      ssr.old <- ssr.old + (r[i,] %*% s[,j])^2
-    }
-  }
+  ssr.old <- calc_ssr(r, s, eqns)
+  print(ssr.old)
+
   if (debug)
     cat("Initial SSR: ", ssr.old, "\n")
 
@@ -157,7 +154,7 @@ nlsur <- function(eqns, data, startvalues, S = NULL, debug = FALSE,
     alpha <- min(2*alpha, 1)
 
     # initiate while loop
-    ssr <- Inf
+    ssr <- ssr.old +1
     theta.old <- theta
 
     # begin regression
@@ -169,30 +166,41 @@ nlsur <- function(eqns, data, startvalues, S = NULL, debug = FALSE,
 
       theta.new <- qr.coef(qr(x), r)
 
-      if (any(is.na(theta.new)))
+      if (any(is.na(theta.new))) {
         warning("fix NA in theta.new")
-      theta.new[is.na(theta.new)] <- 0
+        message(
+          "During nls for the following variables NA was replaced with 0."
+          )
+        print(names(theta)[is.na(theta.new)])
+        theta.new[is.na(theta.new)] <- 0
+      }
 
       theta.new <- as.vector(theta.new)
       names(theta.new) <- names(theta)
       theta <- theta.new
     } else {
-    # Weighted regression of residuals on derivs ---
-    XDX <- matrix(0, length(theta), length(theta))
-    XDy <- matrix(0, length(theta), 1)
+      # Weighted regression of residuals on derivs ---
+      XDX <- matrix(0, length(theta), length(theta))
+      XDy <- matrix(0, length(theta), 1)
 
-    for (i in 1:n){
-      XI <- matrix(x[i, ], nrow = neqs, byrow = T)
-      yi <- matrix(r[i, ])
+      for (i in 1:n){
+        XI <- matrix(x[i, ], nrow = neqs, byrow = T)
+        yi <- matrix(r[i, ])
 
-      XDX <- XDX + t(XI) %*% qS %*% XI
-      XDy <- XDy + t(XI) %*% qS %*% yi
-    }
-    XDX <- 0.5 * (XDX + t(XDX))
+        XDX <- XDX + t(XI) %*% qS %*% XI
+        XDy <- XDy + t(XI) %*% qS %*% yi
+      }
+      print(XDy)
+      XDX <- 0.5 * (XDX + t(XDX))
 
-    theta.new <- as.vector( t(qr.solve(XDX, XDy)) )
-    names(theta.new) <- names(theta)
-    theta <- theta.new
+      theta.new <- as.vector( t(qr.solve(XDX, XDy)) )
+      print(theta.new)
+
+      theta_test <- calc_reg(x, r, qS, length(theta), eqns)
+      print(theta_test)
+
+      names(theta.new) <- names(theta)
+      theta <- theta.new
     }
     # end regression
 
@@ -233,19 +241,14 @@ nlsur <- function(eqns, data, startvalues, S = NULL, debug = FALSE,
         x <- cbind(x, xi[[i]])
       }
 
-      ssr <- 0
-      for (j in 1:neqs) {
-        for (i in 1:n){
-          ssr <- ssr + (r[i,] %*% s[j,])^2
-        }
-      }
+      ssr <- calc_ssr(r, s, eqns)
 
       # divide stepsizeparameter
       alpha <- alpha/2
 
 
       if (debug)
-      cat("SSR :", ssr, "SSR_Old:", ssr.old, "\n")
+        cat("SSR :", ssr, "SSR_Old:", ssr.old, "\n")
 
     } # end iter
 
