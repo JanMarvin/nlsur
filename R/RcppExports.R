@@ -5,7 +5,11 @@ calc_ssr <- function(r, s, eqs) {
     .Call('nlsur_calc_ssr', PACKAGE = 'nlsur', r, s, eqs)
 }
 
-calc_reg <- function(x, r, qS, sizetheta, eqns) {
-    .Call('nlsur_calc_reg', PACKAGE = 'nlsur', x, r, qS, sizetheta, eqns)
+arma_reshape <- function(mm, sizetheta) {
+    .Call('nlsur_arma_reshape', PACKAGE = 'nlsur', mm, sizetheta)
+}
+
+calc_reg <- function(x, r, qS, sizetheta, neqs) {
+    .Call('nlsur_calc_reg', PACKAGE = 'nlsur', x, r, qS, sizetheta, neqs)
 }
 

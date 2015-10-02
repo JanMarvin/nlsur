@@ -5,7 +5,7 @@ using namespace Rcpp;
 using namespace arma;
 
 // [[Rcpp::export]]
-SEXP calc_ssr (arma::mat  r,  arma::mat s, Rcpp::List eqs) {
+SEXP calc_ssr (arma::mat  r, arma::mat s, Rcpp::List eqs) {
 
   arma::mat ssr(1,1);
   int neqs = eqs.size();
@@ -21,29 +21,54 @@ SEXP calc_ssr (arma::mat  r,  arma::mat s, Rcpp::List eqs) {
 }
 
 // [[Rcpp::export]]
-SEXP calc_reg (arma::mat x, arma::mat r, arma::mat qS, int sizetheta,
-               Rcpp::List eqns) {
+arma::mat arma_reshape(arma::mat mm, int sizetheta) {
 
-  arma::mat XDX(sizetheta, sizetheta);
-  arma::mat XDy(sizetheta, 1);
+  // arma::mat mm = m.row(0);
+  arma::vec v = vectorise(mm);
 
-  x = x.t();
+  int newsize = v.n_elem / sizetheta;
+  mm.set_size(newsize, sizetheta);
+  mm = mm.t();
 
-  int neqs = eqns.size();
-  int n = r.n_rows;
-
-  for (int i = 0; i < n; ++i) {
-    arma::mat XI = x.col(i);
-    XI.reshape(neqs, sizetheta, 1);
-    arma::mat yi = r.row(i);
-    yi.reshape(yi.n_cols, yi.n_rows);
-
-    XDX += XI.t() * qS * XI;
-    XDy += XI.t() * qS * yi;
+  int k = 0;
+  for (int j = 0; j < mm.n_cols; ++j) {
+    for (int i = 0; i < mm.n_rows; ++i) {
+      mm(i,j) = v(k);
+      k += +1;
+    }
   }
 
+  return mm.t();
+}
+
+// [[Rcpp::export]]
+SEXP calc_reg (arma::mat x, arma::mat r, arma::mat qS,
+               int sizetheta, int neqs) {
+
+  arma::mat XDX(sizetheta, sizetheta, fill::zeros);
+  arma::mat XDy(sizetheta, 1, fill::zeros);
+
+  int n = r.n_rows;
+  int xicol = x.n_cols / neqs;
+
+  Rprintf("Anzahl an Spalten: %d \n", x.n_cols);
+  Rprintf("Anzahl an Gleichungen: %d \n", neqs);
+  Rprintf("Neue Matrix hat dim: %d %d \n", neqs, xicol);
+  Rprintf("n: %d \n", n);
+
+  for (int i = 0; i < n; ++i) {
+    arma::mat xi = x.row(i);
+    arma::mat XI = arma_reshape(xi, xicol);
+
+    arma::mat yi = r.row(i);
+    arma::mat YI = arma_reshape(yi, 1);
+
+    XDX += XI.t() * qS * XI;
+    XDy += XI.t() * qS * YI;
+  }
   XDX = 0.5 * ( XDX + XDX.t() );
 
   // return wrap(solve(XDX, XDy));
-  return wrap(XDy);
+  return wrap(XDX);
+  // return wrap(XDy);
 }

@@ -19,9 +19,21 @@ BEGIN_RCPP
     return __result;
 END_RCPP
 }
+// arma_reshape
+arma::mat arma_reshape(arma::mat mm, int sizetheta);
+RcppExport SEXP nlsur_arma_reshape(SEXP mmSEXP, SEXP sizethetaSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< arma::mat >::type mm(mmSEXP);
+    Rcpp::traits::input_parameter< int >::type sizetheta(sizethetaSEXP);
+    __result = Rcpp::wrap(arma_reshape(mm, sizetheta));
+    return __result;
+END_RCPP
+}
 // calc_reg
-SEXP calc_reg(arma::mat x, arma::mat r, arma::mat qS, int sizetheta, Rcpp::List eqns);
-RcppExport SEXP nlsur_calc_reg(SEXP xSEXP, SEXP rSEXP, SEXP qSSEXP, SEXP sizethetaSEXP, SEXP eqnsSEXP) {
+SEXP calc_reg(arma::mat x, arma::mat r, arma::mat qS, int sizetheta, int neqs);
+RcppExport SEXP nlsur_calc_reg(SEXP xSEXP, SEXP rSEXP, SEXP qSSEXP, SEXP sizethetaSEXP, SEXP neqsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
@@ -29,8 +41,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< arma::mat >::type r(rSEXP);
     Rcpp::traits::input_parameter< arma::mat >::type qS(qSSEXP);
     Rcpp::traits::input_parameter< int >::type sizetheta(sizethetaSEXP);
-    Rcpp::traits::input_parameter< Rcpp::List >::type eqns(eqnsSEXP);
-    __result = Rcpp::wrap(calc_reg(x, r, qS, sizetheta, eqns));
+    Rcpp::traits::input_parameter< int >::type neqs(neqsSEXP);
+    __result = Rcpp::wrap(calc_reg(x, r, qS, sizetheta, neqs));
     return __result;
 END_RCPP
 }
