@@ -13,7 +13,3 @@ calc_reg <- function(x, r, qS, sizetheta, neqs) {
     .Call('nlsur_calc_reg', PACKAGE = 'nlsur', x, r, qS, sizetheta, neqs)
 }
 
-arma_solve <- function(m1, m2) {
-    .Call('nlsur_arma_solve', PACKAGE = 'nlsur', m1, m2)
-}
-

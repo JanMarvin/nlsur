@@ -46,15 +46,3 @@ BEGIN_RCPP
     return __result;
 END_RCPP
 }
-// arma_solve
-SEXP arma_solve(arma::Mat<double> m1, arma::Mat<double> m2);
-RcppExport SEXP nlsur_arma_solve(SEXP m1SEXP, SEXP m2SEXP) {
-BEGIN_RCPP
-    Rcpp::RObject __result;
-    Rcpp::RNGScope __rngScope;
-    Rcpp::traits::input_parameter< arma::Mat<double> >::type m1(m1SEXP);
-    Rcpp::traits::input_parameter< arma::Mat<double> >::type m2(m2SEXP);
-    __result = Rcpp::wrap(arma_solve(m1, m2));
-    return __result;
-END_RCPP
-}
