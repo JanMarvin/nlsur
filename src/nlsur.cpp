@@ -56,6 +56,8 @@ SEXP calc_reg (arma::Mat<double> x, arma::Mat<double> r, arma::Mat<double> qS,
 //   Rprintf("Neue Matrix hat dim: %d %d \n", neqs, xicol);
 //   Rprintf("n: %d \n", n);
 
+Rcpp::List res(r.n_rows);
+
   for (int i = 0; i < n; ++i) {
     arma::Mat<double> xi = x.row(i);
     arma::Mat<double> XI = arma_reshape(xi, xicol);
@@ -67,11 +69,19 @@ SEXP calc_reg (arma::Mat<double> x, arma::Mat<double> r, arma::Mat<double> qS,
 
     XDX += XI.t() * qS * XI;
     XDy += XI.t() * qS * YI;
+    res[i] = XDy;
   }
 
   XDX = 0.5 * ( XDX + XDX.t() );
 
   // return wrap(solve(XDX, XDy).t());
   // return wrap(XDX);
-  return wrap(XDy);
+  // return wrap(XDy);
+  return res;
 }
+
+// [[Rcpp::export]]
+SEXP arma_solve(arma::Mat<double> m1, arma::Mat<double> m2) {
+  return wrap( solve(m1, m2) );
+}
+

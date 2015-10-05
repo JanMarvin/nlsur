@@ -190,39 +190,55 @@ nlsur <- function(eqns, data, startvalues, S = NULL, debug = FALSE,
       names(theta.new) <- names(theta)
       theta <- theta.new
     } else {
+
+      r <<- r
+      x <<- x
+      qS <<- qS
+      theta <<- theta
+      neqs <<- neqs
 #
-#       r <<- r
-#       x <<- x
-#       qS <<- qS
-#       theta <<- theta
-#       neqs <<- neqs
-#
-#       # Weighted regression of residuals on derivs ---
-#       XDX <- matrix(0, length(theta), length(theta))
-#       XDy <- matrix(0, length(theta), 1)
-#
-#       cat("n:", n, "\n")
-#       for (i in 1:n){
-#         XI <- matrix(x[i, ], nrow = neqs, byrow = T)
-#         yi <- matrix(r[i, ])
-#
-#         print(yi)
-#
-#         XDX <- XDX + t(XI) %*% qS %*% XI
-#         XDy <- XDy + t(XI) %*% qS %*% yi
-#
-#       }
-#       XDX <- 0.5 * (XDX + t(XDX))
-      # print(XDX)
-      # print(XDy)
+      # Weighted regression of residuals on derivs ---
+      XDX <- matrix(0, length(theta), length(theta))
+      XDy <- matrix(0, length(theta), 1)
+
+      res <- list(n)
+
+      cat("n:", n, "\n")
+      for (i in 1:n){
+        XI <- matrix(x[i, ], nrow = neqs, byrow = T)
+        yi <- matrix(r[i, ])
+
+        # res[[i]] = t(XI);
+
+        XDX <- XDX + crossprod(t(crossprod(XI, qS)), XI)
+        XDy <- XDy + crossprod(t(crossprod(XI, qS)), yi)
+        res[[i]] = XDy;
+
+      }
+      XDX <- 0.5 * (XDX + t(XDX))
+      print(XDX)
+      print(XDy)
+
+      tmp <- as.vector(arma_solve(XDX, XDy))
+
+      print(tmp)
+
+      res <<- res
 
       theta.new <- as.vector( t(qr.solve(XDX, XDy)) )
       print(theta.new)
+      cat("Arma_solve", identical(tmp, theta.new), "\n")
 
       # cat("Rcpp-------------------------------------begin\n")
       theta_test <- calc_reg(x, r, qS, length(theta), neqs)
-      theta.new <- as.vector(theta_test)
-      # print(theta_test)
+      resCpp <<- theta_test
+      # theta_test <- as.vector(theta_test)
+      print(theta_test)
+
+#       tmp <- data.frame(XDy, theta_test, XDy - theta_test)
+#       names(tmp) <- c("R", "C++", "diff")
+#       print(tmp)
+
       # cat("Rcpp---------------------------------------end\n")
 
       names(theta.new) <- names(theta)
@@ -267,7 +283,20 @@ nlsur <- function(eqns, data, startvalues, S = NULL, debug = FALSE,
         x <- cbind(x, xi[[i]])
       }
 
+      # Evaluate initial ssr ssr.old <- 0
+      ssr <- 0
+      for (j in 1:neqs) {
+        for (i in 1:n){
+          ssr <- ssr + (r[i,] %*% s[,j])^2
+        }
+      }
+      # print(ssr)
+      ssr_r <- ssr
+
       ssr <- calc_ssr(r, s, eqns)
+
+      cat("SSR(R): ", ssr_r, " SSR(C++)", ssr, "\n")
+      print(identical(ssr_r, ssr))
 
       # divide stepsizeparameter
       alpha <- alpha/2
