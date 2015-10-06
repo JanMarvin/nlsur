@@ -159,9 +159,9 @@ nlsur <- function(eqns, data, startvalues, S = NULL, debug = FALSE,
     }
 
     # If alpha < 1 increase it again. Spotted in nls.c
-    # alpha <- min(2*alpha, 1)
+    alpha <- min(2*alpha, 1)
     # Alt: Stata variant, set alpha to 1
-    alpha <- 1
+    # alpha <- 1
 
     # initiate while loop
     ssr <- Inf
@@ -489,23 +489,20 @@ ifgnls <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
 
 
   #### 2. Estimation of covariance matrix, standard errors and t-values ####
-  x       <- NULL
-  r       <- NULL
-  residi  <- list()
-  derivs  <- list()
+  xi      <- list()
+  ri      <- list()
   lhs     <- list()
   rhs     <- list()
-  G       <- neqs
-  n       <- array(0, c(G))      # number of observations in each equation
-  k       <- array(0, c(G))      # number of (unrestricted) coefficients/
+  n       <- vector("integer", length=neqs)      # number of observations in each equation
+  k       <- vector("integer", length=neqs)      # number of (unrestricted) coefficients/
   # regressors in each equation
-  df      <- array(0, c(G))      # degrees of freedom
-  ssr     <- array(0, c(G))      # sum of squared residuals
-  mse     <- array(0, c(G))      # mean square error
-  rmse    <- array(0, c(G))      # root of mse
-  mae     <- array(0, c(G))      # mean absolute error
-  r2      <- array(0, c(G))      # R-squared value
-  adjr2   <- array(0, c(G))      # adjusted R-squared value
+  df      <- vector("integer", length=neqs)      # degrees of freedom
+  ssr     <- vector("numeric", length=neqs)      # sum of squared residuals
+  mse     <- vector("numeric", length=neqs)      # mean square error
+  rmse    <- vector("numeric", length=neqs)      # root of mse
+  mae     <- vector("numeric", length=neqs)      # mean absolute error
+  r2      <- vector("numeric", length=neqs)      # R-squared value
+  adjr2   <- vector("numeric", length=neqs)      # adjusted R-squared value
 
   # Get theta, lhs, rhs and residuals from the last estimation.
   theta   <- z$coefficients
@@ -522,26 +519,27 @@ ifgnls <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
   # contains some duplicated code. ToDo: figure out a way to use this in a
   # efficient manor aka run this loop as few times as possible.
   for (i in 1:neqs) {
-    derivs[[i]] <- deriv(as.formula(eqns[[i]]), names(theta))
-    xi <- attr(eval(derivs[[i]], envir = data), "gradient")
+    xi[[i]]  <- attr(with(data, with(as.list(theta),
+                                    eval(deriv(eqns[[i]], names(theta)),
+                                         envir = data))), "gradient")
 
-    residi[[i]]  <- lhs[[i]] - rhs[[i]]
-    r <- cbind(r, residi[[i]])
+    ri[[i]]  <- lhs[[i]] - rhs[[i]]
 
     n[i]     <- length(lhs[[i]])
-    k[i]     <- qr(jacobian)$rank
+    k[i]     <- qr(xi[[i]])$rank
     df[i]    <- n[i] - k[i]
 
-    ssr[i]   <- as.vector(crossprod(residi[[i]]))
+    ssr[i]   <- as.vector(crossprod(ri[[i]]))
     mse[i]   <- ssr[i] / n[i]
     rmse[i]  <- sqrt(mse[i])
-    mae[i]   <- sum(abs(residi[[i]]))/n[i]
+    mae[i]   <- sum(abs(ri[[i]]))/n[i]
 
     r2[i]    <- 1 - ssr[i] /
       ((crossprod(lhs[[i]])) - mean(lhs[[i]]) ^ 2 * n[i])
     adjr2[i] <- 1 - ((n[i] - 1) / df[i]) * (1 - r2[i])
   }
   x <- do.call(cbind, xi)
+  r <- do.call(cbind, ri)
 
   # Create zi for export per equation results
   zi       <- list()
@@ -555,10 +553,8 @@ ifgnls <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
   zi$r2    <- r2
   zi$adjr2 <- adjr2
 
-  # Estimate sigma and S matrix for covb
-  sigma <- 1/nrow(data) * crossprod(r)
-
   # Estimate covb
+  sigma <- z$sigma
   qS <- qr.solve(sigma)
   XDX <- matrix(0, length(theta), length(theta))
   rownames(XDX) <- names(theta)
