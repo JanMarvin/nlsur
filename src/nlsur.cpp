@@ -44,7 +44,7 @@ arma::Mat<double> arma_reshape(arma::Mat<double> mm, int sizetheta) {
 
 // [[Rcpp::export]]
 SEXP calc_reg (arma::Mat<double> x, arma::Mat<double> r, arma::Mat<double> qS,
-               int sizetheta, int neqs) {
+               int sizetheta, int neqs, bool fullreg) {
 
   arma::Mat<double> XDX(sizetheta, sizetheta, fill::zeros);
   arma::Mat<double> XDy(sizetheta, 1, fill::zeros);
@@ -66,5 +66,8 @@ SEXP calc_reg (arma::Mat<double> x, arma::Mat<double> r, arma::Mat<double> qS,
 
   XDX = 0.5 * ( XDX + XDX.t() );
 
-  return wrap(solve(XDX, XDy).t());
+  if (fullreg)
+    return wrap(solve(XDX, XDy).t());
+  else
+    return wrap(inv(XDX));
 }

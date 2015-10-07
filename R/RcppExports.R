@@ -9,7 +9,7 @@ arma_reshape <- function(mm, sizetheta) {
     .Call('nlsur_arma_reshape', PACKAGE = 'nlsur', mm, sizetheta)
 }
 
-calc_reg <- function(x, r, qS, sizetheta, neqs) {
-    .Call('nlsur_calc_reg', PACKAGE = 'nlsur', x, r, qS, sizetheta, neqs)
+calc_reg <- function(x, r, qS, sizetheta, neqs, fullreg) {
+    .Call('nlsur_calc_reg', PACKAGE = 'nlsur', x, r, qS, sizetheta, neqs, fullreg)
 }
 

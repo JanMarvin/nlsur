@@ -138,7 +138,7 @@ nlsur <- function(eqns, data, startvalues, S = NULL, debug = FALSE,
   if (debug)
     print(r)
 
-  # # Evaluate initial ssr
+  # Evaluate initial ssr
   ssr.old <- calc_ssr(r, s, eqns)
 
   if (trace)
@@ -184,7 +184,7 @@ nlsur <- function(eqns, data, startvalues, S = NULL, debug = FALSE,
         warning("fix NA in theta.new")
         message(
           "During nls for the following variables NA was replaced with 0."
-          )
+        )
         print(names(theta)[is.na(theta.new)])
         theta.new[is.na(theta.new)] <- 0
       }
@@ -202,7 +202,7 @@ nlsur <- function(eqns, data, startvalues, S = NULL, debug = FALSE,
       # neqs  <<- neqs
 
       # Weighted regression of residuals on derivs ---
-      theta_test <- calc_reg(x, r, qS, length(theta), neqs)
+      theta_test <- calc_reg(x, r, qS, length(theta), neqs, 1)
       theta.new <- as.vector(theta_test)
 
       names(theta.new) <- names(theta)
@@ -276,12 +276,12 @@ nlsur <- function(eqns, data, startvalues, S = NULL, debug = FALSE,
     # Stopping rule. [Gallant (1987) p.29]
     # Note: R uses a different convergence criterium
 
-        # ssr: |ssr.old - ssr| < eps | ssr.old + tau|
-        # conv1 <- abs(ssr.old - ssr) < eps * (ssr.old + tau)
+    # ssr: |ssr.old - ssr| < eps | ssr.old + tau|
+    # conv1 <- abs(ssr.old - ssr) < eps * (ssr.old + tau)
 
-        # theta: ||theta - theta.new|| < eps (||theta|| + tau)
-            # conv2 <- norm(as.matrix(theta - theta.new)) <
-            #   eps * (norm(as.matrix(theta)) + tau)
+    # theta: ||theta - theta.new|| < eps (||theta|| + tau)
+    # conv2 <- norm(as.matrix(theta - theta.new)) <
+    #   eps * (norm(as.matrix(theta)) + tau)
 
     # no idea why, but Stata uses this
     conv1 <- !isTRUE(abs(ssr.old - ssr) > eps * (ssr.old + tau))
@@ -314,6 +314,7 @@ nlsur <- function(eqns, data, startvalues, S = NULL, debug = FALSE,
 
   z$coefficients <- theta
   z$residuals <- r
+  z$xi <- xi
   z$eqnames <- eqnames
   z$sigma <- 1/n * crossprod(r)
   z$ssr <- ssr
@@ -341,6 +342,12 @@ ifgnls <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
     return(0)
   }
 
+  # remove observation, if observation a parameter contains NA.
+  modelparameters <- unlist(lapply(eqns, all.vars))
+  parms <- modelparameters[which(!modelparameters %in% names(startvalues))]
+
+  data <- na.omit(data[parms])
+
   neqs   <- length(eqns)
   nls    <- FALSE
   fgnls  <- FALSE
@@ -364,6 +371,7 @@ ifgnls <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
       }
     }
   }
+
 
   # Estimation of NLS
   # nls
@@ -394,7 +402,7 @@ ifgnls <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
     nlserg <<- z
 
     S <- z$sigma
-    print(S)
+    # print(S)
 
     z <- nlsur(eqns = eqns, data = data, startvalues = z$coefficients,
                S = S, debug = debug, nls = FALSE, trace = trace,
@@ -427,7 +435,7 @@ ifgnls <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
         # rss.old <- calc_ssr(r, s, eqns)
 
         S <- z$sigma
-        print(S)
+        # print(S)
 
         z <- nlsur(eqns = eqns, data = data, startvalues = z$coefficients,
                    S = S, debug = debug, nls = FALSE, solvetol = solvetol,
@@ -443,15 +451,15 @@ ifgnls <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
         iter <- iter +1
 
         maxthetachange <- max(abs(coef(z.old) - coef(z)) /
-                                    ( abs(coef(z.old)) +1) )
+                                ( abs(coef(z.old)) +1) )
         maxSigmachange <- max(abs(S.old - S) /
-                                    (abs(S.old) + 1))
+                                (abs(S.old) + 1))
 
         if (is.nan(maxSigmachange))
           maxSigmachange <- 0
 
-        print(maxthetachange)
-        print(maxSigmachange)
+        #         print(maxthetachange)
+        #         print(maxSigmachange)
 
         # conv1 <- abs(rss.old - rss) < eps * (rss.old + tau)
         # conv2 <- norm(as.matrix(z.old$coefficients - z$coefficients)) <
@@ -508,6 +516,7 @@ ifgnls <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
   theta   <- z$coefficients
   lhs     <- z$lhs
   rhs     <- z$rhs
+  xi      <- z$xi
 
   for (i in 1:length(theta)) {
     name <- names(theta)[i]
@@ -519,10 +528,6 @@ ifgnls <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
   # contains some duplicated code. ToDo: figure out a way to use this in a
   # efficient manor aka run this loop as few times as possible.
   for (i in 1:neqs) {
-    xi[[i]]  <- attr(with(data, with(as.list(theta),
-                                    eval(deriv(eqns[[i]], names(theta)),
-                                         envir = data))), "gradient")
-
     ri[[i]]  <- lhs[[i]] - rhs[[i]]
 
     n[i]     <- length(lhs[[i]])
@@ -556,19 +561,9 @@ ifgnls <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
   # Estimate covb
   sigma <- z$sigma
   qS <- qr.solve(sigma)
-  XDX <- matrix(0, length(theta), length(theta))
-  rownames(XDX) <- names(theta)
-  colnames(XDX) <- rownames(XDX)
 
-  for (i in 1:nrow(x)){
-    XI <- matrix(x[i, ], nrow = neqs, byrow = T)
-
-    XDX <- XDX + (t(XI) %*% qS %*% XI)
-  }
-
-  covb <- qr.solve(XDX)
-
-
+  # covb is solve(XDX)
+  covb <- calc_reg(x, r, qS, length(theta), neqs, 0)
 
   # Estimate SE and t-value
   se <- sqrt(diag(covb))
