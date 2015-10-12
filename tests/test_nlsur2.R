@@ -5,7 +5,7 @@ erg2 <- NULL
 erg3 <- NULL
 
 # inst/extdata/dat is mfgcost data from Stata 13.
-source("inst/extdata/mfgcoast.R")
+source("~/Source/nlsur/inst/extdata/mfgcoast.R")
 
 # model
 model <- list(
@@ -30,16 +30,16 @@ getstartvals <- function(model, data) {
 startvalues <- getstartvals(model = model, data = dat)
 print(startvalues)
 
-erg1 <- ifgnls(eqns = model, startvalues = startvalues, data = dat,
-               trace = TRUE, MASS = FALSE, nls = TRUE)
+erg1 <- ifgnls(eqns = model, startvalues = startvalues, data = dat, type = 1,
+               eps = .Machine$double.eps, trace = TRUE)
 erg1
 
 erg2 <- ifgnls(eqns = model, startvalues = startvalues, data = dat, type = 2,
-               trace = TRUE)
+               eps = .Machine$double.eps, trace = TRUE)
 erg2
 
 erg3 <- ifgnls(eqns = model, startvalues = startvalues, data = dat, type = 3,
-               trace = T)
+               eps = .Machine$double.eps, trace = TRUE)
 erg3
 
 # print summary

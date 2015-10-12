@@ -66,37 +66,43 @@
 nlsur <- function(eqns, data, startvalues, S = NULL, debug = FALSE,
                   nls = FALSE, fgnls = FALSE, ifgnls = FALSE,
                   MASS = FALSE, trace = FALSE,
-                  solvetol = .Machine$double.eps)
+                  solvetol = solvetol, eps = eps, tau = tau)
 {
+  z    <- list()
+  itr  <- 0
+  conv <- FALSE
 
-  #   # Allow passing a single formula to nlsur
-  #   if (length(eqns)==1 & formula(eqns))
-  #     eqns <- list(eqns)
+  lhs  <- rhs <- ri <- xi <- list()
+  r    <-   x <- NULL
 
-  if ( MASS & is.null(S) ) {
-    S <- Matrix::kronecker(
-      Matrix::Diagonal(length(eqns)),
-      Matrix::Diagonal(nrow(data)))
-  }
-
-  z      <- list()
-  itr    <- 0
-  conv   <- FALSE
-
-  lhs    <- list()
-  rhs    <- list()
-  residi <- NULL
-  r      <- NULL
-  dResidThetai <- list()
-  dResidTheta  <- NULL
-
-  eps <- sqrt(.Machine$double.eps)
-  # eps    <- 1e-10
-  tau    <- 1e-3
-  eqnames <- NULL
+  n    <- nrow(data)
+  neqs <- length(eqns)
 
   # set initial theta
   theta <- startvalues
+
+  if (nls){
+    if (is.null(S)) {
+      if (trace)
+        cat("create initial weight matrix Sigma.\n")
+      S <- diag(1, ncol=neqs, nrow=neqs)
+      nls <- TRUE # keep nls flag
+    } else {
+      if (trace)
+        cat("Use diagonal of Sigma matrix.\n")
+      S <- diag(diag(S), nrow = nrow(S), ncol = ncol(S))
+      nls <- FALSE # reset nls flag. needed to enter weighted least squares
+    }
+  }
+
+
+  if (debug)
+    print(S)
+
+  qS <- qr.solve(S)
+  s  <- chol(qS)
+
+  eqnames <- NULL
 
   ## assign theta: make them available for eval
   for (i in 1:length(theta)) {
@@ -106,57 +112,106 @@ nlsur <- function(eqns, data, startvalues, S = NULL, debug = FALSE,
     assign(name, val)
   }
 
-  # Evaluate inital lhs, rhs, residi, r and dResidThetai and dResidTheta
-  for (i in 1:length(eqns)) {
+  #### Initial evaluation ------------------------------------------------------
+  # Evaluate inital lhs, rhs, ri, r and xi and x
+  for (i in 1:neqs) {
     eqnames <- c(eqnames, as.formula(eqns[[i]])[[2L]])
-    lhs[[i]] <- as.matrix(eval(as.formula(eqns[[i]])[[2L]], envir = data))
-    rhs[[i]] <- as.matrix(eval(as.formula(eqns[[i]])[[3L]], envir = data))
+    lhs[[i]] <- eval(as.formula(eqns[[i]])[[2L]], envir = data)
+    rhs[[i]] <- eval(as.formula(eqns[[i]])[[3L]], envir = data)
 
-    residi[[i]] <- lhs[[i]] - rhs[[i]]
-    r <- rbind(r, residi[[i]])
+    ri[[i]] <- lhs[[i]] - rhs[[i]]
 
-    dResidThetai[[i]] <-
-      attributes(with(data, with(as.list(theta),
-                                 eval(deriv(eqns[[i]], names(theta)),
-                                      envir = data))))$gradient
-
-    dResidTheta <- rbind(dResidTheta, dResidThetai[[i]])
+    xi[[i]] <- attr(with(data, with(as.list(theta),
+                                    eval(deriv(eqns[[i]], names(theta)),
+                                         envir = data))), "gradient")
   }
 
-  if ( any (is.nan(dResidTheta))){
+  r <- do.call(cbind, ri)
+  x <- do.call(cbind, xi)
+
+  if ( any (is.nan(x))){
     # eval might return NaN. lm.gls will complain, since r is smaller than S.
     # Fix this by changing its value to zero.
-    dResidTheta[is.nan(dResidTheta)] <- 0
-    warning("1. Fix NaN value in dResidTheta!")
+    stop("NA/NaN/Inf in derivation found. Most likely due to artificial data.")
   }
 
-  # Estimate SSR
-  # t(r)%*%S%*%r
-  if ( nls & is.null(S) ){
-    ssr.old <- as.vector( Matrix::crossprod(r))
-  } else {
-    ssr.old <- as.vector( Matrix::crossprod(
-      Matrix::t(Matrix::crossprod(r, S)), r) )
-  }
+  if (debug)
+    print(r)
 
-  theta.new  <- 1
+  # Evaluate initial ssr
+  ssr.old <- calc_ssr(r, s, eqns)
+
+  if (trace)
+    cat("Initial SSR: ", ssr.old, "\n")
+
   itr        <- 0
   alpha      <- 1 # stepsizeparameter
 
   while (!conv) {
 
+    if (debug)
+      cat("Iteration: ", itr , "\n")
+
     if (itr == 1000){
-      message(paste(itr, "nls iterations and convergence not reached."))
-      # stop(itr, " nls iterations and convergence not reached.")
+      message(paste(itr, "nls iterations and convergence not reached."),
+              paste("Last theta is: \n", theta, "\n"))
       return(0)
     }
 
     # If alpha < 1 increase it again. Spotted in nls.c
-    # if (alpha < 1) alpha  <- alpha*2
     alpha <- min(2*alpha, 1)
+    # Alt: Stata variant, set alpha to 1
+    # alpha <- 1
 
     # initiate while loop
-    ssr <- ssr.old + 1
+    ssr <- Inf
+    theta.old <- theta
+
+    # r <<- r
+    # x <<- x
+    # qS <<- qS
+
+    # begin regression
+    # Regression of residuals on derivs
+    if (nls) {
+
+      r <- matrix(r, ncol = 1)
+      x <- do.call(rbind, xi)
+
+      theta.new <- qr.coef(qr(x), r)
+
+      if (any(is.na(theta.new))) {
+        warning("fix NA in theta.new")
+        message(
+          "During nls for the following variables NA was replaced with 0."
+        )
+        print(names(theta)[is.na(theta.new)])
+        theta.new[is.na(theta.new)] <- 0
+      }
+
+      theta.new <- as.vector(theta.new)
+      names(theta.new) <- names(theta)
+      theta <- theta.new
+
+    } else {
+
+      # r     <<- r
+      # x     <<- x
+      # qS    <<- qS
+      # theta <<- theta
+      # neqs  <<- neqs
+
+      # Weighted regression of residuals on derivs ---
+      theta_test <- calc_reg(x, r, qS, length(theta), neqs, 1)
+      theta.new <- as.vector(theta_test)
+
+      names(theta.new) <- names(theta)
+      theta <- theta.new
+    }
+    # end regression
+
+    if (debug)
+      cat("enter while ( ssr > ssr.old ) loop\n")
 
     while ( ssr > ssr.old )
     { # begin iter
@@ -164,101 +219,8 @@ nlsur <- function(eqns, data, startvalues, S = NULL, debug = FALSE,
       if (debug)
         cat("alpha: ", alpha, "\n")
 
-      # A few random fixes for values of the function. It these are applied,
-      # results are biased. These fixes allow estimation of the Sigma Matrix
-      # and IFGNL() can be estimated.
-      if ( any (is.na(dResidTheta))){
-        dResidTheta[is.na(dResidTheta)] <- 0
-        warning("2. Fix NA value in dResidTheta!")
-      }
-      if ( any (is.nan(dResidTheta))){
-        dResidTheta[is.nan(dResidTheta)] <- 0
-        warning("2. Fix NaN value in dResidTheta!")
-      }
-      if(any(is.infinite(dResidTheta))){
-        # dResidTheta[is.infinite(dResidTheta)] <- 1
-        dResidTheta[dResidTheta==+Inf] <- +2^1022
-        dResidTheta[dResidTheta==-Inf] <- -2^1022
-        warning("Fix Inf value in dResidTheta!")
-      }
-      if(any(is.infinite(r))){
-        # r[is.infinite(r)] <- 1
-        r[r==+Inf] <- +2^1022
-        r[r==-Inf] <- -2^1022
-        warning("Fix Inf value in r!")
-      }
-      if(any(is.nan(r))){
-        r[is.nan(r)] <- 0
-        warning("Fix NaN value in r!")
-      }
-      if(any(is.na(r))){
-        r[is.na(r)] <- 0
-        warning("Fix NA value in r!")
-      }
-
-      # weighted regression r ~ gradient*hessian
-      if (!MASS){
-        if ( nls & is.null(S) )
-        {
-          # gH <- as.matrix(coef(lm(r~dResidTheta+0)))
-          gH <- qr.coef(qr(dResidTheta), r)
-        } else {
-          gH <- qr.solve(
-            # t(dResidTheta)%*%S%*%dResidTheta
-            Matrix::crossprod(
-              Matrix::t(Matrix::crossprod(dResidTheta, S)),
-              dResidTheta),
-            tol = solvetol
-          ) %*% (
-            # t(dResidTheta)%*%S%*%r
-            Matrix::crossprod(
-              Matrix::t(Matrix::crossprod(dResidTheta, S)), r)
-          )
-        }
-      } else{
-        gH <- as.matrix(coef(MASS::lm.gls(r ~ 0 + dResidTheta, W = S)))
-        # Note: Das funktioniert nicht, mit meiner gigantischen S Matrix. Damit
-        # die Gewichte beruecksichtigt werden, wird zunächst mit der Matrix ge-
-        # wichtet. Dabei wird eigen() aufgerufen. Das produziert eine normale
-        # Matrix. Meine Matrix::Diagonal() wird mit as.matrix() behandelt und
-        # das RAM Problem taucht wieder auf.
-      }
-
-      # Sometimes gH will return a NA value. To get resonable results when
-      # estimating the new theta, NA will be replaced by a Zero. theta.new will at
-      # least contain the value of theta.
-      if ( any(is.na(gH)) ){
-        gH[is.na(gH)] <- 0
-        warning("Fix NA value in gh.")
-      }
-
-      # d <- dResidTheta
-
-      #       S2 <- Diagonal(nrow(S))
-      #       diag(S2) <- sqrt(diag(S))
-
-      #       X <- dResidTheta
-      #       y <- r
-      #       eW <- eigen(S) #eigs(A=S, k = nrow(X), which="LM")
-      #
-      #       d <- eW$values
-      #       A <- diag(d^ifelse(FALSE, -0.5, 0.5)) %*% t(eW$vector)
-      # Ainv <- eW$vector %*% diag(d^ifelse(inverse, 0.5, -0.5))
-
-
-      # gH <- qr.coef(qr(A%*%X), A%*%y)
-      # gH <- as.matrix(coef(lm(as.matrix(y)~as.matrix(X)+0)))
-      # gH <- as.matrix(coef(MASS::lm.gls(r~dResidTheta+0, W = S)))
-
-      # estimate a new theta
-      # old theta + scaling-parameter * gH
-      theta.new <- as.vector( theta + alpha * gH )
-      names(theta.new) <- names(theta)
-
-      if (debug){
-        b <- cbind(theta, theta.new)
-        print(b)
-      }
+      # use the scalar to get a new theta
+      theta.new <- startvalues + alpha * theta
 
       ## assign new thetas thetas = makes them available to eval
       for (i in 1:length(theta.new)) {
@@ -269,110 +231,66 @@ nlsur <- function(eqns, data, startvalues, S = NULL, debug = FALSE,
       }
 
       # eval eqn with the new theta
-      lhs    <- list()
-      rhs    <- list()
-      residi <- NULL
-      r      <- NULL
-      dResidThetai <- list()
-      dResidTheta  <- NULL
+      lhs <- rhs <- ri <- xi <- list()
+      r <- x <- NULL
 
-      for (i in 1:length(eqns)) {
-        lhs[[i]] <- as.matrix(eval(as.formula(eqns[[i]])[[2]], envir = data))
-        rhs[[i]] <- as.matrix(eval(as.formula(eqns[[i]])[[3]], envir = data))
+      for (i in 1:neqs) {
+        lhs[[i]] <- eval(as.formula(eqns[[i]])[[2]], envir = data)
+        rhs[[i]] <- eval(as.formula(eqns[[i]])[[3]], envir = data)
+        ri[[i]] <- lhs[[i]] - rhs[[i]]
 
-        residi[[i]] <- lhs[[i]] - rhs[[i]]
-        r <- rbind(r, residi[[i]])
-
-        dResidThetai[[i]] <-
-          attributes(with(data, with(as.list(theta.new),
-                                     eval(deriv(eqns[[i]], names(theta.new)),
-                                          envir = data))))$gradient
-
-        dResidTheta <- rbind(dResidTheta, dResidThetai[[i]])
+        xi[[i]] <- attr(with(data, with(as.list(theta.new),
+                                        eval(deriv(eqns[[i]], names(theta.new)),
+                                             envir = data))), "gradient")
       }
 
-      if ( any (is.na(dResidTheta))){
-        dResidTheta[is.na(dResidTheta)] <- 0
-        warning("2. Fix NA value in dResidTheta!")
-      }
-      if ( any (is.nan(dResidTheta))){
-        dResidTheta[is.nan(dResidTheta)] <- 0
-        warning("3. Fix NaN value in dResidTheta!")
-      }
-      if(any(is.infinite(dResidTheta))){
-        # dResidTheta[is.infinite(dResidTheta)] <- 1
-        dResidTheta[dResidTheta==+Inf] <- +2^1022
-        dResidTheta[dResidTheta==-Inf] <- -2^1022
-        warning("Fix Inf value in dResidTheta!")
-      }
-      if(any(is.infinite(r))){
-        # r[is.infinite(r)] <- 1
-        r[r==+Inf] <- +2^1022
-        r[r==-Inf] <- -2^1022
-        warning("Fix Inf value in r!")
-      }
-      if(any(is.nan(r))){
-        r[is.nan(r)] <- 0
-        warning("Fix NaN value in r!")
-      }
-      if(any(is.na(r))){
-        r[is.na(r)] <- 0
-        warning("Fix NA value in r!")
-      }
+      r <- do.call(cbind, ri)
+      x <- do.call(cbind, xi)
 
-      # Estimate a new SSR
-      # t(r)%*%S%*%r
-      if ( nls & is.null(S) ){
-        ssr <- as.vector(crossprod(r))
-      } else {
-        ssr <- as.vector( Matrix::crossprod(
-          Matrix::t(Matrix::crossprod(r, S)), r) )
-      }
+      # Evaluate initial ssr
+      ssr <- calc_ssr(r, s, eqns)
 
       # divide stepsizeparameter
       alpha <- alpha/2
 
-      # for nls iteration stops if SSR(betaN) < SSR(beta)
-      # else the alogrithm tries to maximize ssr
 
-      #       if ( ifgnls )
-      #         iter <- !isTRUE(ssr > ssr.old)
-      #       else
-      #         iter <- !isTRUE(ssr >= ssr.old)
-
+      if (debug)
+        cat("SSR :", ssr, "SSR_Old:", ssr.old, "\n")
 
     } # end iter
+
+    ssr.old <- ssr
+
+    if (debug)
+      print(r)
 
     if (trace)
       cat("SSR: ", ssr, "\n")
 
-    # cat (alpha, "\n")
-    # cat("SSR: ", ssr, " SSR Old: ", ssr.old, "\n")
-    # cat("\nSSR: ", ssr, " SSR Old: ", ssr.old, "\n")
-
     if(debug){
       print(warnings())
-      b <- cbind(theta, theta.new)
+      b <- cbind(theta.old, theta)
       print(b)
     }
 
     # Stopping rule. [Gallant (1987) p.29]
     # Note: R uses a different convergence criterium
 
-    #     # ssr: |ssr.old - ssr| < eps | ssr.old + tau|
-    #     conv1 <- abs(ssr.old - ssr) < eps * (ssr.old + tau)
-    #
-    #     # theta: ||theta - theta.new|| < eps (||theta|| + tau)
-    #         conv2 <- norm(as.matrix(theta - theta.new)) <
-    #           eps * (norm(as.matrix(theta)) + tau)
+    # ssr: |ssr.old - ssr| < eps | ssr.old + tau|
+    # conv1 <- abs(ssr.old - ssr) < eps * (ssr.old + tau)
+
+    # theta: ||theta - theta.new|| < eps (||theta|| + tau)
+    # conv2 <- norm(as.matrix(theta - theta.new)) <
+    #   eps * (norm(as.matrix(theta)) + tau)
 
     # no idea why, but Stata uses this
-    # Stata uses this
     conv1 <- !isTRUE(abs(ssr.old - ssr) > eps * (ssr.old + tau))
     # conv1 <- TRUE
 
-    conv2 <- !isTRUE(all( alpha * abs(gH) > eps * (abs(theta) + tau) ))
-    # conv2 <- TRUE
+    conv2 <- !isTRUE(all( alpha * abs(theta) > eps * (abs(startvalues) + tau) ))
+    # conv2 <- !isTRUE( alpha * all(abs(theta - theta.new) > eps * (theta + tau)) )
+    # print(theta)
+    # conv2 <- FALSE
 
     # and this is what Stata documents what they do for nl
     # conv2 <- all( alpha * abs(theta.new) <= eps * (abs(theta) + tau) )
@@ -386,22 +304,20 @@ nlsur <- function(eqns, data, startvalues, S = NULL, debug = FALSE,
     itr <- itr + 1
     theta <- theta.new
     ssr.old <- ssr
-
+    startvalues <- theta
 
 
     if(debug)
       print(itr)
 
-    # residi are expected to be in a matrix not a list
-    if ( conv ) {
-      residi <- matrix(unlist(residi), ncol = length(eqns))
-    }
-
   }
 
   z$coefficients <- theta
-  z$residuals <- residi
+  z$residuals <- r
+  z$xi <- xi
   z$eqnames <- eqnames
+  z$sigma <- 1/n * crossprod(r)
+  z$ssr <- ssr
 
   z$lhs <- lhs
   z$rhs <- rhs
@@ -415,7 +331,7 @@ nlsur <- function(eqns, data, startvalues, S = NULL, debug = FALSE,
 #' @export
 ifgnls <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
                    trace = FALSE, solvetol = .Machine$double.eps, nls = nls,
-                   MASS = FALSE) {
+                   MASS = FALSE, eps = 1e-5, ifgnlseps = 1e-10, tau = 1e-3) {
 
   # Check if all variables that are not startvalues exist in data.
   vars <- unlist(lapply(eqns, all.vars))
@@ -426,15 +342,24 @@ ifgnls <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
     return(0)
   }
 
+  # remove observation, if observation a parameter contains NA.
+  modelparameters <- unlist(lapply(eqns, all.vars))
+  parms <- modelparameters[which(!modelparameters %in% names(startvalues))]
+
+  data <- na.omit(data[parms])
+
+  neqs   <- length(eqns)
+  nls    <- FALSE
   fgnls  <- FALSE
   ifgnls <- FALSE
   z      <- NULL
   zi     <- NULL
+  n <- nrow(data)
 
   #
   if (!is.null(type)) {
     if(type == "NLS" | type == 1) {
-      type <- NULL
+      nls <- TRUE
     } else {
       if (type == "FGNLS" | type == 2) {
         fgnls <- TRUE
@@ -447,6 +372,7 @@ ifgnls <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
     }
   }
 
+
   # Estimation of NLS
   # nls
   if (trace)
@@ -454,9 +380,18 @@ ifgnls <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
 
   z <- nlsur( eqns = eqns, data = data, startvalues = startvalues, S = S,
               debug = debug, nls = TRUE, trace = trace, solvetol = solvetol,
-              MASS = MASS)
+              MASS = MASS, eps = eps, tau = tau)
 
+  if (nls) {
+    S <- z$sigma
+    z <- nlsur( eqns = eqns, data = data, startvalues = z$coefficients, S = S,
+                debug = debug, nls = nls, trace = trace, solvetol = solvetol,
+                MASS = MASS, eps = eps, tau = tau)
+  }
   z$nlsur <- "NLS"
+
+  # For w/e kind of reason, Stata estimates a second nls with diag(S) instead of
+  # I.
 
   # Estimation of FGNLS
   if (fgnls) {
@@ -464,14 +399,14 @@ ifgnls <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
     if (trace)
       cat("-- FGNLS\n")
 
-    S <- Matrix::kronecker( qr.solve(1/nrow(data) *
-                                       Matrix::crossprod(z$residuals),
-                                     tol = solvetol),
-                            Matrix::Diagonal(nrow(data)) )
+    nlserg <<- z
+
+    S <- z$sigma
+    # print(S)
 
     z <- nlsur(eqns = eqns, data = data, startvalues = z$coefficients,
                S = S, debug = debug, nls = FALSE, trace = trace,
-               solvetol = solvetol, MASS = MASS)
+               solvetol = solvetol, MASS = MASS, eps = eps, tau = tau)
 
 
     z$nlsur <- "FGNLS"
@@ -487,35 +422,58 @@ ifgnls <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
       while (!conv)
       {
 
-        r <- matrix(z$residuals, ncol=1)
+        if (iter == 1000){
+          message(paste(iter, "nls iterations and convergence not reached."),
+                  paste("Last theta is: \n", theta, "\n"))
+          return(0)
+        }
 
         z.old <- z
-        rss.old <- as.vector(Matrix::crossprod(
-          Matrix::t(Matrix::crossprod(r, S)), r)
-          )
+        S.old <- S
 
-        S <- Matrix::kronecker(qr.solve(1/nrow(data) *
-                                          Matrix::crossprod(z$residuals),
-                                        tol = solvetol),
-                               Matrix::Diagonal(nrow(data))
-                               )
+        # s <- chol(qr.solve(S))
+        # rss.old <- calc_ssr(r, s, eqns)
+
+        S <- z$sigma
+        # print(S)
 
         z <- nlsur(eqns = eqns, data = data, startvalues = z$coefficients,
                    S = S, debug = debug, nls = FALSE, solvetol = solvetol,
-                   MASS = MASS)
+                   MASS = MASS, eps = eps, tau = tau)
 
-        r <- matrix(z$residuals, ncol=1)
-        rss <- as.vector(Matrix::crossprod(
-          Matrix::t(Matrix::crossprod(r, S)), r)
-          )
+        r <- z$residuals
+        s <- chol(qr.solve(S))
 
-        eps <- 1e-5; tau <- 1e-3; iter <- iter +1
 
-        conv1 <- abs(rss.old - rss) < eps * (rss.old + tau)
-        conv2 <- norm(as.matrix(z.old$coefficients - z$coefficients)) <
-          eps * (norm(as.matrix(z.old$coefficients)) + tau)
+        rss <- calc_ssr(r, s, eqns)
 
-        conv <- all(conv1, conv2)
+        # eps <- 1e-5; tau <- 1e-3;
+        iter <- iter +1
+
+        maxthetachange <- max(abs(coef(z.old) - coef(z)) /
+                                ( abs(coef(z.old)) +1) )
+        maxSigmachange <- max(abs(S.old - S) /
+                                (abs(S.old) + 1))
+
+        if (is.nan(maxSigmachange))
+          maxSigmachange <- 0
+
+        #         print(maxthetachange)
+        #         print(maxSigmachange)
+
+        # conv1 <- abs(rss.old - rss) < eps * (rss.old + tau)
+        # conv2 <- norm(as.matrix(z.old$coefficients - z$coefficients)) <
+        #   eps * (norm(as.matrix(z.old$coefficients)) + tau)
+
+        # conv <- any(conv1, conv2)
+
+        # print(maxthetachange)
+        # print(maxSigmachange)
+
+        conv1 <- maxthetachange < eps
+        conv2 <- maxSigmachange < ifgnlseps
+
+        conv <- any(conv1, conv2)
 
         if (trace)
           cat("Iteration", iter, ": SSR", rss, "\n")
@@ -523,8 +481,8 @@ ifgnls <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
       }
       message <- paste("Convergence after iteration:", iter,".")
 
-      S <- 1/nrow(data) * crossprod(z$residuals)
-      N <- nrow(data)
+      S <- z$sigma
+      N <- n
       M <- nrow(S)
 
       LL <- -(M*N)/2 * (1 + log(2*pi)) - N/2 * log(det(S))
@@ -539,27 +497,26 @@ ifgnls <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
 
 
   #### 2. Estimation of covariance matrix, standard errors and t-values ####
-  X       <- NULL
-  r       <- NULL
-  residi  <- list()
-  derivs  <- list()
+  xi      <- list()
+  ri      <- list()
   lhs     <- list()
   rhs     <- list()
-  G       <- length(eqns)
-  n       <- array(0, c(G))      # number of observations in each equation
-  k       <- array(0, c(G))      # number of (unrestricted) coefficients/regressors in each equation
-  df      <- array(0, c(G))      # degrees of freedom
-  ssr     <- array(0, c(G))      # sum of squared residuals
-  mse     <- array(0, c(G))      # mean square error
-  rmse    <- array(0, c(G))      # root of mse
-  mae     <- array(0, c(G))      # mean absolute error
-  r2      <- array(0, c(G))      # R-squared value
-  adjr2   <- array(0, c(G))      # adjusted R-squared value
+  n       <- vector("integer", length=neqs)      # number of observations in each equation
+  k       <- vector("integer", length=neqs)      # number of (unrestricted) coefficients/
+  # regressors in each equation
+  df      <- vector("integer", length=neqs)      # degrees of freedom
+  ssr     <- vector("numeric", length=neqs)      # sum of squared residuals
+  mse     <- vector("numeric", length=neqs)      # mean square error
+  rmse    <- vector("numeric", length=neqs)      # root of mse
+  mae     <- vector("numeric", length=neqs)      # mean absolute error
+  r2      <- vector("numeric", length=neqs)      # R-squared value
+  adjr2   <- vector("numeric", length=neqs)      # adjusted R-squared value
 
   # Get theta, lhs, rhs and residuals from the last estimation.
   theta   <- z$coefficients
   lhs     <- z$lhs
   rhs     <- z$rhs
+  xi      <- z$xi
 
   for (i in 1:length(theta)) {
     name <- names(theta)[i]
@@ -568,29 +525,26 @@ ifgnls <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
     assign(name, val)
   }
 
-  # Estimate jacobian for later use in OLS
-  for (i in 1:length(eqns)) {
-    derivs[[i]] <- deriv(as.formula(eqns[[i]]), names(theta))
-
-    jacobian <- attr(eval(derivs[[i]], envir = data), "gradient")
-    residi[[i]]  <- lhs[[i]] - rhs[[i]]
-    r <- cbind(r, residi[[i]])
+  # contains some duplicated code. ToDo: figure out a way to use this in a
+  # efficient manor aka run this loop as few times as possible.
+  for (i in 1:neqs) {
+    ri[[i]]  <- lhs[[i]] - rhs[[i]]
 
     n[i]     <- length(lhs[[i]])
-    k[i]     <- qr(jacobian)$rank
+    k[i]     <- qr(xi[[i]])$rank
     df[i]    <- n[i] - k[i]
 
-    ssr[i]   <- as.vector(crossprod(residi[[i]]))
+    ssr[i]   <- as.vector(crossprod(ri[[i]]))
     mse[i]   <- ssr[i] / n[i]
     rmse[i]  <- sqrt(mse[i])
-    mae[i]   <- sum(abs(residi[[i]]))/n[i]
+    mae[i]   <- sum(abs(ri[[i]]))/n[i]
 
     r2[i]    <- 1 - ssr[i] /
       ((crossprod(lhs[[i]])) - mean(lhs[[i]]) ^ 2 * n[i])
     adjr2[i] <- 1 - ((n[i] - 1) / df[i]) * (1 - r2[i])
-
-    X        <- rbind(X, jacobian)
   }
+  x <- do.call(cbind, xi)
+  r <- do.call(cbind, ri)
 
   # Create zi for export per equation results
   zi       <- list()
@@ -604,18 +558,12 @@ ifgnls <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
   zi$r2    <- r2
   zi$adjr2 <- adjr2
 
-  # Estimate sigma and S matrix for covb
-  sigma <- 1/nrow(data) * crossprod(r)
-  S <- Matrix::kronecker(
-    qr.solve(sigma), Matrix::Diagonal(n[1])
-  )
-
   # Estimate covb
-  covb <- qr.solve(
-    Matrix::crossprod(Matrix::t(Matrix::crossprod(X, S)),X),
-    tol = solvetol
-  )
-  colnames(covb) <- rownames(covb)
+  sigma <- z$sigma
+  qS <- qr.solve(sigma)
+
+  # covb is solve(XDX)
+  covb <- calc_reg(x, r, qS, length(theta), neqs, 0)
 
   # Estimate SE and t-value
   se <- sqrt(diag(covb))
@@ -666,8 +614,10 @@ summary.nlsur <- function(x) {
 
   # ans$coefficients <- z[c("coefficients", "se", "t")]
   ans$coefficients <- cbind(est, se, t, prob)
-  dimnames(ans$coefficients) <- list(names(x$coefficients),
-                                     c("Estimate", "Std. Error", "t value", "Pr(>|t|)"))
+  dimnames(ans$coefficients) <- list(
+    names(x$coefficients),
+    c("Estimate", "Std. Error", "t value", "Pr(>|t|)")
+  )
 
   ans$residuals <- r
   ans$df        <- df

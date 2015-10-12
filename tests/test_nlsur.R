@@ -14,9 +14,12 @@ model <- list(p1 ~ b1 * b2 ^ time,
 startvalues <- c(b1=1e-01, b2=1e-01,
                 g1=1e-01, g2=1e-01)
 
-erg1 <- ifgnls(eqns = model, startvalues = startvalues, data = dat, type = 1)
-erg2 <- ifgnls(eqns = model, startvalues = startvalues, data = dat, type = 2)
-erg3 <- ifgnls(eqns = model, startvalues = startvalues, data = dat, type = 3)
+erg1 <- ifgnls(eqns = model, startvalues = startvalues, data = dat, type = 1,
+               eps = .Machine$double.eps, trace = TRUE)
+erg2 <- ifgnls(eqns = model, startvalues = startvalues, data = dat, type = 2,
+               eps = .Machine$double.eps, trace = TRUE)
+erg3 <- ifgnls(eqns = model, startvalues = startvalues, data = dat, type = 3,
+               eps = .Machine$double.eps, trace = TRUE)
 
 # startvalues <- c(b1=0,b2=0,g1=0,g2=0)
 # startvalues <- c(b1=1e-03, b2=1e-03,
@@ -32,8 +35,8 @@ for (a in sequenz) {
 
         startvalues <- c(b1 = a, b2 = b, g1 = c, g2 = d)
 
-        erg1 <- ifgnls(eqns = model, startvalues = startvalues,
-                       data = dat, type = 1)
+        erg1 <- ifgnls(eqns = model, startvalues = startvalues, data = dat,
+                       type = 1)
         cat(coef(erg1), " || ", startvalues, "\n")
 
       }
