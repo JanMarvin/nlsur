@@ -7,15 +7,15 @@
 using namespace Rcpp;
 
 // calc_ssr
-SEXP calc_ssr(arma::Mat<double> r, arma::Mat<double> s, Rcpp::List eqs);
-RcppExport SEXP nlsur_calc_ssr(SEXP rSEXP, SEXP sSEXP, SEXP eqsSEXP) {
+SEXP calc_ssr(arma::Mat<double> r, arma::Mat<double> s, int neqs);
+RcppExport SEXP nlsur_calc_ssr(SEXP rSEXP, SEXP sSEXP, SEXP neqsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
     Rcpp::traits::input_parameter< arma::Mat<double> >::type r(rSEXP);
     Rcpp::traits::input_parameter< arma::Mat<double> >::type s(sSEXP);
-    Rcpp::traits::input_parameter< Rcpp::List >::type eqs(eqsSEXP);
-    __result = Rcpp::wrap(calc_ssr(r, s, eqs));
+    Rcpp::traits::input_parameter< int >::type neqs(neqsSEXP);
+    __result = Rcpp::wrap(calc_ssr(r, s, neqs));
     return __result;
 END_RCPP
 }

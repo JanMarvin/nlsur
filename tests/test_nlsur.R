@@ -44,3 +44,15 @@ for (a in sequenz) {
   }
 }
 
+
+model1 <- list(p1 ~ b1 * b2 ^ time)
+model2 <- list(p2 ~ g1 * g2 ^ time)
+
+startvalues1 <- c(b1=1e-01, b2=1e-01)
+startvalues2 <- c(g1=1e-01, g2=1e-01)
+
+e1 <- ifgnls(eqns = model1, startvalues = startvalues1, data = dat, type = 1)
+e2 <- ifgnls(eqns = model2, startvalues = startvalues2, data = dat, type = 1)
+
+ea <- nls(model1[[1]], data = dat, start = startvalues1)
+eb <- nls(model2[[1]], data = dat, start = startvalues2)

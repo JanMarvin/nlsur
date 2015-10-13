@@ -139,7 +139,7 @@ nlsur <- function(eqns, data, startvalues, S = NULL, debug = FALSE,
     print(r)
 
   # Evaluate initial ssr
-  ssr.old <- calc_ssr(r, s, eqns)
+  ssr.old <- calc_ssr(r, s, neqs)
 
   if (trace)
     cat("Initial SSR: ", ssr.old, "\n")
@@ -248,7 +248,7 @@ nlsur <- function(eqns, data, startvalues, S = NULL, debug = FALSE,
       x <- do.call(cbind, xi)
 
       # Evaluate initial ssr
-      ssr <- calc_ssr(r, s, eqns)
+      ssr <- calc_ssr(r, s, neqs)
 
       # divide stepsizeparameter
       alpha <- alpha/2
@@ -399,7 +399,7 @@ ifgnls <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
     if (trace)
       cat("-- FGNLS\n")
 
-    nlserg <<- z
+    # nlserg <<- z
 
     S <- z$sigma
     # print(S)
@@ -432,7 +432,7 @@ ifgnls <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
         S.old <- S
 
         # s <- chol(qr.solve(S))
-        # rss.old <- calc_ssr(r, s, eqns)
+        # rss.old <- calc_ssr(r, s, neqs)
 
         S <- z$sigma
         # print(S)
@@ -445,7 +445,7 @@ ifgnls <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
         s <- chol(qr.solve(S))
 
 
-        rss <- calc_ssr(r, s, eqns)
+        rss <- calc_ssr(r, s, neqs)
 
         # eps <- 1e-5; tau <- 1e-3;
         iter <- iter +1

@@ -5,10 +5,9 @@ using namespace Rcpp;
 using namespace arma;
 
 // [[Rcpp::export]]
-SEXP calc_ssr (arma::Mat<double> r, arma::Mat<double> s, Rcpp::List eqs) {
+SEXP calc_ssr (arma::Mat<double> r, arma::Mat<double> s, int neqs) {
 
   arma::mat ssr(1,1, fill::zeros);
-  int neqs = eqs.size();
   int n    = r.n_rows;
 
   s = s.t();
