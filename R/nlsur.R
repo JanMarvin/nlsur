@@ -650,7 +650,10 @@ print.summary.nlsur <- function(x) {
 }
 
 #' @export
-predict.nlsur <- function(obj, eqs, data) {
+predict.nlsur <- function(obj, data) {
+
+  eqs <- obj$model
+
   ddcoef <- list()
   for(i in seq(coef(obj))){
     nam <- names(coef(obj))[i]
