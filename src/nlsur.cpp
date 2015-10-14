@@ -1,8 +1,11 @@
 #include <RcppArmadillo.h>
 
+
 // [[Rcpp::depends(RcppArmadillo)]]
 using namespace Rcpp;
 using namespace arma;
+
+// @import RcppArmadillo
 
 // [[Rcpp::export]]
 SEXP calc_ssr (arma::Mat<double>& r, arma::Mat<double>& s, int neqs) {

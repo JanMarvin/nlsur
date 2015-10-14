@@ -6,7 +6,7 @@
 \usage{
 nlsur(eqns, data, startvalues, S = NULL, debug = FALSE, nls = FALSE,
   fgnls = FALSE, ifgnls = FALSE, MASS = FALSE, trace = FALSE,
-  solvetol = .Machine$double.eps)
+  solvetol = solvetol, eps = eps, tau = tau)
 }
 \arguments{
 \item{eqns}{is can be a single equation or a quation system. If eqns is a

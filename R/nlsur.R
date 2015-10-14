@@ -61,6 +61,8 @@
 #' Bates, D. M. and Watts, D. G. (1988) Nonlinear Regression Analysis and Its
 #'  Applications, Wiley
 #'  Gallant, A. Ronald (1987): Nonlinear Statistical Models. Wiley: New York
+#' @useDynLib nlsur
+#' @import RcppArmadillo
 
 #' @export
 nlsur <- function(eqns, data, startvalues, S = NULL, debug = FALSE,
@@ -647,6 +649,7 @@ print.summary.nlsur <- function(x) {
     cat("Log-Likelihood:", x$LL, "\n")
 }
 
+#' @export
 predict.nlsur <- function(obj, eqs, data) {
   ddcoef <- list()
   for(i in seq(coef(obj))){
