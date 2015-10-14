@@ -417,6 +417,7 @@ ifgnls <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
       if (trace)
         cat("-- IFGNLS\n")
 
+      S <- z$sigma
       conv <- FALSE
       iter <- 0
       while (!conv)
@@ -424,7 +425,8 @@ ifgnls <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
 
         if (iter == 1000){
           message(paste(iter, "nls iterations and convergence not reached."),
-                  paste("Last theta is: \n", theta, "\n"))
+                  paste("Last theta is: \n"),
+                  coef(z))
           return(0)
         }
 
@@ -434,7 +436,6 @@ ifgnls <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
         # s <- chol(qr.solve(S))
         # rss.old <- calc_ssr(r, s, neqs)
 
-        S <- z$sigma
         # print(S)
 
         z <- nlsur(eqns = eqns, data = data, startvalues = z$coefficients,
@@ -442,6 +443,7 @@ ifgnls <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
                    MASS = MASS, eps = eps, tau = tau)
 
         r <- z$residuals
+        S <- z$sigma
         s <- chol(qr.solve(S))
 
 
@@ -645,3 +647,26 @@ print.summary.nlsur <- function(x) {
     cat("Log-Likelihood:", x$LL, "\n")
 }
 
+predict.nlsur <- function(obj, eqs, data) {
+  ddcoef <- list()
+  for(i in seq(coef(obj))){
+    nam <- names(coef(obj))[i]
+    ddcoef[nam] <- coef(obj)[i]
+  }
+  ddcoef <- data.frame(ddcoef)
+
+  data2 <- data.frame(data, ddcoef)
+
+  fit <- list()
+  vnam <- NULL
+  for (i in seq(length(eqs))){
+    fit[[i]] <- eval(eqs[[i]][[3]], envir = data2)
+    vnam.i <- eqs[[i]][[2]]
+    vnam <- c(vnam, vnam.i)
+  }
+
+  fit <- data.frame(fit)
+  names(fit) <- vnam
+
+  fit
+}

@@ -37,7 +37,11 @@ for (a in sequenz) {
 
         erg1 <- ifgnls(eqns = model, startvalues = startvalues, data = dat,
                        type = 1)
-        cat(coef(erg1), " || ", startvalues, "\n")
+        erg2 <- ifgnls(eqns = model, startvalues = startvalues, data = dat,
+                       type = 2)
+        erg3 <- ifgnls(eqns = model, startvalues = startvalues, data = dat,
+                       type = 3)
+        cat(coef(erg1), " || ", coef(erg2), " || ", coef(erg3), " || ", startvalues, "\n")
 
       }
     }
