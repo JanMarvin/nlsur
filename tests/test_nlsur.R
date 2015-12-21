@@ -16,8 +16,10 @@ startvalues <- c(b1=1e-01, b2=1e-01,
 
 erg1 <- ifgnls(eqns = model, startvalues = startvalues, data = dat, type = 1,
                eps = .Machine$double.eps, trace = TRUE)
+
 erg2 <- ifgnls(eqns = model, startvalues = startvalues, data = dat, type = 2,
                eps = .Machine$double.eps, trace = TRUE)
+
 erg3 <- ifgnls(eqns = model, startvalues = startvalues, data = dat, type = 3,
                eps = .Machine$double.eps, trace = TRUE)
 
