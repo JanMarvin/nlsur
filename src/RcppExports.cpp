@@ -7,43 +7,43 @@
 using namespace Rcpp;
 
 // calc_ssr
-SEXP calc_ssr(arma::Mat<double>& r, arma::Mat<double>& s, int neqs);
+SEXP calc_ssr(arma::Mat<double> r, arma::Mat<double> s, int neqs);
 RcppExport SEXP nlsur_calc_ssr(SEXP rSEXP, SEXP sSEXP, SEXP neqsSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
-    Rcpp::traits::input_parameter< arma::Mat<double>& >::type r(rSEXP);
-    Rcpp::traits::input_parameter< arma::Mat<double>& >::type s(sSEXP);
+    Rcpp::traits::input_parameter< arma::Mat<double> >::type r(rSEXP);
+    Rcpp::traits::input_parameter< arma::Mat<double> >::type s(sSEXP);
     Rcpp::traits::input_parameter< int >::type neqs(neqsSEXP);
     __result = Rcpp::wrap(calc_ssr(r, s, neqs));
     return __result;
 END_RCPP
 }
 // arma_reshape
-arma::Mat<double> arma_reshape(arma::Mat<double>& mm, int sizetheta);
+arma::Mat<double> arma_reshape(arma::Mat<double> mm, int sizetheta);
 RcppExport SEXP nlsur_arma_reshape(SEXP mmSEXP, SEXP sizethetaSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
-    Rcpp::traits::input_parameter< arma::Mat<double>& >::type mm(mmSEXP);
+    Rcpp::traits::input_parameter< arma::Mat<double> >::type mm(mmSEXP);
     Rcpp::traits::input_parameter< int >::type sizetheta(sizethetaSEXP);
     __result = Rcpp::wrap(arma_reshape(mm, sizetheta));
     return __result;
 END_RCPP
 }
 // calc_reg
-SEXP calc_reg(arma::Mat<double>& x, arma::Mat<double>& r, arma::Mat<double>& qS, int sizetheta, int neqs, bool fullreg);
-RcppExport SEXP nlsur_calc_reg(SEXP xSEXP, SEXP rSEXP, SEXP qSSEXP, SEXP sizethetaSEXP, SEXP neqsSEXP, SEXP fullregSEXP) {
+SEXP calc_reg(arma::Mat<double> x, arma::Mat<double> r, arma::Mat<double> S, int sizetheta, int neqs, bool fullreg);
+RcppExport SEXP nlsur_calc_reg(SEXP xSEXP, SEXP rSEXP, SEXP SSEXP, SEXP sizethetaSEXP, SEXP neqsSEXP, SEXP fullregSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
-    Rcpp::traits::input_parameter< arma::Mat<double>& >::type x(xSEXP);
-    Rcpp::traits::input_parameter< arma::Mat<double>& >::type r(rSEXP);
-    Rcpp::traits::input_parameter< arma::Mat<double>& >::type qS(qSSEXP);
+    Rcpp::traits::input_parameter< arma::Mat<double> >::type x(xSEXP);
+    Rcpp::traits::input_parameter< arma::Mat<double> >::type r(rSEXP);
+    Rcpp::traits::input_parameter< arma::Mat<double> >::type S(SSEXP);
     Rcpp::traits::input_parameter< int >::type sizetheta(sizethetaSEXP);
     Rcpp::traits::input_parameter< int >::type neqs(neqsSEXP);
     Rcpp::traits::input_parameter< bool >::type fullreg(fullregSEXP);
-    __result = Rcpp::wrap(calc_reg(x, r, qS, sizetheta, neqs, fullreg));
+    __result = Rcpp::wrap(calc_reg(x, r, S, sizetheta, neqs, fullreg));
     return __result;
 END_RCPP
 }

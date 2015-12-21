@@ -101,8 +101,10 @@ nlsur <- function(eqns, data, startvalues, S = NULL, debug = FALSE,
   if (debug)
     print(S)
 
-  qS <- qr.solve(S)
-  s  <- chol(qS)
+  # qS <- qr.solve(S)
+  # s  <- chol(qS)
+  #
+  # print(s)
 
   eqnames <- NULL
 
@@ -141,7 +143,7 @@ nlsur <- function(eqns, data, startvalues, S = NULL, debug = FALSE,
     print(r)
 
   # Evaluate initial ssr
-  ssr.old <- calc_ssr(r, s, neqs)
+  ssr.old <- calc_ssr(r, S, neqs)
 
   if (trace)
     cat("Initial SSR: ", ssr.old, "\n")
@@ -204,7 +206,7 @@ nlsur <- function(eqns, data, startvalues, S = NULL, debug = FALSE,
       # neqs  <<- neqs
 
       # Weighted regression of residuals on derivs ---
-      theta_test <- calc_reg(x, r, qS, length(theta), neqs, 1)
+      theta_test <- calc_reg(x, r, S, length(theta), neqs, 1)
       theta.new <- as.vector(theta_test)
 
       names(theta.new) <- names(theta)
@@ -250,7 +252,7 @@ nlsur <- function(eqns, data, startvalues, S = NULL, debug = FALSE,
       x <- do.call(cbind, xi)
 
       # Evaluate initial ssr
-      ssr <- calc_ssr(r, s, neqs)
+      ssr <- calc_ssr(r, S, neqs)
 
       # divide stepsizeparameter
       alpha <- alpha/2
@@ -446,10 +448,10 @@ ifgnls <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
 
         r <- z$residuals
         S <- z$sigma
-        s <- chol(qr.solve(S))
+        # s <- chol(qr.solve(S))
 
 
-        rss <- calc_ssr(r, s, neqs)
+        rss <- calc_ssr(r, S, neqs)
 
         # eps <- 1e-5; tau <- 1e-3;
         iter <- iter +1
@@ -564,10 +566,10 @@ ifgnls <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
 
   # Estimate covb
   sigma <- z$sigma
-  qS <- qr.solve(sigma)
+  # qS <- qr.solve(sigma)
 
   # covb is solve(XDX)
-  covb <- calc_reg(x, r, qS, length(theta), neqs, 0)
+  covb <- calc_reg(x, r, S, length(theta), neqs, 0)
 
   # Estimate SE and t-value
   se <- sqrt(diag(covb))
