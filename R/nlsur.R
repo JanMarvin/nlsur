@@ -654,14 +654,7 @@ predict.nlsur <- function(obj, data) {
 
   eqs <- obj$model
 
-  ddcoef <- list()
-  for(i in seq(coef(obj))){
-    nam <- names(coef(obj))[i]
-    ddcoef[nam] <- coef(obj)[i]
-  }
-  ddcoef <- data.frame(ddcoef)
-
-  data2 <- data.frame(data, ddcoef)
+  data2 <- data.frame(data, as.list(coef(obj)))
 
   fit <- list()
   vnam <- NULL
