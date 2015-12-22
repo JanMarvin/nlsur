@@ -8,7 +8,7 @@ using namespace arma;
 // @import RcppArmadillo
 
 // [[Rcpp::export]]
-SEXP calc_ssr (arma::Mat<double>& r, arma::Mat<double>& s, int neqs) {
+SEXP calc_ssr (arma::Mat<double> r, arma::Mat<double> s, int neqs) {
 
   arma::mat ssr(1,1, fill::zeros);
   int n    = r.n_rows;
@@ -25,7 +25,7 @@ SEXP calc_ssr (arma::Mat<double>& r, arma::Mat<double>& s, int neqs) {
 }
 
 // [[Rcpp::export]]
-arma::Mat<double> arma_reshape(arma::Mat<double>& mm, int sizetheta) {
+arma::Mat<double> arma_reshape(arma::Mat<double> mm, int sizetheta) {
 
   arma::vec v = vectorise(mm);
 
@@ -45,7 +45,7 @@ arma::Mat<double> arma_reshape(arma::Mat<double>& mm, int sizetheta) {
 }
 
 // [[Rcpp::export]]
-SEXP calc_reg (arma::Mat<double>& x, arma::Mat<double>& r, arma::Mat<double>& qS,
+SEXP calc_reg (arma::Mat<double> x, arma::Mat<double> r, arma::Mat<double> qS,
                int sizetheta, int neqs, bool fullreg) {
 
   arma::Mat<double> XDX(sizetheta, sizetheta, fill::zeros);
