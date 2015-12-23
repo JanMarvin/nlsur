@@ -197,18 +197,34 @@ nlsur <- function(eqns, data, startvalues, S = NULL, debug = FALSE,
 
     } else {
 
-      # r     <<- r
-      # x     <<- x
-      # qS    <<- qS
-      # theta <<- theta
-      # neqs  <<- neqs
+      if (!MASS) {
+        # r     <<- r
+        # x     <<- x
+        # qS    <<- qS
+        # theta <<- theta
+        # neqs  <<- neqs
 
-      # Weighted regression of residuals on derivs ---
-      theta_test <- calc_reg(x, r, qS, length(theta), neqs, 1)
-      theta.new <- as.vector(theta_test)
+        # Weighted regression of residuals on derivs ---
+        theta_test <- calc_reg(x, r, qS, length(theta), neqs, 1)
+        theta.new <- as.vector(theta_test)
 
-      names(theta.new) <- names(theta)
-      theta <- theta.new
+        names(theta.new) <- names(theta)
+        theta <- theta.new
+      } else {
+        Sigma <- Matrix::kronecker(X = qr.solve(1/n * crossprod(r)),
+                                   Y = Matrix::diag(n) )
+        r <- matrix(r, ncol = 1)
+        x <- do.call(rbind, xi)
+
+        # Use MASS::lm.gls for the weighted regression, this will call eigen()
+        # to pre-weight r and x which then can be solved with qr. This can
+        # cause huge matrices as lm.gls() is not able to handle sparse Matrices.
+        theta.new <- coef(MASS::lm.gls(r ~ 0 + x, W = Sigma))
+        names(theta.new) <- names(theta)
+        theta <- theta.new
+      }
+
+
     }
     # end regression
 
