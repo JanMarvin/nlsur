@@ -48,9 +48,8 @@
 #' unable to handle a \code{Matrix::Diagonal()}. This will be converted with
 #' \code{as.matrix()} which can be quite RAM consuming.
 #' @param trace is a logical. If TRUE the current iterations SSR is called.
-#' @param solvetol is the \code{tol} value of \code{qr.solve()}. For certain
-#' estimations it is required to be fairly huge. Otherwise a false singularity
-#' might be reported.
+#' @param eps the epislon used for convergence in nlsur(). Default is 1e-5.
+#' @param tau is another convergence variable. Default is 1e-3.
 #'
 #' @details nlsur is a function for estimation of a non-linear least squares
 #' (NLS). In addition to \code{nls()} it is capable of estimation of system of
@@ -60,15 +59,16 @@
 #' @references
 #' Bates, D. M. and Watts, D. G. (1988) Nonlinear Regression Analysis and Its
 #'  Applications, Wiley
-#'  Gallant, A. Ronald (1987): Nonlinear Statistical Models. Wiley: New York
-#' @useDynLib nlsur
+#' @references
+#' Gallant, A. Ronald (1987): Nonlinear Statistical Models. Wiley: New York
+#' @importFrom Matrix kronecker diag
+#' @importFrom MASS lm.gls
 #' @import RcppArmadillo
-
+#' @useDynLib nlsur
 #' @export
 nlsur <- function(eqns, data, startvalues, S = NULL, debug = FALSE,
                   nls = FALSE, fgnls = FALSE, ifgnls = FALSE,
-                  MASS = FALSE, trace = FALSE,
-                  solvetol = solvetol, eps = eps, tau = tau)
+                  MASS = FALSE, trace = FALSE, eps = eps, tau = tau)
 {
   z    <- list()
   itr  <- 0
@@ -346,9 +346,63 @@ nlsur <- function(eqns, data, startvalues, S = NULL, debug = FALSE,
 
 }
 
+#' Fitting Iterative Feasible Non-Linear Seemingly Unrelated Regression Model
+#'
+#' \code{ifgnls()} is used to fit nonlinear regression models. It can handle the
+#' feasible and iterative feasible variants.
+#'
+#' @param eqns is a list object containing the model as formula. This list can
+#' handle contain only a single equations (although in this case nls() might be
+#' a better coice) or a system of equations.
+#' @param startvalues initial values for the parameters to be estimated.
+#' @param data an (optional) data frame containing the variables that will be
+#' evaluated in the formula.
+#' @param type can be 1 Nonlinear Least Squares (NLS), 2 Feasible Generalised
+#' NLS (FGNLS) or 3 Iterative FGNLS (IFGNLS) or the respective abbrevations in
+#' character form.
+#' @param eps the epislon used for convergence in nlsur(). Default is 1e-5.
+#' @param tau is another convergence variable. Default is 1e-3.
+#' @param ifgnlseps is epislon for ifgnls(). Default is 1e-10.
+#' @param trace logical wheather or not SSR information should be printed.
+#' Default is FALSE.
+#' @param debug logical wheater or not debug information will be printed.
+#' Default is FALSE.
+#' @param S is a weight matrix used for evaluation. If no weight matrix is
+#' provided the identity matrix I will be used.
+#' @param MASS is a logical wheather the MASS::lm.gls() function should be used
+#' for weighted Regression. This can cause sever RAM usage as the weight matrix
+#' tend to be huge (n-equations * n-rows).
+#'
+#' @details ifgnls() is a wrapper around nlsur(). The function was initialy
+#' inspired by the Stata Corp Function nlsur.
+#' @return The function returns a list object of class nlsur. The list includes:
+#' \describe{
+#'   \item{coefficients:}{estimated coefficients}
+#'   \item{residuals:}{residuals}
+#'   \item{xi:}{residuals of each equation in a single list}
+#'   \item{eqnames:}{list of equation names}
+#'   \item{sigma:}{the weight matrix}
+#'   \item{ssr:}{Residual sum of squares}
+#'   \item{lhs:}{Left hand side of the evaluated model}
+#'   \item{rhs:}{Right hand side of the evaluated model}
+#'   \item{nlsur:}{model type. "NLS", "FGNLS" or "IFGNLS"}
+#'   \item{se:}{standard errors}
+#'   \item{t:}{t values}
+#'   \item{covb:}{asymptotic covarince matrix}
+#'   \item{zi:}{equation wise estimation results of SSR, MSE, RMSE, MAE, R2 and
+#' Adj-R2. As well as n, k and df.}
+#'   \item{model:}{equvation or system of equations as list containing
+#' formulas}
+#' }
+#'
+#' @examples predict(nlsurObj, dataframe)
+#' @seealso nls
+#' @import RcppArmadillo
+#' @useDynLib nlsur
+#'
 #' @export
 ifgnls <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
-                   trace = FALSE, solvetol = .Machine$double.eps, nls = nls,
+                   trace = FALSE,
                    MASS = FALSE, eps = 1e-5, ifgnlseps = 1e-10, tau = 1e-3) {
 
   # Check if all variables that are not startvalues exist in data.
@@ -397,13 +451,13 @@ ifgnls <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
     cat("-- NLS\n")
 
   z <- nlsur( eqns = eqns, data = data, startvalues = startvalues, S = S,
-              debug = debug, nls = TRUE, trace = trace, solvetol = solvetol,
+              debug = debug, nls = TRUE, trace = trace,
               MASS = MASS, eps = eps, tau = tau)
 
   if (nls) {
     S <- z$sigma
     z <- nlsur( eqns = eqns, data = data, startvalues = z$coefficients, S = S,
-                debug = debug, nls = nls, trace = trace, solvetol = solvetol,
+                debug = debug, nls = nls, trace = trace,
                 MASS = MASS, eps = eps, tau = tau)
   }
   z$nlsur <- "NLS"
@@ -424,7 +478,7 @@ ifgnls <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
 
     z <- nlsur(eqns = eqns, data = data, startvalues = z$coefficients,
                S = S, debug = debug, nls = FALSE, trace = trace,
-               solvetol = solvetol, MASS = MASS, eps = eps, tau = tau)
+               MASS = MASS, eps = eps, tau = tau)
 
 
     z$nlsur <- "FGNLS"
@@ -457,7 +511,7 @@ ifgnls <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
         # print(S)
 
         z <- nlsur(eqns = eqns, data = data, startvalues = z$coefficients,
-                   S = S, debug = debug, nls = FALSE, solvetol = solvetol,
+                   S = S, debug = debug, nls = FALSE,
                    MASS = MASS, eps = eps, tau = tau)
 
         r <- z$residuals
@@ -603,21 +657,23 @@ ifgnls <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
 # [Gallant, A. Ronald (1987): Nonlinear Statistical Models. Wiley: New York]
 
 #' @export
-print.nlsur <- function(x) {
+print.nlsur <- function(x, ...) {
+  # ... is to please check()
   print(x$coefficients)
 }
 
 #' @export
-summary.nlsur <- function(x) {
+summary.nlsur <- function(object, ...) {
+  # ... is to please check()
 
-  z <- x
+  z <- object
 
   n    <- z$zi$n
   k    <- z$zi$k
   rmse <- z$zi$rmse
   r2   <- z$zi$r2
   zi   <- cbind(n, k, rmse, r2)
-  dimnames(zi) <- list(as.character(x$eqnames),
+  dimnames(zi) <- list(as.character(z$eqnames),
                        c("n", "k", "RMSE", "R-squared"))
 
 
@@ -635,17 +691,17 @@ summary.nlsur <- function(x) {
   # ans$coefficients <- z[c("coefficients", "se", "t")]
   ans$coefficients <- cbind(est, se, t, prob)
   dimnames(ans$coefficients) <- list(
-    names(x$coefficients),
+    names(z$coefficients),
     c("Estimate", "Std. Error", "t value", "Pr(>|t|)")
   )
 
   ans$residuals <- r
   ans$df        <- df
-  ans$nlsur     <- x$nlsur
+  ans$nlsur     <- z$nlsur
   ans$zi        <- zi
 
   if (ans$nlsur == "IFGNLS")
-    ans$LL <- x$LL
+    ans$LL <- z$LL
 
   attr(ans, "class") <- "summary.nlsur"
 
@@ -653,7 +709,8 @@ summary.nlsur <- function(x) {
 }
 
 #' @export
-print.summary.nlsur <- function(x) {
+print.summary.nlsur <- function(x, ...) {
+  # ... is to please check()
   cat("NLSUR Object of type:", x$nlsur, "\n\n")
   print(x$zi)
   cat("\n")
@@ -665,12 +722,28 @@ print.summary.nlsur <- function(x) {
     cat("Log-Likelihood:", x$LL, "\n")
 }
 
+#' Predict for Non-Linear Seemingly Unrelated Regression Models
+#'
+#' \code{predict()} is a function to predict nlsur results.
+#'
+#' @param object is an nlsur estimation result.
+#' @param data must contain a data.frame for which predictions should be
+#' evaluated.
+#'
+#' @details In contrast to other regression objects nlsur does not store the
+#' complete model in the resulting object. This requires a data object for
+#' predict. A limitation due to the fact that nlsur estimations tend to be
+#' estimated on larger data.frames.
+#'
+#' @examples # predict(nlsurObj, dataframe)
+#'
 #' @export
-predict.nlsur <- function(obj, data) {
+predict.nlsur <- function(object, data) {
 
-  eqs <- obj$model
+  eqs <- object$model
 
-  data2 <- data.frame(data, as.list(coef(obj)))
+  # ToDo: Rewrite this with model for prediction (see: str(lm(...)))
+  data2 <- data.frame(data, as.list(coef(object)))
 
   fit <- list()
   vnam <- NULL
