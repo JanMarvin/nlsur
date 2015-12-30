@@ -4,13 +4,14 @@
 \alias{predict.nlsur}
 \title{Predict for Non-Linear Seemingly Unrelated Regression Models}
 \usage{
-\method{predict}{nlsur}(object, data)
+\method{predict}{nlsur}(object, newdata, ...)
 }
 \arguments{
 \item{object}{is an nlsur estimation result.}
 
-\item{data}{must contain a data.frame for which predictions should be
-evaluated.}
+\item{newdata}{an optional data frame for which the prediction is evaluated.}
+
+\item{...}{}
 }
 \description{
 \code{predict()} is a function to predict nlsur results.

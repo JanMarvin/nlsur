@@ -20,7 +20,7 @@
 
 #' Non-Linear Seemingly Unrelated Regression
 #'
-#' \code{nlsur()} is a function for estimation of a non-linear seemingly
+#' \code{.nlsur()} is a function for estimation of a non-linear seemingly
 #'  unrelated regression model in R.
 #'
 #' @param eqns is can be a single equation or a quation system. If eqns is a
@@ -40,7 +40,7 @@
 #' This is called in a function called \code{fgnls()} and should not be set by
 #' the user.
 #' @param ifgnls is a logical and must be set, if estimation is done for ifgnls.
-#' This is called in a function called \code{ifgnls()} and should not be set by
+#' This is called in a function called \code{nlsur()} and should not be set by
 #' the user.
 #' @param MASS is a logical, if TRUE \code{lm.gls()} is called for estimation of
 #' a linear regression with a weighting matrix. Otherwise Rs matrix functions
@@ -66,7 +66,7 @@
 #' @import RcppArmadillo
 #' @useDynLib nlsur
 #' @export
-nlsur <- function(eqns, data, startvalues, S = NULL, debug = FALSE,
+.nlsur <- function(eqns, data, startvalues, S = NULL, debug = FALSE,
                   nls = FALSE, fgnls = FALSE, ifgnls = FALSE,
                   MASS = FALSE, trace = FALSE, eps = eps, tau = tau)
 {
@@ -348,7 +348,7 @@ nlsur <- function(eqns, data, startvalues, S = NULL, debug = FALSE,
 
 #' Fitting Iterative Feasible Non-Linear Seemingly Unrelated Regression Model
 #'
-#' \code{ifgnls()} is used to fit nonlinear regression models. It can handle the
+#' \code{nlsur()} is used to fit nonlinear regression models. It can handle the
 #' feasible and iterative feasible variants.
 #'
 #' @param eqns is a list object containing the model as formula. This list can
@@ -373,7 +373,7 @@ nlsur <- function(eqns, data, startvalues, S = NULL, debug = FALSE,
 #' for weighted Regression. This can cause sever RAM usage as the weight matrix
 #' tend to be huge (n-equations * n-rows).
 #'
-#' @details ifgnls() is a wrapper around nlsur(). The function was initialy
+#' @details nlsur() is a wrapper around .nlsur(). The function was initialy
 #' inspired by the Stata Corp Function nlsur.
 #' @return The function returns a list object of class nlsur. The list includes:
 #' \describe{
@@ -395,13 +395,13 @@ nlsur <- function(eqns, data, startvalues, S = NULL, debug = FALSE,
 #' formulas}
 #' }
 #'
-#' @examples predict(nlsurObj, dataframe)
+#' @examples # predict(nlsurObj, dataframe)
 #' @seealso nls
 #' @import RcppArmadillo
 #' @useDynLib nlsur
 #'
 #' @export
-ifgnls <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
+nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
                    trace = FALSE,
                    MASS = FALSE, eps = 1e-5, ifgnlseps = 1e-10, tau = 1e-3) {
 
@@ -428,6 +428,8 @@ ifgnls <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
   zi     <- NULL
   n <- nrow(data)
 
+  cl <- match.call()
+
   #
   if (!is.null(type)) {
     if(type == "NLS" | type == 1) {
@@ -450,13 +452,13 @@ ifgnls <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
   if (trace)
     cat("-- NLS\n")
 
-  z <- nlsur( eqns = eqns, data = data, startvalues = startvalues, S = S,
+  z <- .nlsur( eqns = eqns, data = data, startvalues = startvalues, S = S,
               debug = debug, nls = TRUE, trace = trace,
               MASS = MASS, eps = eps, tau = tau)
 
   if (nls) {
     S <- z$sigma
-    z <- nlsur( eqns = eqns, data = data, startvalues = z$coefficients, S = S,
+    z <- .nlsur( eqns = eqns, data = data, startvalues = z$coefficients, S = S,
                 debug = debug, nls = nls, trace = trace,
                 MASS = MASS, eps = eps, tau = tau)
   }
@@ -476,7 +478,7 @@ ifgnls <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
     S <- z$sigma
     # print(S)
 
-    z <- nlsur(eqns = eqns, data = data, startvalues = z$coefficients,
+    z <- .nlsur(eqns = eqns, data = data, startvalues = z$coefficients,
                S = S, debug = debug, nls = FALSE, trace = trace,
                MASS = MASS, eps = eps, tau = tau)
 
@@ -510,7 +512,7 @@ ifgnls <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
 
         # print(S)
 
-        z <- nlsur(eqns = eqns, data = data, startvalues = z$coefficients,
+        z <- .nlsur(eqns = eqns, data = data, startvalues = z$coefficients,
                    S = S, debug = debug, nls = FALSE,
                    MASS = MASS, eps = eps, tau = tau)
 
@@ -650,6 +652,8 @@ ifgnls <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
   z$sigma <- sigma
   z$zi <- zi
   z$model <- eqns
+  z$data <- data
+  z$call <- cl
 
   z
 }
@@ -727,8 +731,8 @@ print.summary.nlsur <- function(x, ...) {
 #' \code{predict()} is a function to predict nlsur results.
 #'
 #' @param object is an nlsur estimation result.
-#' @param data must contain a data.frame for which predictions should be
-#' evaluated.
+#' @param newdata an optional data frame for which the prediction is evaluated.
+#' @param ...
 #'
 #' @details In contrast to other regression objects nlsur does not store the
 #' complete model in the resulting object. This requires a data object for
@@ -738,12 +742,20 @@ print.summary.nlsur <- function(x, ...) {
 #' @examples # predict(nlsurObj, dataframe)
 #'
 #' @export
-predict.nlsur <- function(object, data) {
+predict.nlsur <- function(object, newdata, ...) {
 
   eqs <- object$model
 
-  # ToDo: Rewrite this with model for prediction (see: str(lm(...)))
+  if (missing(newdata) || is.null(newdata)) {
+    data <- object$data
+  } else {
+    data <- newdata
+  }
+
   data2 <- data.frame(data, as.list(coef(object)))
+
+
+  # ToDo: Rewrite this with model for prediction (see: str(lm(...)))
 
   fit <- list()
   vnam <- NULL

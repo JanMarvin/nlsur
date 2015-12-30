@@ -2,66 +2,78 @@
 % Please edit documentation in R/nlsur.R
 \name{nlsur}
 \alias{nlsur}
-\title{Non-Linear Seemingly Unrelated Regression}
+\title{Fitting Iterative Feasible Non-Linear Seemingly Unrelated Regression Model}
 \usage{
-nlsur(eqns, data, startvalues, S = NULL, debug = FALSE, nls = FALSE,
-  fgnls = FALSE, ifgnls = FALSE, MASS = FALSE, trace = FALSE,
-  eps = eps, tau = tau)
+nlsur(eqns, data, startvalues, type = NULL, S = NULL, debug = FALSE,
+  trace = FALSE, MASS = FALSE, eps = 1e-05, ifgnlseps = 1e-10,
+  tau = 0.001)
 }
 \arguments{
-\item{eqns}{is can be a single equation or a quation system. If eqns is a
-single equation it will internaly be converted to a list. Estimation of a
-single equation might as well be done using \code{nls()}.}
+\item{eqns}{is a list object containing the model as formula. This list can
+handle contain only a single equations (although in this case nls() might be
+a better coice) or a system of equations.}
 
-\item{data}{is the data set on which the equation is applied. This can be of
-every type \code{eval()} can handle.}
+\item{data}{an (optional) data frame containing the variables that will be
+evaluated in the formula.}
 
-\item{startvalues}{is a vector of intial start values. For}
+\item{startvalues}{initial values for the parameters to be estimated.}
 
-\item{S}{is a weighing matrix used for estimation in Feasible Generalized
-Non-Linear Least Squares (FGNLS) and Iterative FGNLS. For \code{nlsur()}
-this is assumed to be the identity matrix. Hence, it is not included. If
-included S is expected to be a matrix.}
+\item{type}{can be 1 Nonlinear Least Squares (NLS), 2 Feasible Generalised
+NLS (FGNLS) or 3 Iterative FGNLS (IFGNLS) or the respective abbrevations in
+character form.}
 
-\item{debug}{is a logical if debug output should be included. This can be a
-lot and might not be of any help to you.}
+\item{S}{is a weight matrix used for evaluation. If no weight matrix is
+provided the identity matrix I will be used.}
 
-\item{nls}{is a logical and default if estimation is done for NLSUR or NLS.}
+\item{debug}{logical wheater or not debug information will be printed.
+Default is FALSE.}
 
-\item{fgnls}{is a logical and must be set, if estimation is done for FGNLS.
-This is called in a function called \code{fgnls()} and should not be set by
-the user.}
+\item{trace}{logical wheather or not SSR information should be printed.
+Default is FALSE.}
 
-\item{ifgnls}{is a logical and must be set, if estimation is done for ifgnls.
-This is called in a function called \code{ifgnls()} and should not be set by
-the user.}
-
-\item{MASS}{is a logical, if TRUE \code{lm.gls()} is called for estimation of
-a linear regression with a weighting matrix. Otherwise Rs matrix functions
-will be used. Estimation results with MASS might be more stable, but it is
-unable to handle a \code{Matrix::Diagonal()}. This will be converted with
-\code{as.matrix()} which can be quite RAM consuming.}
-
-\item{trace}{is a logical. If TRUE the current iterations SSR is called.}
+\item{MASS}{is a logical wheather the MASS::lm.gls() function should be used
+for weighted Regression. This can cause sever RAM usage as the weight matrix
+tend to be huge (n-equations * n-rows).}
 
 \item{eps}{the epislon used for convergence in nlsur(). Default is 1e-5.}
 
+\item{ifgnlseps}{is epislon for ifgnls(). Default is 1e-10.}
+
 \item{tau}{is another convergence variable. Default is 1e-3.}
 }
+\value{
+The function returns a list object of class nlsur. The list includes:
+\describe{
+  \item{coefficients:}{estimated coefficients}
+  \item{residuals:}{residuals}
+  \item{xi:}{residuals of each equation in a single list}
+  \item{eqnames:}{list of equation names}
+  \item{sigma:}{the weight matrix}
+  \item{ssr:}{Residual sum of squares}
+  \item{lhs:}{Left hand side of the evaluated model}
+  \item{rhs:}{Right hand side of the evaluated model}
+  \item{nlsur:}{model type. "NLS", "FGNLS" or "IFGNLS"}
+  \item{se:}{standard errors}
+  \item{t:}{t values}
+  \item{covb:}{asymptotic covarince matrix}
+  \item{zi:}{equation wise estimation results of SSR, MSE, RMSE, MAE, R2 and
+Adj-R2. As well as n, k and df.}
+  \item{model:}{equvation or system of equations as list containing
+formulas}
+}
+}
 \description{
-\code{nlsur()} is a function for estimation of a non-linear seemingly
- unrelated regression model in R.
+\code{nlsur()} is used to fit nonlinear regression models. It can handle the
+feasible and iterative feasible variants.
 }
 \details{
-nlsur is a function for estimation of a non-linear least squares
-(NLS). In addition to \code{nls()} it is capable of estimation of system of
-equations. This estimation is done in a non-linear seemingly unrelated
-regression approach.
+nlsur() is a wrapper around .nlsur(). The function was initialy
+inspired by the Stata Corp Function nlsur.
 }
-\references{
-Bates, D. M. and Watts, D. G. (1988) Nonlinear Regression Analysis and Its
- Applications, Wiley
-
-Gallant, A. Ronald (1987): Nonlinear Statistical Models. Wiley: New York
+\examples{
+# predict(nlsurObj, dataframe)
+}
+\seealso{
+nls
 }
 
