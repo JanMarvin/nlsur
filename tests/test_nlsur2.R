@@ -30,15 +30,15 @@ getstartvals <- function(model, data) {
 startvalues <- getstartvals(model = model, data = dat)
 print(startvalues)
 
-erg1 <- ifgnls(eqns = model, startvalues = startvalues, data = dat, type = 1,
+erg1 <- nlsur(eqns = model, startvalues = startvalues, data = dat, type = 1,
                eps = .Machine$double.eps, trace = TRUE)
 erg1
 
-erg2 <- ifgnls(eqns = model, startvalues = startvalues, data = dat, type = 2,
+erg2 <- nlsur(eqns = model, startvalues = startvalues, data = dat, type = 2,
                eps = .Machine$double.eps, trace = TRUE)
 erg2
 
-erg3 <- ifgnls(eqns = model, startvalues = startvalues, data = dat, type = 3,
+erg3 <- nlsur(eqns = model, startvalues = startvalues, data = dat, type = 3,
                eps = .Machine$double.eps, trace = TRUE)
 erg3
 
