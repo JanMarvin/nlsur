@@ -641,6 +641,10 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
   # covb is solve(XDX)
   covb <- calc_reg(x, r, qS, length(theta), neqs, 0)
 
+  # covb is s *(XX)-1 for single equations
+  if (length(eqns)==1)
+    covb <- 1/(n-k) * sum(r^2) * qr.solve(Matrix::crossprod(x))
+
   # Estimate SE and t-value
   se <- sqrt(diag(covb))
   tval <- theta / se
