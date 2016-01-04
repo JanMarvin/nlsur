@@ -68,8 +68,9 @@ SEXP calc_reg (arma::Mat<double> x, arma::Mat<double> r, arma::Mat<double> qS,
 
   XDX = 0.5 * ( XDX + XDX.t() );
 
-  if (fullreg)
+
+  if (fullreg) /* weighted regression */
     return wrap(solve(XDX, XDy).t());
-  else
+  else         /* covb */
     return wrap(inv(XDX));
 }
