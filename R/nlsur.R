@@ -418,7 +418,7 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
   modelparameters <- unlist(lapply(eqns, all.vars))
   parms <- modelparameters[which(!modelparameters %in% names(startvalues))]
 
-  data <- na.omit(data[parms])
+  data <- na.omit(data[unique(parms)])
 
   neqs   <- length(eqns)
   nls    <- FALSE
