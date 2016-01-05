@@ -5,8 +5,8 @@
 \title{Fitting Iterative Feasible Non-Linear Seemingly Unrelated Regression Model}
 \usage{
 nlsur(eqns, data, startvalues, type = NULL, S = NULL, debug = FALSE,
-  trace = FALSE, stata = FALSE, MASS = FALSE, eps = 1e-05,
-  ifgnlseps = 1e-10, tau = 1e-04)
+  trace = FALSE, stata = FALSE, qrsolve = FALSE, MASS = FALSE,
+  eps = 1e-05, ifgnlseps = 1e-10, tau = 1e-04)
 }
 \arguments{
 \item{eqns}{is a list object containing the model as formula. This list can
@@ -34,6 +34,8 @@ Default is FALSE.}
 \item{stata}{is a logical. If TRUE for nls a second evaluation will be run.
 Stata does this by default. For this second run Stata replaces the diagonal
 of the I matrix with the coefficients.}
+
+\item{qrsolve}{logical}
 
 \item{MASS}{is a logical wheather the MASS::lm.gls() function should be used
 for weighted Regression. This can cause sever RAM usage as the weight matrix
@@ -80,6 +82,11 @@ matrix for the demand system. If no weight matrix is provided, nlsur will use
 the identity matrix I. If type = 1 or type = "nls" is added, nlsur will use
 the matrix for an initial estimation, once the estimation is done, it will
 swap the diagonal with the estimated results.
+
+Most robust regression estimates shall be returned with both qrsolve and MASS
+TRUE, but memory consumtion is largest this way. If MASS is FALSE a memory
+efficent RcppArmadillo solution is used for fgnls and ifgnls. If qrsolve is
+FALSE as well, only the Armadillo function is used.
 }
 \examples{
 # predict(nlsurObj, dataframe)
