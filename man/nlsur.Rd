@@ -5,8 +5,8 @@
 \title{Fitting Iterative Feasible Non-Linear Seemingly Unrelated Regression Model}
 \usage{
 nlsur(eqns, data, startvalues, type = NULL, S = NULL, debug = FALSE,
-  trace = FALSE, MASS = FALSE, eps = 1e-05, ifgnlseps = 1e-10,
-  tau = 0.001)
+  trace = FALSE, stata = FALSE, MASS = FALSE, eps = 1e-05,
+  ifgnlseps = 1e-10, tau = 1e-04)
 }
 \arguments{
 \item{eqns}{is a list object containing the model as formula. This list can
@@ -30,6 +30,10 @@ Default is FALSE.}
 
 \item{trace}{logical wheather or not SSR information should be printed.
 Default is FALSE.}
+
+\item{stata}{is a logical. If TRUE for nls a second evaluation will be run.
+Stata does this by default. For this second run Stata replaces the diagonal
+of the I matrix with the coefficients.}
 
 \item{MASS}{is a logical wheather the MASS::lm.gls() function should be used
 for weighted Regression. This can cause sever RAM usage as the weight matrix
@@ -69,6 +73,13 @@ feasible and iterative feasible variants.
 \details{
 nlsur() is a wrapper around .nlsur(). The function was initialy
 inspired by the Stata Corp Function nlsur.
+Nlsur estimates a nonlinear least squares demand system. With nls, fgnls or
+ifgnls which is equivalent to Maximum Likelihood estimation.
+Nonlinear least squares requires start values and nlsur requires a weighting
+matrix for the demand system. If no weight matrix is provided, nlsur will use
+the identity matrix I. If type = 1 or type = "nls" is added, nlsur will use
+the matrix for an initial estimation, once the estimation is done, it will
+swap the diagonal with the estimated results.
 }
 \examples{
 # predict(nlsurObj, dataframe)

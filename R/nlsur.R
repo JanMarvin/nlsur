@@ -198,11 +198,6 @@
     } else {
 
       if (!MASS) {
-        # r     <<- r
-        # x     <<- x
-        # qS    <<- qS
-        # theta <<- theta
-        # neqs  <<- neqs
 
         # Weighted regression of residuals on derivs ---
         theta_test <- calc_reg(x, r, qS, length(theta), neqs, 1)
@@ -211,6 +206,7 @@
         names(theta.new) <- names(theta)
         theta <- theta.new
       } else {
+
         Sigma <- Matrix::kronecker(X = qr.solve(1/n * crossprod(r)),
                                    Y = Matrix::diag(n) )
         r <- matrix(r, ncol = 1)
@@ -253,8 +249,8 @@
       r <- x <- NULL
 
       for (i in 1:neqs) {
-        lhs[[i]] <- eval(as.formula(eqns[[i]])[[2]], envir = data)
-        rhs[[i]] <- eval(as.formula(eqns[[i]])[[3]], envir = data)
+        lhs[[i]] <- eval(as.formula(eqns[[i]])[[2L]], envir = data)
+        rhs[[i]] <- eval(as.formula(eqns[[i]])[[3L]], envir = data)
         ri[[i]] <- lhs[[i]] - rhs[[i]]
 
         xi[[i]] <- attr(with(data, with(as.list(theta.new),
@@ -330,17 +326,18 @@
 
   }
 
+  # fitted
+  fitted <- as.data.frame(rhs)
+  names(fitted) <- eqnames
+
+  z$fitted       <- fitted
   z$coefficients <- theta
-  z$residuals <- r
-  z$xi <- xi
-  z$eqnames <- eqnames
-  z$sigma <- 1/n * crossprod(r)
-  z$ssr <- ssr
+  z$residuals    <- r
+  z$eqnames      <- eqnames
+  z$sigma        <- 1/n * crossprod(r)
+  z$deviance     <- as.numeric(ssr)
 
-  z$lhs <- lhs
-  z$rhs <- rhs
-
-  attr(z, "class") <- "nlsur"
+  class(z) <- "nlsur"
 
   z
 
@@ -363,6 +360,9 @@
 #' @param eps the epislon used for convergence in nlsur(). Default is 1e-5.
 #' @param tau is another convergence variable. Default is 1e-3.
 #' @param ifgnlseps is epislon for ifgnls(). Default is 1e-10.
+#' @param stata is a logical. If TRUE for nls a second evaluation will be run.
+#' Stata does this by default. For this second run Stata replaces the diagonal
+#' of the I matrix with the coefficients.
 #' @param trace logical wheather or not SSR information should be printed.
 #' Default is FALSE.
 #' @param debug logical wheater or not debug information will be printed.
@@ -375,6 +375,13 @@
 #'
 #' @details nlsur() is a wrapper around .nlsur(). The function was initialy
 #' inspired by the Stata Corp Function nlsur.
+#' Nlsur estimates a nonlinear least squares demand system. With nls, fgnls or
+#' ifgnls which is equivalent to Maximum Likelihood estimation.
+#' Nonlinear least squares requires start values and nlsur requires a weighting
+#' matrix for the demand system. If no weight matrix is provided, nlsur will use
+#' the identity matrix I. If type = 1 or type = "nls" is added, nlsur will use
+#' the matrix for an initial estimation, once the estimation is done, it will
+#' swap the diagonal with the estimated results.
 #' @return The function returns a list object of class nlsur. The list includes:
 #' \describe{
 #'   \item{coefficients:}{estimated coefficients}
@@ -402,8 +409,8 @@
 #'
 #' @export
 nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
-                   trace = FALSE,
-                   MASS = FALSE, eps = 1e-5, ifgnlseps = 1e-10, tau = 1e-3) {
+                   trace = FALSE, stata = FALSE,
+                   MASS = FALSE, eps = 1e-5, ifgnlseps = 1e-10, tau = 1e-4) {
 
   # Check if all variables that are not startvalues exist in data.
   vars <- unlist(lapply(eqns, all.vars))
@@ -425,7 +432,6 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
   fgnls  <- FALSE
   ifgnls <- FALSE
   z      <- NULL
-  zi     <- NULL
   n <- nrow(data)
 
   cl <- match.call()
@@ -456,16 +462,18 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
               debug = debug, nls = TRUE, trace = trace,
               MASS = MASS, eps = eps, tau = tau)
 
-  if (nls) {
+  if (nls & stata) {
+
+    # For w/e kind of reason, Stata estimates a second nls with diag(S) instead
+    #  of I.
     S <- z$sigma
+
     z <- .nlsur( eqns = eqns, data = data, startvalues = z$coefficients, S = S,
                 debug = debug, nls = nls, trace = trace,
                 MASS = MASS, eps = eps, tau = tau)
   }
   z$nlsur <- "NLS"
 
-  # For w/e kind of reason, Stata estimates a second nls with diag(S) instead of
-  # I.
 
   # Estimation of FGNLS
   if (fgnls) {
@@ -476,7 +484,6 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
     # nlserg <<- z
 
     S <- z$sigma
-    # print(S)
 
     z <- .nlsur(eqns = eqns, data = data, startvalues = z$coefficients,
                S = S, debug = debug, nls = FALSE, trace = trace,
@@ -507,11 +514,6 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
         z.old <- z
         S.old <- S
 
-        # s <- chol(qr.solve(S))
-        # rss.old <- calc_ssr(r, s, neqs)
-
-        # print(S)
-
         z <- .nlsur(eqns = eqns, data = data, startvalues = z$coefficients,
                    S = S, debug = debug, nls = FALSE,
                    MASS = MASS, eps = eps, tau = tau)
@@ -523,7 +525,6 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
 
         rss <- calc_ssr(r, s, neqs)
 
-        # eps <- 1e-5; tau <- 1e-3;
         iter <- iter +1
 
         maxthetachange <- max(abs(coef(z.old) - coef(z)) /
@@ -533,9 +534,6 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
 
         if (is.nan(maxSigmachange))
           maxSigmachange <- 0
-
-        #         print(maxthetachange)
-        #         print(maxSigmachange)
 
         # conv1 <- abs(rss.old - rss) < eps * (rss.old + tau)
         # conv2 <- norm(as.matrix(z.old$coefficients - z$coefficients)) <
@@ -566,95 +564,12 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
       z$message <- message
       z$LL <- LL
       z$sigma <- S
+      z$residuals <- r
       z$nlsur <- "IFGNLS"
 
     }
   }
 
-
-  #### 2. Estimation of covariance matrix, standard errors and t-values ####
-  xi      <- list()
-  ri      <- list()
-  lhs     <- list()
-  rhs     <- list()
-  n       <- vector("integer", length=neqs)      # number of observations in each equation
-  k       <- vector("integer", length=neqs)      # number of (unrestricted) coefficients/
-  # regressors in each equation
-  df      <- vector("integer", length=neqs)      # degrees of freedom
-  ssr     <- vector("numeric", length=neqs)      # sum of squared residuals
-  mse     <- vector("numeric", length=neqs)      # mean square error
-  rmse    <- vector("numeric", length=neqs)      # root of mse
-  mae     <- vector("numeric", length=neqs)      # mean absolute error
-  r2      <- vector("numeric", length=neqs)      # R-squared value
-  adjr2   <- vector("numeric", length=neqs)      # adjusted R-squared value
-
-  # Get theta, lhs, rhs and residuals from the last estimation.
-  theta   <- z$coefficients
-  lhs     <- z$lhs
-  rhs     <- z$rhs
-  xi      <- z$xi
-
-  for (i in 1:length(theta)) {
-    name <- names(theta)[i]
-    val <- theta[i]
-    storage.mode(val) <- "double"
-    assign(name, val)
-  }
-
-  # contains some duplicated code. ToDo: figure out a way to use this in a
-  # efficient manor aka run this loop as few times as possible.
-  for (i in 1:neqs) {
-    ri[[i]]  <- lhs[[i]] - rhs[[i]]
-
-    n[i]     <- length(lhs[[i]])
-    k[i]     <- qr(xi[[i]])$rank
-    df[i]    <- n[i] - k[i]
-
-    ssr[i]   <- as.vector(crossprod(ri[[i]]))
-    mse[i]   <- ssr[i] / n[i]
-    rmse[i]  <- sqrt(mse[i])
-    mae[i]   <- sum(abs(ri[[i]]))/n[i]
-
-    r2[i]    <- 1 - ssr[i] /
-      ((crossprod(lhs[[i]])) - mean(lhs[[i]]) ^ 2 * n[i])
-    adjr2[i] <- 1 - ((n[i] - 1) / df[i]) * (1 - r2[i])
-  }
-  x <- do.call(cbind, xi)
-  r <- do.call(cbind, ri)
-
-  # Create zi for export per equation results
-  zi       <- list()
-  zi$ssr   <- ssr
-  zi$mse   <- mse
-  zi$rmse  <- rmse
-  zi$mae   <- mae
-  zi$n     <- n
-  zi$k     <- k
-  zi$df    <- df
-  zi$r2    <- r2
-  zi$adjr2 <- adjr2
-
-  # Estimate covb
-  sigma <- z$sigma
-  qS <- qr.solve(sigma)
-
-  # covb is solve(XDX)
-  covb <- calc_reg(x, r, qS, length(theta), neqs, 0)
-
-  # covb is s *(XX)-1 for single equations
-  if (length(eqns)==1)
-    covb <- 1/(n-k) * sum(r^2) * qr.solve(Matrix::crossprod(x))
-
-  # Estimate SE and t-value
-  se <- sqrt(diag(covb))
-  tval <- theta / se
-
-  z$se <- se
-  z$t <- tval
-  z$residuals <- r
-  z$covb <- covb
-  z$sigma <- sigma
-  z$zi <- zi
   z$model <- eqns
   z$data <- data
   z$call <- cl
@@ -674,44 +589,114 @@ print.nlsur <- function(x, ...) {
 summary.nlsur <- function(object, ...) {
   # ... is to please check()
 
+  # z is shorter
   z <- object
 
-  n    <- z$zi$n
-  k    <- z$zi$k
-  rmse <- z$zi$rmse
-  r2   <- z$zi$r2
-  zi   <- cbind(n, k, rmse, r2)
+  data <- z$data
+  eqns <- z$model
+  neqs <- length(eqns)
+
+  #### 2. Estimation of covariance matrix, standard errors and t-values ####
+  xi      <- list()
+  ri      <- list()
+  lhs     <- list()
+  rhs     <- list()
+  n       <- vector("integer", length=neqs)      # number of observations in each equation
+  k       <- vector("integer", length=neqs)      # number of (unrestricted) coefficients/
+  # regressors in each equation
+  df      <- vector("integer", length=neqs)      # degrees of freedom
+  ssr     <- vector("numeric", length=neqs)      # sum of squared residuals
+  mse     <- vector("numeric", length=neqs)      # mean square error
+  rmse    <- vector("numeric", length=neqs)      # root of mse
+  mae     <- vector("numeric", length=neqs)      # mean absolute error
+  r2      <- vector("numeric", length=neqs)      # R-squared value
+  adjr2   <- vector("numeric", length=neqs)      # adjusted R-squared value
+
+  # Get coefficients from the last estimation.
+  est     <- z$coefficients
+
+  for (i in 1:length(est)) {
+    name <- names(est)[i]
+    val <- est[i]
+    storage.mode(val) <- "double"
+    assign(name, val)
+  }
+
+  # contains some duplicated code.
+  for (i in 1:neqs) {
+    lhs[[i]] <- eval(as.formula(eqns[[i]])[[2L]], envir = data)
+    rhs[[i]] <- eval(as.formula(eqns[[i]])[[3L]], envir = data)
+    ri[[i]]  <- lhs[[i]] - rhs[[i]]
+
+    xi[[i]] <- attr(with(data, with(as.list(est),
+                                    eval(deriv(eqns[[i]], names(est)),
+                                         envir = data))), "gradient")
+
+    n[i]     <- length(lhs[[i]])
+    k[i]     <- qr(xi[[i]])$rank
+    df[i]    <- n[i] - k[i]
+
+    ssr[i]   <- as.vector(crossprod(ri[[i]]))
+    mse[i]   <- ssr[i] / n[i]
+    rmse[i]  <- sqrt(mse[i])
+    mae[i]   <- sum(abs(ri[[i]]))/n[i]
+
+    r2[i]    <- 1 - ssr[i] / ((crossprod(lhs[[i]])) - mean(lhs[[i]]) ^ 2 * n[i])
+    adjr2[i] <- 1 - ((n[i] - 1) / df[i]) * (1 - r2[i])
+  }
+
+  x <- do.call(cbind, xi)
+  r <- do.call(cbind, ri)
+  n <- n[1]
+  k <- k[1]
+
+  # fitted
+  fitted <- as.data.frame(rhs)
+  names(fitted) <- as.character(z$eqnames)
+
+  # Estimate covb
+  sigma <- z$sigma
+  qS <- qr.solve(sigma)
+
+  if (neqs == 1)
+    # single eqs: covb is s *(XX)-1 for single equations
+    covb <- 1/(n-k) * sum(r^2) * qr.solve(Matrix::crossprod(x))
+  else
+    # covb is solve(XDX)
+    covb <- calc_reg(x, r, qS, length(est), neqs, 0)
+
+  # Estimate se, tval and prob
+  se <- sqrt(diag(covb))
+  tval <- est / se
+  prob <- 2 * (1 - pt(abs(tval), (n - k)))
+
+  # per equation statistics
+  zi   <- cbind(n, k, rmse, mae, r2, adjr2)
   dimnames(zi) <- list(as.character(z$eqnames),
-                       c("n", "k", "RMSE", "R-squared"))
+                       c("n", "k", "RMSE", "MAE", "R-squared",
+                         "Adj-R-sqr."))
 
-
-  est  <- z$coefficients
-  se   <- z$se
-  t    <- z$t
-  n    <- z$zi$n[1]
-  k    <- z$zi$k[1]
-  df   <- z$zi$df[1]
-  r    <- z$residuals
-  prob <- 2 * (1 - pt(abs(t), (n - k)))
-
+  # ans: returned object
   ans <- NULL
 
   # ans$coefficients <- z[c("coefficients", "se", "t")]
-  ans$coefficients <- cbind(est, se, t, prob)
+  ans$coefficients <- cbind(est, se, tval, prob)
   dimnames(ans$coefficients) <- list(
     names(z$coefficients),
     c("Estimate", "Std. Error", "t value", "Pr(>|t|)")
   )
 
-  ans$residuals <- r
-  ans$df        <- df
+  ans$residuals <- residuals
+  ans$df        <- df[1]
   ans$nlsur     <- z$nlsur
+  ans$sigma     <- sigma
   ans$zi        <- zi
+  ans$fitted    <- fitted
 
   if (ans$nlsur == "IFGNLS")
     ans$LL <- z$LL
 
-  attr(ans, "class") <- "summary.nlsur"
+  class(ans) <- "summary.nlsur"
 
   ans
 }
