@@ -490,6 +490,8 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
     z <- .nlsur( eqns = eqns, data = data, startvalues = z$coefficients, S = S,
                 debug = debug, nls = nls, trace = trace, qrsolve = qrsolve,
                 MASS = MASS, eps = eps, tau = tau)
+
+    # FixMe: Stata uses this sigma for covb, not the updated?
     z$sigma <- diag(diag(S))
   }
   z$nlsur <- "NLS"
@@ -509,7 +511,8 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
                S = S, debug = debug, nls = FALSE, trace = trace,
                qrsolve = qrsolve, MASS = MASS, eps = eps, tau = tau)
 
-    if (fgnls)
+    # FixMe: Stata uses this sigma for covb, not the updated?
+    if (!ifgnls)
       z$sigma <- S
 
     z$nlsur <- "FGNLS"
