@@ -42,6 +42,9 @@
 #' @param ifgnls is a logical and must be set, if estimation is done for ifgnls.
 #' This is called in a function called \code{nlsur()} and should not be set by
 #' the user.
+#' @param qrsolve is a logica, if TRUE \code{qr.coef(qr(x), r)} is called which
+#' should be the most robust way for estimation of nls. For this all equations
+#' will be rbinded, which might lead to memory bottlenecks.
 #' @param MASS is a logical, if TRUE \code{lm.gls()} is called for estimation of
 #' a linear regression with a weighting matrix. Otherwise Rs matrix functions
 #' will be used. Estimation results with MASS might be more stable, but it is
@@ -67,7 +70,7 @@
 #' @useDynLib nlsur
 #' @export
 .nlsur <- function(eqns, data, startvalues, S = NULL, debug = FALSE,
-                  nls = FALSE, fgnls = FALSE, ifgnls = FALSE,
+                  nls = FALSE, fgnls = FALSE, ifgnls = FALSE, qrsolve = FALSE,
                   MASS = FALSE, trace = FALSE, eps = eps, tau = tau)
 {
   z    <- list()
@@ -77,8 +80,10 @@
   lhs  <- rhs <- ri <- xi <- list()
   r    <-   x <- NULL
 
-  n    <- nrow(data)
   neqs <- length(eqns)
+  n    <- vector("integer", length=neqs)
+  k    <- vector("integer", length=neqs)
+  df   <- vector("integer", length=neqs)
 
   # set initial theta
   theta <- startvalues
@@ -169,13 +174,9 @@
     ssr <- Inf
     theta.old <- theta
 
-    # r <<- r
-    # x <<- x
-    # qS <<- qS
-
     # begin regression
     # Regression of residuals on derivs
-    if (nls) {
+    if (nls & qrsolve) {
 
       r <- matrix(r, ncol = 1)
       x <- do.call(rbind, xi)
@@ -256,7 +257,18 @@
         xi[[i]] <- attr(with(data, with(as.list(theta.new),
                                         eval(deriv(eqns[[i]], names(theta.new)),
                                              envir = data))), "gradient")
+
+        n[i]     <- length(rhs[[i]])
+        k[i]     <- qr(xi[[i]])$rank
+        df[i]    <- n[i] - k[i]
       }
+
+      df <- unique(df)
+      n  <- unique(n)
+      k  <- unique(k)
+
+      if (length(n)>1 | length(k)>1)
+        stop ("unequal n or k")
 
       r <- do.call(cbind, ri)
       x <- do.call(cbind, xi)
@@ -336,6 +348,7 @@
   z$eqnames      <- eqnames
   z$sigma        <- 1/n * crossprod(r)
   z$deviance     <- as.numeric(ssr)
+  z$df.residual  <- df
 
   class(z) <- "nlsur"
 
@@ -369,6 +382,7 @@
 #' Default is FALSE.
 #' @param S is a weight matrix used for evaluation. If no weight matrix is
 #' provided the identity matrix I will be used.
+#' @param qrsolve logical
 #' @param MASS is a logical wheather the MASS::lm.gls() function should be used
 #' for weighted Regression. This can cause sever RAM usage as the weight matrix
 #' tend to be huge (n-equations * n-rows).
@@ -382,6 +396,11 @@
 #' the identity matrix I. If type = 1 or type = "nls" is added, nlsur will use
 #' the matrix for an initial estimation, once the estimation is done, it will
 #' swap the diagonal with the estimated results.
+#'
+#' Most robust regression estimates shall be returned with both qrsolve and MASS
+#' TRUE, but memory consumtion is largest this way. If MASS is FALSE a memory
+#' efficent RcppArmadillo solution is used for fgnls and ifgnls. If qrsolve is
+#' FALSE as well, only the Armadillo function is used.
 #' @return The function returns a list object of class nlsur. The list includes:
 #' \describe{
 #'   \item{coefficients:}{estimated coefficients}
@@ -409,7 +428,7 @@
 #'
 #' @export
 nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
-                   trace = FALSE, stata = FALSE,
+                   trace = FALSE, stata = FALSE, qrsolve = FALSE,
                    MASS = FALSE, eps = 1e-5, ifgnlseps = 1e-10, tau = 1e-4) {
 
   # Check if all variables that are not startvalues exist in data.
@@ -432,7 +451,7 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
   fgnls  <- FALSE
   ifgnls <- FALSE
   z      <- NULL
-  n <- nrow(data)
+  n      <- nrow(data)
 
   cl <- match.call()
 
@@ -459,7 +478,7 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
     cat("-- NLS\n")
 
   z <- .nlsur( eqns = eqns, data = data, startvalues = startvalues, S = S,
-              debug = debug, nls = TRUE, trace = trace,
+              debug = debug, nls = TRUE, trace = trace, qrsolve = qrsolve,
               MASS = MASS, eps = eps, tau = tau)
 
   if (nls & stata) {
@@ -469,8 +488,9 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
     S <- z$sigma
 
     z <- .nlsur( eqns = eqns, data = data, startvalues = z$coefficients, S = S,
-                debug = debug, nls = nls, trace = trace,
+                debug = debug, nls = nls, trace = trace, qrsolve = qrsolve,
                 MASS = MASS, eps = eps, tau = tau)
+    z$sigma <- diag(diag(S))
   }
   z$nlsur <- "NLS"
 
@@ -487,8 +507,10 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
 
     z <- .nlsur(eqns = eqns, data = data, startvalues = z$coefficients,
                S = S, debug = debug, nls = FALSE, trace = trace,
-               MASS = MASS, eps = eps, tau = tau)
+               qrsolve = qrsolve, MASS = MASS, eps = eps, tau = tau)
 
+    if (fgnls)
+      z$sigma <- S
 
     z$nlsur <- "FGNLS"
 
@@ -516,7 +538,7 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
 
         z <- .nlsur(eqns = eqns, data = data, startvalues = z$coefficients,
                    S = S, debug = debug, nls = FALSE,
-                   MASS = MASS, eps = eps, tau = tau)
+                   qrsolve = qrsolve, MASS = MASS, eps = eps, tau = tau)
 
         r <- z$residuals
         S <- z$sigma
@@ -645,14 +667,13 @@ summary.nlsur <- function(object, ...) {
     adjr2[i] <- 1 - ((n[i] - 1) / df[i]) * (1 - r2[i])
   }
 
-  x <- do.call(cbind, xi)
-  r <- do.call(cbind, ri)
-  n <- n[1]
-  k <- k[1]
+  x  <- do.call(cbind, xi)
+  r  <- do.call(cbind, ri)
+  nE  <- sum(n)
+  kE  <- sum(k)
 
-  # fitted
-  fitted <- as.data.frame(rhs)
-  names(fitted) <- as.character(z$eqnames)
+  n <- unique(n)
+  k <- unique(k)
 
   # Estimate covb
   sigma <- z$sigma
@@ -668,7 +689,7 @@ summary.nlsur <- function(object, ...) {
   # Estimate se, tval and prob
   se <- sqrt(diag(covb))
   tval <- est / se
-  prob <- 2 * (1 - pt(abs(tval), (n - k)))
+  prob <- 2 * (1 - pt(abs(tval), (nE - kE)))
 
   # per equation statistics
   zi   <- cbind(n, k, rmse, mae, r2, adjr2)
@@ -687,11 +708,9 @@ summary.nlsur <- function(object, ...) {
   )
 
   ans$residuals <- residuals
-  ans$df        <- df[1]
   ans$nlsur     <- z$nlsur
   ans$sigma     <- sigma
   ans$zi        <- zi
-  ans$fitted    <- fitted
 
   if (ans$nlsur == "IFGNLS")
     ans$LL <- z$LL
