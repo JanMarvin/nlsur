@@ -607,7 +607,7 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
 #' @export
 print.nlsur <- function(x, ...) {
   # ... is to please check()
-  print(x$coefficients)
+  print(x$coefficients, ...)
 }
 
 #' @export
@@ -704,7 +704,7 @@ summary.nlsur <- function(object, ...) {
   ans$coefficients <- cbind(est, se, tval, prob)
   dimnames(ans$coefficients) <- list(
     names(z$coefficients),
-    c("Estimate", "Std. Error", "t value", "Pr(>|t|)")
+    c("Estimate", "Std. Error", "z value", "Pr(>|z|)")
   )
 
   ans$residuals <- residuals
@@ -724,11 +724,10 @@ summary.nlsur <- function(object, ...) {
 print.summary.nlsur <- function(x, ...) {
   # ... is to please check()
   cat("NLSUR Object of type:", x$nlsur, "\n\n")
-  print(x$zi)
+  print(x$zi, digits = 4)
   cat("\n")
-  cat("Coefficientients:\n")
-  coefs <- x$coefficients
-  printCoefmat(coefs)
+  cat("Coefficients:\n")
+  printCoefmat(x$coefficients, digits = 4)
 
   if (x$nlsur == "IFGNLS")
     cat("Log-Likelihood:", x$LL, "\n")
