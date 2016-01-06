@@ -401,6 +401,10 @@
 #' TRUE, but memory consumtion is largest this way. If MASS is FALSE a memory
 #' efficent RcppArmadillo solution is used for fgnls and ifgnls. If qrsolve is
 #' FALSE as well, only the Armadillo function is used.
+#'
+#' Nlsur has methods for the generic functions \link{coef}, \link{confint},
+#' \link{deviance}, \link{df.residual}, \link{fitted}, \link{predict},
+#' \link{print}, \link{residuals}, \link{summary} and \link{vcov}.
 #' @return The function returns a list object of class nlsur. The list includes:
 #' \describe{
 #'   \item{coefficients:}{estimated coefficients}

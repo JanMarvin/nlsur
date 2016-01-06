@@ -87,6 +87,10 @@ Most robust regression estimates shall be returned with both qrsolve and MASS
 TRUE, but memory consumtion is largest this way. If MASS is FALSE a memory
 efficent RcppArmadillo solution is used for fgnls and ifgnls. If qrsolve is
 FALSE as well, only the Armadillo function is used.
+
+Nlsur has methods for the generic functions \link{coef}, \link{confint},
+\link{deviance}, \link{df.residual}, \link{fitted}, \link{predict},
+\link{print}, \link{residuals}, \link{summary} and \link{vcov}.
 }
 \examples{
 # predict(nlsurObj, dataframe)
