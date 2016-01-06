@@ -761,9 +761,6 @@ predict.nlsur <- function(object, newdata, ...) {
 
   data2 <- data.frame(data, as.list(coef(object)))
 
-
-  # ToDo: Rewrite this with model for prediction (see: str(lm(...)))
-
   fit <- list()
   vnam <- NULL
   for (i in seq(length(eqs))){
