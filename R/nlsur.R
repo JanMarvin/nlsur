@@ -708,9 +708,14 @@ summary.nlsur <- function(object, ...) {
 
   # ans$coefficients <- z[c("coefficients", "se", "t")]
   ans$coefficients <- cbind(est, se, tval, prob)
+
+  cnames <- c("Estimate", "Std. Error", "z value", "Pr(>|z|)")
+  if (neqs == 1)
+    cnames <- c("Estimate", "Std. Error", "t value", "Pr(>|t|)")
+
   dimnames(ans$coefficients) <- list(
     names(z$coefficients),
-    c("Estimate", "Std. Error", "z value", "Pr(>|z|)")
+    cnames
   )
 
   ans$residuals    <- residuals
