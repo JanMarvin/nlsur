@@ -5,8 +5,8 @@
 \title{Fitting Iterative Feasible Non-Linear Seemingly Unrelated Regression Model}
 \usage{
 nlsur(eqns, data, startvalues, type = NULL, S = NULL, debug = FALSE,
-  trace = FALSE, stata = FALSE, qrsolve = FALSE, MASS = FALSE,
-  eps = 1e-05, ifgnlseps = 1e-10, tau = 1e-04)
+  trace = FALSE, stata = FALSE, qrsolve = FALSE, weights = NULL,
+  MASS = FALSE, eps = 1e-05, ifgnlseps = 1e-10, tau = 1e-04)
 }
 \arguments{
 \item{eqns}{is a list object containing the model as formula. This list can

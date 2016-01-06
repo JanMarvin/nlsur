@@ -7,15 +7,15 @@
 using namespace Rcpp;
 
 // calc_ssr
-SEXP calc_ssr(arma::Mat<double> r, arma::Mat<double> s, int neqs);
-RcppExport SEXP nlsur_calc_ssr(SEXP rSEXP, SEXP sSEXP, SEXP neqsSEXP) {
+SEXP calc_ssr(arma::Mat<double> r, arma::Mat<double> s, arma::Col<double> w);
+RcppExport SEXP nlsur_calc_ssr(SEXP rSEXP, SEXP sSEXP, SEXP wSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
     Rcpp::traits::input_parameter< arma::Mat<double> >::type r(rSEXP);
     Rcpp::traits::input_parameter< arma::Mat<double> >::type s(sSEXP);
-    Rcpp::traits::input_parameter< int >::type neqs(neqsSEXP);
-    __result = Rcpp::wrap(calc_ssr(r, s, neqs));
+    Rcpp::traits::input_parameter< arma::Col<double> >::type w(wSEXP);
+    __result = Rcpp::wrap(calc_ssr(r, s, w));
     return __result;
 END_RCPP
 }
@@ -32,18 +32,18 @@ BEGIN_RCPP
 END_RCPP
 }
 // calc_reg
-SEXP calc_reg(arma::Mat<double> x, arma::Mat<double> r, arma::Mat<double> qS, int sizetheta, int neqs, bool fullreg);
-RcppExport SEXP nlsur_calc_reg(SEXP xSEXP, SEXP rSEXP, SEXP qSSEXP, SEXP sizethetaSEXP, SEXP neqsSEXP, SEXP fullregSEXP) {
+SEXP calc_reg(arma::Mat<double> x, arma::Mat<double> r, arma::Mat<double> qS, arma::Col<double> w, int sizetheta, bool fullreg);
+RcppExport SEXP nlsur_calc_reg(SEXP xSEXP, SEXP rSEXP, SEXP qSSEXP, SEXP wSEXP, SEXP sizethetaSEXP, SEXP fullregSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
     Rcpp::traits::input_parameter< arma::Mat<double> >::type x(xSEXP);
     Rcpp::traits::input_parameter< arma::Mat<double> >::type r(rSEXP);
     Rcpp::traits::input_parameter< arma::Mat<double> >::type qS(qSSEXP);
+    Rcpp::traits::input_parameter< arma::Col<double> >::type w(wSEXP);
     Rcpp::traits::input_parameter< int >::type sizetheta(sizethetaSEXP);
-    Rcpp::traits::input_parameter< int >::type neqs(neqsSEXP);
     Rcpp::traits::input_parameter< bool >::type fullreg(fullregSEXP);
-    __result = Rcpp::wrap(calc_reg(x, r, qS, sizetheta, neqs, fullreg));
+    __result = Rcpp::wrap(calc_reg(x, r, qS, w, sizetheta, fullreg));
     return __result;
 END_RCPP
 }

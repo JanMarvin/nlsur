@@ -70,8 +70,9 @@
 #' @useDynLib nlsur
 #' @export
 .nlsur <- function(eqns, data, startvalues, S = NULL, debug = FALSE,
-                  nls = FALSE, fgnls = FALSE, ifgnls = FALSE, qrsolve = FALSE,
-                  MASS = FALSE, trace = FALSE, eps = eps, tau = tau)
+                   nls = FALSE, fgnls = FALSE, ifgnls = FALSE, qrsolve = FALSE,
+                   MASS = FALSE, trace = FALSE, eps = eps, tau = tau,
+                   weights = weights)
 {
   z    <- list()
   itr  <- 0
@@ -146,7 +147,7 @@
     print(r)
 
   # Evaluate initial ssr
-  ssr.old <- calc_ssr(r, s, neqs)
+  ssr.old <- calc_ssr(r, s, weights)
 
   if (trace)
     cat("Initial SSR: ", ssr.old, "\n")
@@ -176,7 +177,7 @@
 
     # begin regression
     # Regression of residuals on derivs
-    if (nls & qrsolve) {
+    if (nls & qrsolve & is.null(weights)) {
 
       r <- matrix(r, ncol = 1)
       x <- do.call(rbind, xi)
@@ -198,15 +199,8 @@
 
     } else {
 
-      if (!MASS) {
-
-        # Weighted regression of residuals on derivs ---
-        theta_test <- calc_reg(x, r, qS, length(theta), neqs, 1)
-        theta.new <- as.vector(theta_test)
-
-        names(theta.new) <- names(theta)
-        theta <- theta.new
-      } else {
+      if (MASS & is.null(weights))
+      {
 
         Sigma <- Matrix::kronecker(X = qr.solve(1/n * crossprod(r)),
                                    Y = Matrix::diag(n) )
@@ -217,6 +211,14 @@
         # to pre-weight r and x which then can be solved with qr. This can
         # cause huge matrices as lm.gls() is not able to handle sparse Matrices.
         theta.new <- coef(MASS::lm.gls(r ~ 0 + x, W = Sigma))
+        names(theta.new) <- names(theta)
+        theta <- theta.new
+      } else {
+
+        # Weighted regression of residuals on derivs ---
+        theta_test <- calc_reg(x, r, qS, weights, length(theta), 1)
+        theta.new <- as.vector(theta_test)
+
         names(theta.new) <- names(theta)
         theta <- theta.new
       }
@@ -264,8 +266,9 @@
       }
 
       df <- unique(df)
-      n  <- unique(n)
       k  <- unique(k)
+      n  <- unique(n)
+
 
       if (length(n)>1 | length(k)>1)
         stop ("unequal n or k")
@@ -274,7 +277,7 @@
       x <- do.call(cbind, xi)
 
       # Evaluate initial ssr
-      ssr <- calc_ssr(r, s, neqs)
+      ssr <- calc_ssr(r, s, weights)
 
       # divide stepsizeparameter
       alpha <- alpha/2
@@ -349,6 +352,8 @@
   z$sigma        <- 1/n * crossprod(r)
   z$deviance     <- as.numeric(ssr)
   z$df.residual  <- df
+
+  z$weights      <- weights
 
   class(z) <- "nlsur"
 
@@ -432,8 +437,15 @@
 #'
 #' @export
 nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
-                   trace = FALSE, stata = FALSE, qrsolve = FALSE,
-                   MASS = FALSE, eps = 1e-5, ifgnlseps = 1e-10, tau = 1e-4) {
+                  trace = FALSE, stata = FALSE, qrsolve = FALSE,
+                  weights, MASS = FALSE,
+                  eps = 1e-5, ifgnlseps = 1e-10, tau = 1e-4) {
+
+  if (missing(weights))
+    weights <- NULL
+  else
+    weights <- as.character(substitute(weights))
+
 
   # Check if all variables that are not startvalues exist in data.
   vars <- unlist(lapply(eqns, all.vars))
@@ -444,9 +456,19 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
     return(0)
   }
 
+
   # remove observation, if observation a parameter contains NA.
-  modelparameters <- unlist(lapply(eqns, all.vars))
+  modelparameters <- c(unlist(lapply(eqns, all.vars)), weights)
   parms <- modelparameters[which(!modelparameters %in% names(startvalues))]
+
+  # Check for weights
+  if ( is.null(weights) )
+    w <- rep(x = 1, times = nrow(data))
+  else {
+    weights <- as.name(weights)
+
+    w <- eval(substitute(weights), data)
+  }
 
   data <- na.omit(data[unique(parms)])
 
@@ -458,6 +480,9 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
   n      <- nrow(data)
 
   cl <- match.call()
+
+  if (!is.null(weights))
+    n <- sum(w)
 
   #
   if (!is.null(type)) {
@@ -475,15 +500,14 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
     }
   }
 
-
   # Estimation of NLS
   # nls
   if (trace)
     cat("-- NLS\n")
 
   z <- .nlsur( eqns = eqns, data = data, startvalues = startvalues, S = S,
-              debug = debug, nls = TRUE, trace = trace, qrsolve = qrsolve,
-              MASS = MASS, eps = eps, tau = tau)
+               debug = debug, nls = TRUE, trace = trace, qrsolve = qrsolve,
+               MASS = MASS, eps = eps, tau = tau, weights = w)
 
   if (nls & stata) {
 
@@ -492,8 +516,8 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
     S <- z$sigma
 
     z <- .nlsur( eqns = eqns, data = data, startvalues = z$coefficients, S = S,
-                debug = debug, nls = nls, trace = trace, qrsolve = qrsolve,
-                MASS = MASS, eps = eps, tau = tau)
+                 debug = debug, nls = nls, trace = trace, qrsolve = qrsolve,
+                 MASS = MASS, eps = eps, tau = tau, weights = w)
 
     # FixMe: Stata uses this sigma for covb, not the updated?
     z$sigma <- diag(diag(S))
@@ -512,8 +536,9 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
     S <- z$sigma
 
     z <- .nlsur(eqns = eqns, data = data, startvalues = z$coefficients,
-               S = S, debug = debug, nls = FALSE, trace = trace,
-               qrsolve = qrsolve, MASS = MASS, eps = eps, tau = tau)
+                S = S, debug = debug, nls = FALSE, trace = trace,
+                qrsolve = qrsolve, MASS = MASS, eps = eps, tau = tau,
+                weights = w)
 
     # FixMe: Stata uses this sigma for covb, not the updated?
     if (!ifgnls)
@@ -544,15 +569,16 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
         S.old <- S
 
         z <- .nlsur(eqns = eqns, data = data, startvalues = z$coefficients,
-                   S = S, debug = debug, nls = FALSE,
-                   qrsolve = qrsolve, MASS = MASS, eps = eps, tau = tau)
+                    S = S, debug = debug, nls = FALSE,
+                    qrsolve = qrsolve, MASS = MASS, eps = eps, tau = tau,
+                    weights = w)
 
         r <- z$residuals
         S <- z$sigma
         s <- chol(qr.solve(S))
 
 
-        rss <- calc_ssr(r, s, neqs)
+        rss <- calc_ssr(r, s, w)
 
         iter <- iter +1
 
@@ -584,14 +610,9 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
       }
       message <- paste("Convergence after iteration:", iter,".")
 
-      S <- z$sigma
-      N <- n
-      M <- nrow(S)
 
-      LL <- -(M*N)/2 * (1 + log(2*pi)) - N/2 * log(det(S))
 
       z$message <- message
-      z$LL <- LL
       z$sigma <- S
       z$residuals <- r
       z$nlsur <- "IFGNLS"
@@ -599,9 +620,19 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
     }
   }
 
+  S <- z$sigma
+  N <- n
+  M <- nrow(S)
+
+  LL <- -(M*N)/2 * (1 + log(2*pi)) - N/2 * log(det(S))
+  z$LL <- LL
+
   z$model <- eqns
   z$data <- data
   z$call <- cl
+
+  if (missing(weights))
+    z$weights <- NULL
 
   z
 }
@@ -624,6 +655,7 @@ summary.nlsur <- function(object, ...) {
   data <- z$data
   eqns <- z$model
   neqs <- length(eqns)
+  w    <- weights(z)
 
   #### 2. Estimation of covariance matrix, standard errors and t-values ####
   xi      <- list()
@@ -676,6 +708,10 @@ summary.nlsur <- function(object, ...) {
 
   x  <- do.call(cbind, xi)
   r  <- do.call(cbind, ri)
+
+  if (!is.null(w))
+    n <- sum(w)
+
   nE  <- sum(n)
   kE  <- sum(k)
 
@@ -683,13 +719,16 @@ summary.nlsur <- function(object, ...) {
   sigma <- z$sigma
   qS <- qr.solve(sigma)
 
-  if (neqs == 1)
+  if (is.null(w))
+    w <- rep(x = 1, times = nrow(data))
+
+  if (neqs == 1){
     # single eqs: covb is s *(XX)-1 for single equations
     covb <- 1/(n-k) * sum(r^2) * qr.solve(Matrix::crossprod(x))
-  else
+  } else {
     # covb is solve(XDX)
-    covb <- calc_reg(x, r, qS, length(est), neqs, 0)
-
+    covb <- calc_reg(x, r, qS, w, length(est), 0)
+  }
   dimnames(covb) <- list(names(est), names(est))
 
   # Estimate se, tval and prob
@@ -722,7 +761,8 @@ summary.nlsur <- function(object, ...) {
   ans$nlsur        <- z$nlsur
   ans$sigma        <- sigma
   ans$zi           <- zi
-  ans$cov <- covb
+  ans$cov          <- covb
+  ans$weights      <- weights(z)
 
   if (ans$nlsur == "IFGNLS")
     ans$LL <- z$LL
@@ -739,10 +779,23 @@ print.summary.nlsur <- function(x, ...) {
   print(x$zi, digits = 4)
   cat("\n")
   cat("Coefficients:\n")
+
+  if (!is.null(weights(x))) {
+    cat("Weighted nlsur: \n\n")
+  }
+
   printCoefmat(x$coefficients, digits = 4)
 
   if (x$nlsur == "IFGNLS")
     cat("Log-Likelihood:", x$LL, "\n")
+}
+
+#' @export
+logLik.nlsur <- function(object, ...) {
+  z <- object$LL
+  class(z) <- "logLik"
+
+  z
 }
 
 #' @export
@@ -799,7 +852,7 @@ vcov.nlsur <- function(object, ...) {
     covb <- 1/(n-k) * sum(r^2) * qr.solve(Matrix::crossprod(x))
   else
     # covb is solve(XDX)
-    covb <- calc_reg(x, r, qS, length(est), neqs, 0)
+    covb <- calc_reg(x, r, qS, length(est), 0)
 
   dimnames(covb) <- list(names(est), names(est))
 
