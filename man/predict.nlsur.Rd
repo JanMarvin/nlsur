@@ -11,7 +11,8 @@
 
 \item{newdata}{an optional data frame for which the prediction is evaluated.}
 
-\item{...}{}
+\item{...}{further arguments for predict. At present no optional arguments
+are used.}
 }
 \description{
 \code{predict()} is a function to predict nlsur results.
