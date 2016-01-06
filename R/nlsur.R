@@ -472,7 +472,6 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
 
   data <- na.omit(data[unique(parms)])
 
-  neqs   <- length(eqns)
   nls    <- FALSE
   fgnls  <- FALSE
   ifgnls <- FALSE
