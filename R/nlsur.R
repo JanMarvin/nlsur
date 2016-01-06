@@ -675,9 +675,6 @@ summary.nlsur <- function(object, ...) {
   nE  <- sum(n)
   kE  <- sum(k)
 
-  n <- unique(n)
-  k <- unique(k)
-
   # Estimate covb
   sigma <- z$sigma
   qS <- qr.solve(sigma)
@@ -692,7 +689,7 @@ summary.nlsur <- function(object, ...) {
   # Estimate se, tval and prob
   se <- sqrt(diag(covb))
   tval <- est / se
-  prob <- 2 * (1 - pt(abs(tval), (nE - kE)))
+  prob <- 2 * (1 - pt(abs(tval), (nE * kE )))
 
   # per equation statistics
   zi   <- cbind(n, k, rmse, mae, r2, adjr2)
