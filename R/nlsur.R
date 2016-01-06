@@ -686,6 +686,8 @@ summary.nlsur <- function(object, ...) {
     # covb is solve(XDX)
     covb <- calc_reg(x, r, qS, length(est), neqs, 0)
 
+  dimnames(covb) <- list(names(est), names(est))
+
   # Estimate se, tval and prob
   se <- sqrt(diag(covb))
   tval <- est / se
@@ -707,10 +709,11 @@ summary.nlsur <- function(object, ...) {
     c("Estimate", "Std. Error", "z value", "Pr(>|z|)")
   )
 
-  ans$residuals <- residuals
-  ans$nlsur     <- z$nlsur
-  ans$sigma     <- sigma
-  ans$zi        <- zi
+  ans$residuals    <- residuals
+  ans$nlsur        <- z$nlsur
+  ans$sigma        <- sigma
+  ans$zi           <- zi
+  ans$cov <- covb
 
   if (ans$nlsur == "IFGNLS")
     ans$LL <- z$LL
@@ -733,13 +736,80 @@ print.summary.nlsur <- function(x, ...) {
     cat("Log-Likelihood:", x$LL, "\n")
 }
 
+#' @export
+vcov.nlsur <- function(object, ...) {
+  # ... is to please check()
+
+  # z is shorter
+  z <- object
+
+  data <- z$data
+  eqns <- z$model
+  neqs <- length(eqns)
+
+  #### 2. Estimation of covariance matrix, standard errors and t-values ####
+  xi      <- list()
+  ri      <- list()
+  lhs     <- list()
+  rhs     <- list()
+  n       <- vector("integer", length=neqs)
+  k       <- vector("integer", length=neqs)
+
+  # Get coefficients from the last estimation.
+  est     <- coef(z)
+
+  for (i in 1:length(est)) {
+    name <- names(est)[i]
+    val <- est[i]
+    storage.mode(val) <- "double"
+    assign(name, val)
+  }
+
+  # contains some duplicated code.
+  for (i in 1:neqs) {
+    lhs[[i]] <- eval(as.formula(eqns[[i]])[[2L]], envir = data)
+    rhs[[i]] <- eval(as.formula(eqns[[i]])[[3L]], envir = data)
+    ri[[i]]  <- lhs[[i]] - rhs[[i]]
+
+    xi[[i]] <- attr(with(data, with(as.list(est),
+                                    eval(deriv(eqns[[i]], names(est)),
+                                         envir = data))), "gradient")
+    n[i]     <- length(lhs[[i]])
+    k[i]     <- qr(xi[[i]])$rank
+  }
+
+  x  <- do.call(cbind, xi)
+  r  <- do.call(cbind, ri)
+
+  # Estimate covb
+  sigma <- z$sigma
+  qS <- qr.solve(sigma)
+
+  if (neqs == 1)
+    # single eqs: covb is s *(XX)-1 for single equations
+    covb <- 1/(n-k) * sum(r^2) * qr.solve(Matrix::crossprod(x))
+  else
+    # covb is solve(XDX)
+    covb <- calc_reg(x, r, qS, length(est), neqs, 0)
+
+  dimnames(covb) <- list(names(est), names(est))
+
+  covb
+}
+
+#' @export
+vcov.summary.nlsur <- function(object, ...) {
+  object$cov
+}
+
 #' Predict for Non-Linear Seemingly Unrelated Regression Models
 #'
 #' \code{predict()} is a function to predict nlsur results.
 #'
 #' @param object is an nlsur estimation result.
 #' @param newdata an optional data frame for which the prediction is evaluated.
-#' @param ...
+#' @param ... further arguments for predict. At present no optional arguments
+#'  are used.
 #'
 #' @details In contrast to other regression objects nlsur does not store the
 #' complete model in the resulting object. This requires a data object for
