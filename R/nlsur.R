@@ -393,7 +393,7 @@
 #' @param MASS is a logical wheather the MASS::lm.gls() function should be used
 #' for weighted Regression. This can cause sever RAM usage as the weight matrix
 #' tend to be huge (n-equations * n-rows).
-#' @param Additional weight vector.
+#' @param weights Additional weight vector.
 #'
 #' @details nlsur() is a wrapper around .nlsur(). The function was initialy
 #' inspired by the Stata Corp Function nlsur.
@@ -466,7 +466,7 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
 
   # Check for weights
   if ( is.null(weights) )
-    w <- rep(x = 1, times = nrow(data))
+    w <- rep(x = 1, nrow(data))
   else {
     weights <- as.name(weights)
 

@@ -13,7 +13,7 @@ Imports:
     RcppArmadillo
 Description: "Estimation of Nonlinear Least Squares (NLS), Feasibe Generalized
     NLS (FGNLS) and Iterative FGNLS (IFGNLS) for Systems of Equations."
-License: MIT
+License: MIT + file LICENSE
 LinkingTo: Rcpp, RcppArmadillo
 ByteCompile: yes
 RoxygenNote: 5.0.1
