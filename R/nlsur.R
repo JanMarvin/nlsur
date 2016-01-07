@@ -739,7 +739,8 @@ summary.nlsur <- function(object, ...) {
 
   if (neqs == 1){
     # single eqs: covb is s *(XX)-1 for single equations
-    covb <- 1/(n-k) * sum(r^2) * qr.solve(Matrix::crossprod(x))
+    covb <- 1/(n-k) * sum(r^2* w) * scale * qr.solve(Matrix::crossprod(x, w*x))
+
   } else {
     # covb is solve(XDX)
     covb <- calc_reg(x, r, qS, w, length(est), 0)
@@ -821,63 +822,7 @@ logLik.nlsur <- function(object, ...) {
 
 #' @export
 vcov.nlsur <- function(object, ...) {
-  # ... is to please check()
-
-  # z is shorter
-  z <- object
-
-  data <- z$data
-  eqns <- z$model
-  neqs <- length(eqns)
-
-  #### 2. Estimation of covariance matrix, standard errors and t-values ####
-  xi      <- list()
-  ri      <- list()
-  lhs     <- list()
-  rhs     <- list()
-  n       <- vector("integer", length=neqs)
-  k       <- vector("integer", length=neqs)
-
-  # Get coefficients from the last estimation.
-  est     <- coef(z)
-
-  for (i in 1:length(est)) {
-    name <- names(est)[i]
-    val <- est[i]
-    storage.mode(val) <- "double"
-    assign(name, val)
-  }
-
-  # contains some duplicated code.
-  for (i in 1:neqs) {
-    lhs[[i]] <- eval(as.formula(eqns[[i]])[[2L]], envir = data)
-    rhs[[i]] <- eval(as.formula(eqns[[i]])[[3L]], envir = data)
-    ri[[i]]  <- lhs[[i]] - rhs[[i]]
-
-    xi[[i]] <- attr(with(data, with(as.list(est),
-                                    eval(deriv(eqns[[i]], names(est)),
-                                         envir = data))), "gradient")
-    n[i]     <- length(lhs[[i]])
-    k[i]     <- qr(xi[[i]])$rank
-  }
-
-  x  <- do.call(cbind, xi)
-  r  <- do.call(cbind, ri)
-
-  # Estimate covb
-  sigma <- z$sigma
-  qS <- qr.solve(sigma)
-
-  if (neqs == 1)
-    # single eqs: covb is s *(XX)-1 for single equations
-    covb <- 1/(n-k) * sum(r^2) * qr.solve(Matrix::crossprod(x))
-  else
-    # covb is solve(XDX)
-    covb <- calc_reg(x, r, qS, length(est), 0)
-
-  dimnames(covb) <- list(names(est), names(est))
-
-  covb
+  summary(object)$cov
 }
 
 #' @export
