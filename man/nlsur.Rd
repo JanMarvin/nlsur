@@ -5,8 +5,8 @@
 \title{Fitting Iterative Feasible Non-Linear Seemingly Unrelated Regression Model}
 \usage{
 nlsur(eqns, data, startvalues, type = NULL, S = NULL, debug = FALSE,
-  trace = FALSE, stata = FALSE, qrsolve = FALSE, weights = NULL,
-  MASS = FALSE, eps = 1e-05, ifgnlseps = 1e-10, tau = 1e-04)
+  trace = FALSE, stata = FALSE, qrsolve = FALSE, weights, MASS = FALSE,
+  eps = 1e-05, ifgnlseps = 1e-10, tau = 1e-04)
 }
 \arguments{
 \item{eqns}{is a list object containing the model as formula. This list can
@@ -46,6 +46,8 @@ tend to be huge (n-equations * n-rows).}
 \item{ifgnlseps}{is epislon for ifgnls(). Default is 1e-10.}
 
 \item{tau}{is another convergence variable. Default is 1e-3.}
+
+\item{Additional}{weight vector.}
 }
 \value{
 The function returns a list object of class nlsur. The list includes:

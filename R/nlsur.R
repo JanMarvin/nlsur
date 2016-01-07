@@ -132,6 +132,7 @@
     xi[[i]] <- attr(with(data, with(as.list(theta),
                                     eval(deriv(eqns[[i]], names(theta)),
                                          envir = data))), "gradient")
+    n[[i]] <- length(lhs[[i]])
   }
 
   r <- do.call(cbind, ri)
@@ -349,7 +350,8 @@
   z$coefficients <- theta
   z$residuals    <- r
   z$eqnames      <- eqnames
-  z$sigma        <- 1/n * crossprod(r)
+  z$sigma        <- 1/n * crossprod(r, weights * r)
+
   z$deviance     <- as.numeric(ssr)
   z$df.residual  <- df
 
@@ -391,6 +393,7 @@
 #' @param MASS is a logical wheather the MASS::lm.gls() function should be used
 #' for weighted Regression. This can cause sever RAM usage as the weight matrix
 #' tend to be huge (n-equations * n-rows).
+#' @param Additional weight vector.
 #'
 #' @details nlsur() is a wrapper around .nlsur(). The function was initialy
 #' inspired by the Stata Corp Function nlsur.
@@ -478,10 +481,10 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
   z      <- NULL
   n      <- nrow(data)
 
-  cl <- match.call()
+  # normweights
+  w <- w/sum(w) * n
 
-  if (!is.null(weights))
-    n <- sum(w)
+  cl <- match.call()
 
   #
   if (!is.null(type)) {
@@ -576,7 +579,6 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
         S <- z$sigma
         s <- chol(qr.solve(S))
 
-
         rss <- calc_ssr(r, s, w)
 
         iter <- iter +1
@@ -630,7 +632,7 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
   z$data <- data
   z$call <- cl
 
-  if (missing(weights))
+  if (is.null(weights))
     z$weights <- NULL
 
   z
@@ -656,6 +658,10 @@ summary.nlsur <- function(object, ...) {
   neqs <- length(eqns)
   w    <- weights(z)
 
+  if (is.null(w))
+    w <- rep(1, nrow(data))
+
+
   #### 2. Estimation of covariance matrix, standard errors and t-values ####
   xi      <- list()
   ri      <- list()
@@ -663,9 +669,13 @@ summary.nlsur <- function(object, ...) {
   rhs     <- list()
   n       <- vector("integer", length=neqs)      # number of observations in each equation
   k       <- vector("integer", length=neqs)      # number of (unrestricted) coefficients/
+  scale   <- vector("numeric", length=neqs)      # scalefactor
+  div     <- vector("numeric", length=neqs)      # divisor
+  wi      <- vector("numeric", length=neqs)      # normalized weights
   # regressors in each equation
   df      <- vector("integer", length=neqs)      # degrees of freedom
   ssr     <- vector("numeric", length=neqs)      # sum of squared residuals
+  mss     <- vector("numeric", length=neqs)
   mse     <- vector("numeric", length=neqs)      # mean square error
   rmse    <- vector("numeric", length=neqs)      # root of mse
   mae     <- vector("numeric", length=neqs)      # mean absolute error
@@ -684,9 +694,9 @@ summary.nlsur <- function(object, ...) {
 
   # contains some duplicated code.
   for (i in 1:neqs) {
-    lhs[[i]] <- eval(as.formula(eqns[[i]])[[2L]], envir = data)
-    rhs[[i]] <- eval(as.formula(eqns[[i]])[[3L]], envir = data)
-    ri[[i]]  <- lhs[[i]] - rhs[[i]]
+    lhs[[i]]  <- eval(as.formula(eqns[[i]])[[2L]], envir = data)
+    rhs[[i]]  <- eval(as.formula(eqns[[i]])[[3L]], envir = data)
+    ri[[i]]   <- lhs[[i]] - rhs[[i]]
 
     xi[[i]] <- attr(with(data, with(as.list(est),
                                     eval(deriv(eqns[[i]], names(est)),
@@ -696,30 +706,36 @@ summary.nlsur <- function(object, ...) {
     k[i]     <- qr(xi[[i]])$rank
     df[i]    <- n[i] - k[i]
 
-    ssr[i]   <- as.vector(crossprod(ri[[i]]))
+    scale[i] <- n[i]/sum(w)
+    div[i]   <- n[i] - 1
+    wi       <- w/sum(w) * n[i]
+
+    ssr[i]   <- sum( ri[[i]]^2 * w) * scale[i]
+
+    # if (const)
+    lhs_wm   <- weighted.mean(x = lhs[[i]], w = wi)
+    wvar     <- (1/(n[i] - 1)) * sum( wi * (lhs[[i]] - lhs_wm)^2)
+    mss[i] <- wvar * div[i] - ssr[i]
+    # else
+
     mse[i]   <- ssr[i] / n[i]
     rmse[i]  <- sqrt(mse[i])
     mae[i]   <- sum(abs(ri[[i]]))/n[i]
 
-    r2[i]    <- 1 - ssr[i] / ((crossprod(lhs[[i]])) - mean(lhs[[i]]) ^ 2 * n[i])
+    r2[i]  <- mss[i] / (mss[i] + ssr[i])
     adjr2[i] <- 1 - ((n[i] - 1) / df[i]) * (1 - r2[i])
   }
 
   x  <- do.call(cbind, xi)
   r  <- do.call(cbind, ri)
 
-  if (!is.null(w))
-    n <- sum(w)
-
-  nE  <- sum(n)
+  nE <- sum(n) / sum ( w/sum(w) )
   kE  <- sum(k)
+
 
   # Estimate covb
   sigma <- z$sigma
   qS <- qr.solve(sigma)
-
-  if (is.null(w))
-    w <- rep(x = 1, times = nrow(data))
 
   if (neqs == 1){
     # single eqs: covb is s *(XX)-1 for single equations
@@ -775,7 +791,13 @@ summary.nlsur <- function(object, ...) {
 print.summary.nlsur <- function(x, ...) {
   # ... is to please check()
   cat("NLSUR Object of type:", x$nlsur, "\n\n")
+
+  if (!is.null(weights(x))) {
+    cat("Scaled R-squared: \n\n")
+  }
+
   print(x$zi, digits = 4)
+
   cat("\n")
   cat("Coefficients:\n")
 

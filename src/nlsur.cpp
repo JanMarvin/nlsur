@@ -6,13 +6,20 @@ using namespace Rcpp;
 using namespace arma;
 
 // @import RcppArmadillo
-
+// @param r r
+// @param s s
+// @param w w
+// @export
 // [[Rcpp::export]]
 SEXP calc_ssr (arma::Mat<double> r, arma::Mat<double> s, arma::Col<double> w) {
 
   arma::mat ssr(1,1, fill::zeros);
   int n    = r.n_rows;
   int k    = r.n_cols;
+
+  // n / sum(w)
+  // only w contains information about the size of n
+  double scale = w.n_elem / sum(w);
 
   s = s.t();
 
@@ -22,9 +29,13 @@ SEXP calc_ssr (arma::Mat<double> r, arma::Mat<double> s, arma::Col<double> w) {
     }
   }
 
-  return wrap(ssr);
+  return wrap(ssr * scale);
 }
 
+// @import RcppArmadillo
+// @param mm mm
+// @param sizetheta sizetheta
+// @export
 // [[Rcpp::export]]
 arma::Mat<double> arma_reshape(arma::Mat<double> mm, int sizetheta) {
 
@@ -44,7 +55,14 @@ arma::Mat<double> arma_reshape(arma::Mat<double> mm, int sizetheta) {
 
   return mm.t();
 }
-
+// @import RcppArmadillo
+// @param x x
+// @param r r
+// @param qS qS
+// @param w w
+// @param sizetheta sizetheta
+// @param fullreg fullreg
+// @export
 // [[Rcpp::export]]
 SEXP calc_reg (arma::Mat<double> x, arma::Mat<double> r, arma::Mat<double> qS,
                arma::Col<double> w, int sizetheta, bool fullreg) {
