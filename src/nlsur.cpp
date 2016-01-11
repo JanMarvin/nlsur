@@ -5,11 +5,11 @@
 using namespace Rcpp;
 using namespace arma;
 
-// @import RcppArmadillo
-// @param r r
-// @param s s
-// @param w w
-// @export
+//' calc_ssr
+//' @param r r
+//' @param s s
+//' @param w w
+//' @export
 // [[Rcpp::export]]
 SEXP calc_ssr (arma::Mat<double> r, arma::Mat<double> s, arma::Col<double> w) {
 
@@ -32,37 +32,27 @@ SEXP calc_ssr (arma::Mat<double> r, arma::Mat<double> s, arma::Col<double> w) {
   return wrap(ssr * scale);
 }
 
-// @import RcppArmadillo
-// @param mm mm
-// @param sizetheta sizetheta
-// @export
+//' arma_reshape
+//' @param mm mm
+//' @param sizetheta sizetheta
+//' @export
 // [[Rcpp::export]]
 arma::Mat<double> arma_reshape(arma::Mat<double> mm, int sizetheta) {
 
-  arma::vec v = vectorise(mm);
-
-  int newsize = v.n_elem / sizetheta;
-  mm.set_size(newsize, sizetheta);
-  mm = mm.t();
-
-  int k = 0;
-  for (uint j = 0; j < mm.n_cols; ++j) {
-    for (uint i = 0; i < mm.n_rows; ++i) {
-      mm(i,j) = v(k);
-      k += +1;
-    }
-  }
+  int newsize = mm.n_elem / sizetheta;
+  mm.set_size(sizetheta, newsize);
 
   return mm.t();
 }
-// @import RcppArmadillo
-// @param x x
-// @param r r
-// @param qS qS
-// @param w w
-// @param sizetheta sizetheta
-// @param fullreg fullreg
-// @export
+
+//' calc_reg
+//' @param x x
+//' @param r r
+//' @param qS qS
+//' @param w w
+//' @param sizetheta sizetheta
+//' @param fullreg fullreg
+//' @export
 // [[Rcpp::export]]
 SEXP calc_reg (arma::Mat<double> x, arma::Mat<double> r, arma::Mat<double> qS,
                arma::Col<double> w, int sizetheta, bool fullreg) {
@@ -76,8 +66,7 @@ SEXP calc_reg (arma::Mat<double> x, arma::Mat<double> r, arma::Mat<double> qS,
   int xicol = x.n_cols / r.n_cols;
 
   for (int i = 0; i < n; ++i) {
-    arma::Mat<double> xi = x.row(i);
-    arma::Mat<double> XI = arma_reshape(xi, xicol);
+    arma::Mat<double> XI = arma_reshape(x.row(i), xicol);
 
     arma::Mat<double> YI = r.row(i).t();
 
@@ -94,6 +83,11 @@ SEXP calc_reg (arma::Mat<double> x, arma::Mat<double> r, arma::Mat<double> qS,
     return wrap(inv(XDX));
 }
 
+
+//' wt_mean
+//' @param x x
+//' @param w w
+//' @export
 // [[Rcpp::export]]
 SEXP wt_mean(arma::Col<double>& x, arma::Col<double>& w) {
 
