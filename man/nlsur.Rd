@@ -5,7 +5,7 @@
 \title{Fitting Iterative Feasible Non-Linear Seemingly Unrelated Regression Model}
 \usage{
 nlsur(eqns, data, startvalues, type = NULL, S = NULL, debug = FALSE,
-  trace = FALSE, stata = FALSE, qrsolve = FALSE, weights, MASS = FALSE,
+  trace = FALSE, stata = TRUE, qrsolve = FALSE, weights, MASS = FALSE,
   eps = 1e-05, ifgnlseps = 1e-10, tau = 1e-04)
 }
 \arguments{
