@@ -47,3 +47,15 @@ BEGIN_RCPP
     return __result;
 END_RCPP
 }
+// wt_mean
+SEXP wt_mean(arma::Col<double>& x, arma::Col<double>& w);
+RcppExport SEXP nlsur_wt_mean(SEXP xSEXP, SEXP wSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< arma::Col<double>& >::type x(xSEXP);
+    Rcpp::traits::input_parameter< arma::Col<double>& >::type w(wSEXP);
+    __result = Rcpp::wrap(wt_mean(x, w));
+    return __result;
+END_RCPP
+}

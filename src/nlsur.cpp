@@ -93,3 +93,10 @@ SEXP calc_reg (arma::Mat<double> x, arma::Mat<double> r, arma::Mat<double> qS,
   else         /* covb */
     return wrap(inv(XDX));
 }
+
+// [[Rcpp::export]]
+SEXP wt_mean(arma::Col<double>& x, arma::Col<double>& w) {
+
+  return( wrap(sum(w % x) / sum(w)) );
+
+}

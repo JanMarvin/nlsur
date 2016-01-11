@@ -13,3 +13,7 @@ calc_reg <- function(x, r, qS, w, sizetheta, fullreg) {
     .Call('nlsur_calc_reg', PACKAGE = 'nlsur', x, r, qS, w, sizetheta, fullreg)
 }
 
+wt_mean <- function(x, w) {
+    .Call('nlsur_wt_mean', PACKAGE = 'nlsur', x, w)
+}
+
