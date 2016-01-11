@@ -266,6 +266,10 @@
         df[i]    <- n[i] - k[i]
       }
 
+      N  <- n
+      K  <- k
+      DF <- df
+
       df <- unique(df)
       k  <- unique(k)
       n  <- unique(n)
@@ -352,6 +356,9 @@
   z$eqnames      <- eqnames
   z$sigma        <- 1/n * crossprod(r, weights * r)
 
+  z$n            <- N
+  z$k            <- K
+  z$df           <- DF
   z$deviance     <- as.numeric(ssr)
   z$df.residual  <- df
 
@@ -665,6 +672,13 @@ summary.nlsur <- function(object, ...) {
   eqns <- z$model
   neqs <- length(eqns)
   w    <- weights(z)
+  n    <- z$n
+  k    <- z$k
+  df   <- z$df
+  r    <- residuals(z)
+
+  if (!all(w > 0))
+    stop("Negative or zero weight found.")
 
   if (is.null(w))
     w <- rep(1, nrow(data))
@@ -672,16 +686,11 @@ summary.nlsur <- function(object, ...) {
 
   #### 2. Estimation of covariance matrix, standard errors and t-values ####
   xi      <- list()
-  ri      <- list()
   lhs     <- list()
-  rhs     <- list()
-  n       <- vector("integer", length=neqs)      # number of observations in each equation
-  k       <- vector("integer", length=neqs)      # number of (unrestricted) coefficients/
   scale   <- vector("numeric", length=neqs)      # scalefactor
   div     <- vector("numeric", length=neqs)      # divisor
   wi      <- vector("numeric", length=neqs)      # normalized weights
   # regressors in each equation
-  df      <- vector("integer", length=neqs)      # degrees of freedom
   ssr     <- vector("numeric", length=neqs)      # sum of squared residuals
   mss     <- vector("numeric", length=neqs)
   mse     <- vector("numeric", length=neqs)      # mean square error
@@ -689,6 +698,7 @@ summary.nlsur <- function(object, ...) {
   mae     <- vector("numeric", length=neqs)      # mean absolute error
   r2      <- vector("numeric", length=neqs)      # R-squared value
   adjr2   <- vector("numeric", length=neqs)      # adjusted R-squared value
+
 
   # Get coefficients from the last estimation.
   est     <- z$coefficients
@@ -703,39 +713,34 @@ summary.nlsur <- function(object, ...) {
   # contains some duplicated code.
   for (i in 1:neqs) {
     lhs[[i]]  <- eval(as.formula(eqns[[i]])[[2L]], envir = data)
-    rhs[[i]]  <- eval(as.formula(eqns[[i]])[[3L]], envir = data)
-    ri[[i]]   <- lhs[[i]] - rhs[[i]]
 
     xi[[i]] <- attr(with(data, with(as.list(est),
                                     eval(deriv(eqns[[i]], names(est)),
                                          envir = data))), "gradient")
 
-    n[i]     <- length(lhs[[i]])
-    k[i]     <- qr(xi[[i]])$rank
-    df[i]    <- n[i] - k[i]
-
     scale[i] <- n[i]/sum(w)
     div[i]   <- n[i] - 1
     wi       <- w/sum(w) * n[i]
 
-    ssr[i]   <- sum( ri[[i]]^2 * w) * scale[i]
+    ssr[i]   <- sum( r[,i]^2 * w) * scale[i]
 
     # if (const)
-    lhs_wm   <- weighted.mean(x = lhs[[i]], w = wi)
+    lhs_wm   <- wt_mean(x = lhs[[i]], w = wi)
     wvar     <- (1/(n[i] - 1)) * sum( wi * (lhs[[i]] - lhs_wm)^2)
     mss[i] <- wvar * div[i] - ssr[i]
     # else
 
     mse[i]   <- ssr[i] / n[i]
     rmse[i]  <- sqrt(mse[i])
-    mae[i]   <- sum(abs(ri[[i]]))/n[i]
+
+    mae[i]   <- sum(abs(r[, i]))/n[i]
 
     r2[i]  <- mss[i] / (mss[i] + ssr[i])
+
     adjr2[i] <- 1 - ((n[i] - 1) / df[i]) * (1 - r2[i])
   }
 
   x  <- do.call(cbind, xi)
-  r  <- do.call(cbind, ri)
 
   nE <- sum(n) / sum ( w/sum(w) )
   kE  <- sum(k)
