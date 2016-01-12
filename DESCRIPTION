@@ -6,6 +6,7 @@ Title: Estimating Nonlinear Least Squares
 Author: Jan Marvin Garbuszus
 Maintainer: Jan Marvin Garbuszus <jan.garbuszus@ruhr-uni-bochum.de>
 Depends:
+    car,
     Matrix,
     MASS,
     stats
