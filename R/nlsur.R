@@ -877,6 +877,8 @@ predict.nlsur <- function(object, newdata, ...) {
   fit
 }
 
+#' Estimate nonlinear combinations of nlsur estimates
+#'
 #' @param object of class nlsur
 #' @param form formula e.g. "be/bk"
 #' @param alpha value for conf. interval

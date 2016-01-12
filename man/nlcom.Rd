@@ -2,6 +2,7 @@
 % Please edit documentation in R/nlsur.R
 \name{nlcom}
 \alias{nlcom}
+\title{Estimate nonlinear combinations of nlsur estimates}
 \usage{
 nlcom(object, form, alpha)
 }
@@ -11,5 +12,8 @@ nlcom(object, form, alpha)
 \item{form}{formula e.g. "be/bk"}
 
 \item{alpha}{value for conf. interval}
+}
+\description{
+Estimate nonlinear combinations of nlsur estimates
 }
 
