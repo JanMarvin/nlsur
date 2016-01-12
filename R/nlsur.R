@@ -68,7 +68,7 @@
 #' @importFrom MASS lm.gls
 #' @import RcppArmadillo
 #' @useDynLib nlsur
-#' @export
+#' @export .nlsur
 .nlsur <- function(eqns, data, startvalues, S = NULL, debug = FALSE,
                    nls = FALSE, fgnls = FALSE, ifgnls = FALSE, qrsolve = FALSE,
                    MASS = FALSE, trace = FALSE, eps = eps, tau = tau,
@@ -346,6 +346,21 @@
 
   }
 
+
+  # Estimate covb
+  if (neqs == 1){
+    # single eqs: covb is s *(XX)-1 for single equations
+    covb <- 1/(n-k) *
+      sum(r^2* weights) *
+      scale *
+      qr.solve(Matrix::crossprod(x, weights*x))
+
+  } else {
+    # covb is solve(XDX)
+    covb <- calc_reg(x, r, qS, weights, length(theta), 0)
+  }
+  dimnames(covb) <- list(names(theta), names(theta))
+
   # fitted
   fitted <- as.data.frame(rhs)
   names(fitted) <- eqnames
@@ -363,6 +378,7 @@
   z$df.residual  <- df
 
   z$weights      <- weights
+  z$cov          <- covb
 
   class(z) <- "nlsur"
 
@@ -569,8 +585,8 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
 
         if (iter == 1000){
           message(paste(iter, "nls iterations and convergence not reached."),
-                  paste("Last theta is: \n"),
-                  coef(z))
+                  paste("Last theta is: \n"))
+          print(coef(z))
           return(0)
         }
 
@@ -684,8 +700,7 @@ summary.nlsur <- function(object, ...) {
     w <- rep(1, nrow(data))
 
 
-  #### 2. Estimation of covariance matrix, standard errors and t-values ####
-  xi      <- list()
+  #### Estimation of covariance matrix, standard errors and z/t-values ####
   lhs     <- list()
   scale   <- vector("numeric", length=neqs)      # scalefactor
   div     <- vector("numeric", length=neqs)      # divisor
@@ -714,10 +729,6 @@ summary.nlsur <- function(object, ...) {
   for (i in 1:neqs) {
     lhs[[i]]  <- eval(as.formula(eqns[[i]])[[2L]], envir = data)
 
-    xi[[i]] <- attr(with(data, with(as.list(est),
-                                    eval(deriv(eqns[[i]], names(est)),
-                                         envir = data))), "gradient")
-
     scale[i] <- n[i]/sum(w)
     div[i]   <- n[i] - 1
     wi       <- w/sum(w) * n[i]
@@ -732,36 +743,17 @@ summary.nlsur <- function(object, ...) {
 
     mse[i]   <- ssr[i] / n[i]
     rmse[i]  <- sqrt(mse[i])
-
     mae[i]   <- sum(abs(r[, i]))/n[i]
 
     r2[i]  <- mss[i] / (mss[i] + ssr[i])
-
     adjr2[i] <- 1 - ((n[i] - 1) / df[i]) * (1 - r2[i])
   }
-
-  x  <- do.call(cbind, xi)
 
   nE <- sum(n) / sum ( w/sum(w) )
   kE  <- sum(k)
 
-
-  # Estimate covb
-  sigma <- z$sigma
-  qS <- qr.solve(sigma)
-
-  if (neqs == 1){
-    # single eqs: covb is s *(XX)-1 for single equations
-    covb <- 1/(n-k) * sum(r^2* w) * scale * qr.solve(Matrix::crossprod(x, w*x))
-
-  } else {
-    # covb is solve(XDX)
-    covb <- calc_reg(x, r, qS, w, length(est), 0)
-  }
-  dimnames(covb) <- list(names(est), names(est))
-
   # Estimate se, tval and prob
-  se <- sqrt(diag(covb))
+  se <- sqrt(diag(z$cov))
   tval <- est / se
   prob <- 2 * (1 - pt(abs(tval), (nE * kE )))
 
@@ -788,10 +780,9 @@ summary.nlsur <- function(object, ...) {
 
   ans$residuals    <- residuals
   ans$nlsur        <- z$nlsur
-  ans$sigma        <- sigma
   ans$zi           <- zi
-  ans$cov          <- covb
   ans$weights      <- weights(z)
+  ans$cov          <- z$cov
 
   if (ans$nlsur == "IFGNLS")
     ans$LL <- z$LL
@@ -835,7 +826,7 @@ logLik.nlsur <- function(object, ...) {
 
 #' @export
 vcov.nlsur <- function(object, ...) {
-  summary(object)$cov
+  object$cov
 }
 
 #' @export
