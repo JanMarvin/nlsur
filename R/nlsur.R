@@ -487,6 +487,18 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
   modelparameters <- c(unlist(lapply(eqns, all.vars)), weights)
   parms <- modelparameters[which(!modelparameters %in% names(startvalues))]
 
+  # check for equation constants
+  eqconst <- list()
+  for (i in 1:length(eqns)) {
+    gl_lhs <- as.character(eqns[[i]])
+
+    terms <- strsplit(gl_lhs[3], split = " + ", fixed = T)[[1]]
+
+    terms <- terms[which(terms %in% names(startvalues))]
+
+    eqconst[[i]] <- terms
+  }
+
   # Check for weights
   if ( is.null(weights) )
     w <- rep(x = 1, nrow(data))
@@ -636,10 +648,10 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
 
 
 
-      z$message <- message
-      z$sigma <- S
+      z$message   <- message
+      z$sigma     <- S
       z$residuals <- r
-      z$nlsur <- "IFGNLS"
+      z$nlsur     <- "IFGNLS"
 
     }
   }
@@ -657,11 +669,12 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
                                   1 - log(N) +
                                   log(det(S)) / M  +
                                   log(sum(w))) )/2
-  z$LL <- LL
 
+  z$LL    <- LL
   z$model <- eqns
-  z$data <- data
-  z$call <- cl
+  z$const <- eqconst
+  z$data  <- data
+  z$call  <- cl
 
   if (is.null(weights))
     z$weights <- NULL
@@ -684,14 +697,23 @@ summary.nlsur <- function(object, ...) {
   # z is shorter
   z <- object
 
-  data <- z$data
-  eqns <- z$model
-  neqs <- length(eqns)
-  w    <- weights(z)
-  n    <- z$n
-  k    <- z$k
-  df   <- z$df
-  r    <- residuals(z)
+  data    <- z$data
+  eqns    <- z$model
+  neqs    <- length(eqns)
+  w       <- weights(z)
+  n       <- z$n
+  k       <- z$k
+  df      <- z$df
+  r       <- residuals(z)
+  eqconst <- z$const
+
+  # if eqconst = NULL: lenght = 0
+  const <- unlist(eqconst)
+
+  if (length(const)==0)
+    const <- FALSE
+  else
+    const <- TRUE
 
   if (!all(w > 0))
     stop("Negative or zero weight found.")
@@ -735,11 +757,14 @@ summary.nlsur <- function(object, ...) {
 
     ssr[i]   <- sum( r[,i]^2 * w) * scale[i]
 
-    # if (const)
-    lhs_wm   <- wt_mean(x = lhs[[i]], w = wi)
-    wvar     <- (1/(n[i] - 1)) * sum( wi * (lhs[[i]] - lhs_wm)^2)
-    mss[i] <- wvar * div[i] - ssr[i]
-    # else
+    if (const) {
+      lhs_wm   <- wt_mean(x = lhs[[i]], w = wi)
+      wvar     <- (1/(n[i] - 1)) * sum( wi * (lhs[[i]] - lhs_wm)^2)
+      mss[i]   <- wvar * div[i] - ssr[i]
+    } else{
+      mss[i]   <- sum(lhs[[i]]^2) * scale[i] - ssr[i]
+    }
+
 
     mse[i]   <- ssr[i] / n[i]
     rmse[i]  <- sqrt(mse[i])
@@ -762,6 +787,12 @@ summary.nlsur <- function(object, ...) {
   dimnames(zi) <- list(as.character(z$eqnames),
                        c("n", "k", "RMSE", "MAE", "R-squared",
                          "Adj-R-sqr."))
+
+  if (const){
+    eqconst <- do.call(rbind, eqconst)
+
+    zi <- data.frame(zi, eqconst)
+  }
 
   # ans: returned object
   ans <- NULL
