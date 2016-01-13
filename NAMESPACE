@@ -2,6 +2,7 @@
 
 S3method(logLik,nlsur)
 S3method(predict,nlsur)
+S3method(print,nlcom)
 S3method(print,nlsur)
 S3method(print,summary.nlsur)
 S3method(summary,nlsur)
