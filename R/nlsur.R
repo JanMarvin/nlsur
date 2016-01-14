@@ -691,7 +691,7 @@ print.nlsur <- function(x, ...) {
 }
 
 #' @export
-summary.nlsur <- function(object, ...) {
+summary.nlsur <- function(object, const = TRUE, ...) {
   # ... is to please check()
 
   # z is shorter
@@ -708,12 +708,10 @@ summary.nlsur <- function(object, ...) {
   eqconst <- z$const
 
   # if eqconst = NULL: lenght = 0
-  const <- unlist(eqconst)
+  consts <- unlist(eqconst)
 
-  if (length(const)==0)
+  if (length(consts)==0 & !isTRUE(const))
     const <- FALSE
-  else
-    const <- TRUE
 
   if (!all(w > 0))
     stop("Negative or zero weight found.")
