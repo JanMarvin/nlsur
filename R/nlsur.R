@@ -225,7 +225,6 @@
         names(theta.new) <- names(theta)
         theta <- theta.new
 
-        print(theta)
       }
 
 
@@ -574,8 +573,6 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
     # fgnls
     if (trace)
       cat("-- FGNLS\n")
-
-    # nlserg <<- z
 
     S <- z$sigma
 
