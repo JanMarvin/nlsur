@@ -39,8 +39,10 @@ SEXP calc_ssr (arma::Mat<double> r, arma::Mat<double> s, arma::Col<double> w) {
 // [[Rcpp::export]]
 arma::Mat<double> arma_reshape(arma::Mat<double> mm, int sizetheta) {
 
+  mm = mm.t();
+
   int newsize = mm.n_elem / sizetheta;
-  mm.set_size(sizetheta, newsize);
+  mm.set_size(newsize, sizetheta);
 
   return mm.t();
 }
@@ -63,10 +65,10 @@ SEXP calc_reg (arma::Mat<double> x, arma::Mat<double> r, arma::Mat<double> qS,
   // arma::Mat<double> qS = pinv(S);
 
   int n = r.n_rows;
-  int xicol = x.n_cols / r.n_cols;
+  int k = r.n_cols;
 
   for (int i = 0; i < n; ++i) {
-    arma::Mat<double> XI = arma_reshape(x.row(i), xicol);
+    arma::Mat<double> XI = arma_reshape(x.row(i), k);
 
     arma::Mat<double> YI = r.row(i).t();
 
