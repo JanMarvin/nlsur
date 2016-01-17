@@ -72,7 +72,7 @@
 .nlsur <- function(eqns, data, startvalues, S = NULL, debug = FALSE,
                    nls = FALSE, fgnls = FALSE, ifgnls = FALSE, qrsolve = FALSE,
                    MASS = FALSE, trace = FALSE, eps = eps, tau = tau,
-                   weights = weights)
+                   wts = wts)
 {
   z    <- list()
   itr  <- 0
@@ -148,7 +148,7 @@
     print(r)
 
   # Evaluate initial ssr
-  ssr.old <- calc_ssr(r, s, weights)
+  ssr.old <- calc_ssr(r, s, wts)
 
   if (trace)
     cat("Initial SSR: ", ssr.old, "\n")
@@ -178,7 +178,7 @@
 
     # begin regression
     # Regression of residuals on derivs
-    if (nls & qrsolve & is.null(weights)) {
+    if (nls & qrsolve & is.null(wts)) {
 
       r <- matrix(r, ncol = 1)
       x <- do.call(rbind, xi)
@@ -200,11 +200,12 @@
 
     } else {
 
-      if (MASS & is.null(weights))
+      if (MASS)
       {
 
-        Sigma <- Matrix::kronecker(X = qr.solve(1/n * crossprod(r)),
-                                   Y = Matrix::diag(n) )
+        Sigma <- Matrix::kronecker(X = qS,
+                                   Y = Matrix::diag(nrow(r)) )
+
         r <- matrix(r, ncol = 1)
         x <- do.call(rbind, xi)
 
@@ -214,14 +215,16 @@
         theta.new <- coef(MASS::lm.gls(r ~ 0 + x, W = Sigma))
         names(theta.new) <- names(theta)
         theta <- theta.new
+
       } else {
 
         # Weighted regression of residuals on derivs ---
-        theta_test <- calc_reg(x, r, qS, weights, length(theta), 1)
+        theta_test <- calc_reg(x, r, qS, wts, length(theta), 1)
         theta.new <- as.vector(theta_test)
 
         names(theta.new) <- names(theta)
         theta <- theta.new
+
       }
 
 
@@ -282,7 +285,7 @@
       x <- do.call(cbind, xi)
 
       # Evaluate initial ssr
-      ssr <- calc_ssr(r, s, weights)
+      ssr <- calc_ssr(r, s, wts)
 
       # divide stepsizeparameter
       alpha <- alpha/2
@@ -351,13 +354,13 @@
   if (neqs == 1){
     # single eqs: covb is s *(XX)-1 for single equations
     covb <- 1/(n-k) *
-      sum(r^2* weights) *
+      sum(r^2* wts) *
       scale *
-      qr.solve(Matrix::crossprod(x, weights*x))
+      qr.solve(Matrix::crossprod(x, wts*x))
 
   } else {
     # covb is solve(XDX)
-    covb <- calc_reg(x, r, qS, weights, length(theta), 0)
+    covb <- calc_reg(x, r, qS, wts, length(theta), 0)
   }
   dimnames(covb) <- list(names(theta), names(theta))
 
@@ -369,7 +372,7 @@
   z$coefficients <- theta
   z$residuals    <- r
   z$eqnames      <- eqnames
-  z$sigma        <- 1/n * crossprod(r, weights * r)
+  z$sigma        <- 1/n * crossprod(r, wts * r)
 
   z$n            <- N
   z$k            <- K
@@ -377,7 +380,7 @@
   z$deviance     <- as.numeric(ssr)
   z$df.residual  <- df
 
-  z$weights      <- weights
+  z$wts      <- wts
   z$cov          <- covb
 
   class(z) <- "nlsur"
@@ -416,7 +419,7 @@
 #' @param MASS is a logical wheather the MASS::lm.gls() function should be used
 #' for weighted Regression. This can cause sever RAM usage as the weight matrix
 #' tend to be huge (n-equations * n-rows).
-#' @param weights Additional weight vector.
+#' @param wts Additional weight vector.
 #'
 #' @details nlsur() is a wrapper around .nlsur(). The function was initialy
 #' inspired by the Stata Corp Function nlsur.
@@ -465,12 +468,12 @@
 nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
                   trace = FALSE, stata = TRUE, qrsolve = FALSE,
                   weights, MASS = FALSE,
-                  eps = 1e-5, ifgnlseps = 1e-10, tau = 1e-4) {
+                  eps = 1e-5, ifgnlseps = 1e-10, tau = 1e-3) {
 
   if (missing(weights))
-    weights <- NULL
+    wts <- NULL
   else
-    weights <- as.character(substitute(weights))
+    wts <- as.character(substitute(weights))
 
 
   # Check if all variables that are not startvalues exist in data.
@@ -482,9 +485,12 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
     return(0)
   }
 
+  if (isTRUE(MASS) & !is.null(wts))
+    stop("With MASS you can not use weights.")
+
 
   # remove observation, if observation a parameter contains NA.
-  modelparameters <- c(unlist(lapply(eqns, all.vars)), weights)
+  modelparameters <- c(unlist(lapply(eqns, all.vars)), wts)
   parms <- modelparameters[which(!modelparameters %in% names(startvalues))]
 
   # check for equation constants
@@ -499,13 +505,13 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
     eqconst[[i]] <- terms
   }
 
-  # Check for weights
-  if ( is.null(weights) )
+  # Check for wts
+  if ( is.null(wts) )
     w <- rep(x = 1, nrow(data))
   else {
-    weights <- as.name(weights)
+    wts <- as.name(wts)
 
-    w <- eval(substitute(weights), data)
+    w <- eval(substitute(wts), data)
   }
 
   data <- na.omit(data[unique(parms)])
@@ -516,7 +522,7 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
   z      <- NULL
   n      <- nrow(data)
 
-  # normweights
+  # normwts
   w <- w/sum(w) * n
 
   cl <- match.call()
@@ -544,7 +550,7 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
 
   z <- .nlsur( eqns = eqns, data = data, startvalues = startvalues, S = S,
                debug = debug, nls = TRUE, trace = trace, qrsolve = qrsolve,
-               MASS = MASS, eps = eps, tau = tau, weights = w)
+               MASS = MASS, eps = eps, tau = tau, wts = w)
 
   if (nls & stata) {
 
@@ -554,7 +560,7 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
 
     z <- .nlsur( eqns = eqns, data = data, startvalues = z$coefficients, S = S,
                  debug = debug, nls = nls, trace = trace, qrsolve = qrsolve,
-                 MASS = MASS, eps = eps, tau = tau, weights = w)
+                 MASS = MASS, eps = eps, tau = tau, wts = w)
 
     # FixMe: Stata uses this sigma for covb, not the updated?
     z$sigma <- diag(diag(S))
@@ -568,14 +574,12 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
     if (trace)
       cat("-- FGNLS\n")
 
-    # nlserg <<- z
-
     S <- z$sigma
 
     z <- .nlsur(eqns = eqns, data = data, startvalues = z$coefficients,
                 S = S, debug = debug, nls = FALSE, trace = trace,
                 qrsolve = qrsolve, MASS = MASS, eps = eps, tau = tau,
-                weights = w)
+                wts = w)
 
     # FixMe: Stata uses this sigma for covb, not the updated?
     if (!ifgnls)
@@ -608,7 +612,7 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
         z <- .nlsur(eqns = eqns, data = data, startvalues = z$coefficients,
                     S = S, debug = debug, nls = FALSE,
                     qrsolve = qrsolve, MASS = MASS, eps = eps, tau = tau,
-                    weights = w)
+                    wts = w)
 
         r <- z$residuals
         S <- z$sigma
@@ -676,8 +680,8 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
   z$data  <- data
   z$call  <- cl
 
-  if (is.null(weights))
-    z$weights <- NULL
+  if (is.null(wts))
+    z$wts <- NULL
 
   z
 }
@@ -691,7 +695,7 @@ print.nlsur <- function(x, ...) {
 }
 
 #' @export
-summary.nlsur <- function(object, ...) {
+summary.nlsur <- function(object, const = TRUE, ...) {
   # ... is to please check()
 
   # z is shorter
@@ -708,12 +712,10 @@ summary.nlsur <- function(object, ...) {
   eqconst <- z$const
 
   # if eqconst = NULL: lenght = 0
-  const <- unlist(eqconst)
+  consts <- unlist(eqconst)
 
-  if (length(const)==0)
+  if (length(consts)==0 & !isTRUE(const))
     const <- FALSE
-  else
-    const <- TRUE
 
   if (!all(w > 0))
     stop("Negative or zero weight found.")
@@ -726,7 +728,7 @@ summary.nlsur <- function(object, ...) {
   lhs     <- list()
   scale   <- vector("numeric", length=neqs)      # scalefactor
   div     <- vector("numeric", length=neqs)      # divisor
-  wi      <- vector("numeric", length=neqs)      # normalized weights
+  wi      <- vector("numeric", length=neqs)      # normalized wts
   # regressors in each equation
   ssr     <- vector("numeric", length=neqs)      # sum of squared residuals
   mss     <- vector("numeric", length=neqs)

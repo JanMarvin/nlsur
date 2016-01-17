@@ -68,6 +68,7 @@ SEXP calc_reg (arma::Mat<double> x, arma::Mat<double> r, arma::Mat<double> qS,
   int k = r.n_cols;
 
   for (int i = 0; i < n; ++i) {
+
     arma::Mat<double> XI = arma_reshape(x.row(i), k);
 
     arma::Mat<double> YI = r.row(i).t();
