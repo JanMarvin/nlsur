@@ -459,8 +459,32 @@
 #' formulas}
 #' }
 #'
-#' @examples # predict(nlsurObj, dataframe)
-#' @seealso nls
+#' @examples
+#' \dontrun{
+#' # Greene Example 10.3
+#' library(nlsur)
+#'
+#' url <- "http://www.stern.nyu.edu/~wgreene/Text/Edition7/TableF10-2.txt"
+#' dd <- read.table(url, header = T)
+#'
+#' names(dd) <- c("Year", "Cost", "Sk", "Sl", "Se", "Sm", "Pk", "Pl", "Pe", "Pm")
+#'
+#'
+#' eqns <- list( Sk ~ bk + dkk * log(Pk/Pm) + dkl * log(Pl/Pm) + dke * log(Pe/Pm),
+#'               Sl ~ bl + dkl * log(Pk/Pm) + dll * log(Pl/Pm) + dle * log(Pe/Pm),
+#'               Se ~ be + dke * log(Pk/Pm) + dle * log(Pl/Pm) + dee * log(Pe/Pm))
+#'
+#' strtvls <- c(be = 0, bk = 0, bl = 0,
+#'              dkk = 0, dkl = 0, dke = 0,
+#'              dll = 0, dle = 0, dee = 0)
+#'
+#'
+#' erg <- nlsur(eqns = eqns, data = dd, startvalues = strtvls, type = 2,
+#'              trace = TRUE, eps = 1e-10)
+#'
+#' erg
+#' }
+#' @seealso \link{nls}
 #' @import RcppArmadillo
 #' @useDynLib nlsur
 #'

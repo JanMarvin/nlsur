@@ -2,12 +2,58 @@
 #' Estimate nonlinear combinations of nlsur estimates
 #'
 #' @param object of class nlsur
-#' @param form formula e.g. "be/bk"
+#' @param form formula e.g. "be/bk". May contain names(coef(object)) or prior
+#' nlcom estimations.
 #' @param alpha value for conf. interval
+#' @param rname optional rowname for result
 #' @importFrom car deltaMethod
+#' @seealso \link{deltaMethod}
+#' @examples
+#' \dontrun{
+#' dkm <- nlcom(object = erg, form = "-dkk -dkl -dke", rname = "dkm")
+#' dkm
+#'
+#' dlm <- nlcom(object = erg, form = "-dkl -dll -dle", rname = "dlm")
+#' dlm
+#'
+#' dem <- nlcom(object = erg, form = "-dke -dle -dee", rname = "dem")
+#' dem
+#'
+#' dmm <- nlcom(object = erg, form = "-dkm -dlm -dem", rname = "dmm")
+#' dmm
+#'
+#' # last one is equivalent to the longer form of:
+#' dmm <- nlcom(object = erg,
+#'  form = "-(-dkk -dkl -dke) -(-dkl -dll -dle) -(-dke -dle -dee)")
+#' dmm
+#' }
 #'
 #' @export
-nlcom <- function(object, form, alpha) {
+nlcom <- function(object, form, alpha, rname) {
+
+  # store original form
+  oform <- form
+
+  # check if all form vars are part of object
+  vars <- all.vars(formula(paste(form, "~ 0")))
+  vars <- vars[!(vars %in% names(coef(object)))]
+
+  # if form contains other nlcom estimates, fetch their formula and update
+  # the current form with the older formula.
+  if( !identical(vars, character(0)) ){
+    for (i in vars){
+      tmp <- get(x = i)
+
+      if(!(class(tmp) == "nlcom"))
+        stop(paste(i, "is not of class nlcom."))
+
+      fname <- paste("(", attr(tmp, "form"), ")")
+
+      form <- gsub(pattern = i, replacement = fname, x = form, fixed = TRUE)
+
+      }
+  }
+
   z <- deltaMethod(object, form)
 
   tval <- z$Estimate / z$SE
@@ -33,9 +79,14 @@ nlcom <- function(object, form, alpha) {
   cinterv <- z$Estimate  + qnorm(alphaz) * ( z$`Std. Error`/ sqrt (lk) * neqs )
   names(cinterv) <- as.character(alphaz)
 
+  if(missing(rname))
+    attr(z, "rname")   <- oform
+  else
+    attr(z, "rname")   <- rname
 
+  attr(z, "form")    <- form
+  attr(z, "oform")   <- oform
   attr(z, "Confint") <- cinterv
-  attr(z, "rname")   <- form
   class(z)           <- "nlcom"
 
   z
@@ -48,6 +99,11 @@ print.nlcom <- function(object, ...) {
   dimnames(mat) <- list(attr(object, "rname"),
                         names(unlist(object)))
 
+  cat("nlcom: ", attr(object, "oform"), "\n\n")
+
   printCoefmat(mat, signif.legend = FALSE , ...)
+
+  if (attr(object, "oform") != attr(object, "form"))
+    cat("\nnlcom object estimated with prior nlcom estimate.\n")
 
 }

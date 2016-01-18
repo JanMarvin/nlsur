@@ -4,16 +4,43 @@
 \alias{nlcom}
 \title{Estimate nonlinear combinations of nlsur estimates}
 \usage{
-nlcom(object, form, alpha)
+nlcom(object, form, alpha, rname)
 }
 \arguments{
 \item{object}{of class nlsur}
 
-\item{form}{formula e.g. "be/bk"}
+\item{form}{formula e.g. "be/bk". May contain names(coef(object)) or prior
+nlcom estimations.}
 
 \item{alpha}{value for conf. interval}
+
+\item{rname}{optional rowname for result}
 }
 \description{
 Estimate nonlinear combinations of nlsur estimates
+}
+\examples{
+\dontrun{
+dkm <- nlcom(object = erg, form = "-dkk -dkl -dke", rname = "dkm")
+dkm
+
+dlm <- nlcom(object = erg, form = "-dkl -dll -dle", rname = "dlm")
+dlm
+
+dem <- nlcom(object = erg, form = "-dke -dle -dee", rname = "dem")
+dem
+
+dmm <- nlcom(object = erg, form = "-dkm -dlm -dem", rname = "dmm")
+dmm
+
+# last one is equivalent to the longer form of:
+dmm <- nlcom(object = erg,
+ form = "-(-dkk -dkl -dke) -(-dkl -dll -dle) -(-dke -dle -dee)")
+dmm
+}
+
+}
+\seealso{
+\link{deltaMethod}
 }
 
