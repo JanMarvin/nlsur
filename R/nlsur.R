@@ -419,7 +419,7 @@
 #' @param MASS is a logical wheather the MASS::lm.gls() function should be used
 #' for weighted Regression. This can cause sever RAM usage as the weight matrix
 #' tend to be huge (n-equations * n-rows).
-#' @param wts Additional weight vector.
+#' @param weights Additional weight vector.
 #'
 #' @details nlsur() is a wrapper around .nlsur(). The function was initialy
 #' inspired by the Stata Corp Function nlsur.
@@ -499,6 +499,11 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
   else
     wts <- as.character(substitute(weights))
 
+  if (missing (startvalues)) {
+    message("startvalues created with val = 0.")
+
+    startvalues <- getstartvals(model = eqns, data = data, val = 0)
+  }
 
   # Check if all variables that are not startvalues exist in data.
   vars <- unlist(lapply(eqns, all.vars))
@@ -703,6 +708,7 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
   z$const <- eqconst
   z$data  <- data
   z$call  <- cl
+  z$start <- startvalues
 
   if (is.null(wts))
     z$wts <- NULL

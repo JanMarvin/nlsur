@@ -93,17 +93,17 @@ nlcom <- function(object, form, alpha, rname) {
 }
 
 #' @export
-print.nlcom <- function(object, ...) {
+print.nlcom <- function(x, ...) {
 
-  mat <- matrix(unlist(object), nrow = 1)
-  dimnames(mat) <- list(attr(object, "rname"),
-                        names(unlist(object)))
+  mat <- matrix(unlist(x), nrow = 1)
+  dimnames(mat) <- list(attr(x, "rname"),
+                        names(unlist(x)))
 
-  cat("nlcom: ", attr(object, "oform"), "\n\n")
+  cat("nlcom: ", attr(x, "oform"), "\n\n")
 
   printCoefmat(mat, signif.legend = FALSE , ...)
 
-  if (attr(object, "oform") != attr(object, "form"))
+  if (attr(x, "oform") != attr(x, "form"))
     cat("\nnlcom object estimated with prior nlcom estimate.\n")
 
 }
