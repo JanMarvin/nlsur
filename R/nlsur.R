@@ -352,7 +352,7 @@
   # Estimate covb
   if (neqs == 1){
 
-    scale <- n/sum(w)
+    scale <- n/sum(wts)
 
     # single eqs: covb is s *(XX)-1 for single equations
     covb <- 1/(n-k) *
