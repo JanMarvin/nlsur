@@ -65,6 +65,11 @@ BB <- as.vector(BB)
 Bb <- as.vector(Bb)
 bb <- as.vector(bb)
 
+# wt_mean
+wtm_r <- weighted.mean(x = X[, "a"], w = X[, "b"])
+wtm_a <- wt_mean(x = X[, "a"], w = X[, "b"])
+
+
 #### calc_ssr ####
 test_that("calc_ssr", {
   expect_equal(rss_a, rss_m)
@@ -79,4 +84,9 @@ test_that("arma_reshape", {
 test_that("calc_reg", {
   expect_equal(bb, BB)
   expect_equal(bb, Bb)
+})
+
+#### wt_mean ####
+test_that("wt_mean", {
+  expect_equal(wtm_r, wtm_a)
 })
