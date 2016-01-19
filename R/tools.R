@@ -16,3 +16,11 @@ getstartvals <- function(model, data, val) {
 
   strtvls
 }
+
+
+#' Check if object is of class formula
+#' @param x object
+#' @export
+is.formula <- function(x) {
+  isTRUE(class(x) == "formula")
+}

@@ -349,9 +349,11 @@
 
   }
 
-
   # Estimate covb
   if (neqs == 1){
+
+    scale <- n/sum(w)
+
     # single eqs: covb is s *(XX)-1 for single equations
     covb <- 1/(n-k) *
       sum(r^2* wts) *
@@ -493,6 +495,22 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
                   trace = FALSE, stata = TRUE, qrsolve = FALSE,
                   weights, MASS = FALSE,
                   eps = 1e-5, ifgnlseps = 1e-10, tau = 1e-3) {
+
+  # Check if eqns might be a formula
+  if (!is.list(eqns)){
+    # check if formula provided as string
+    if (!is.formula(eqns)){
+      gl <- as.formula(eqns)
+
+      if (!is.formula(gl))
+        stop("No equation specified.")
+
+    } else
+      gl <- eqns
+
+    eqns <- list()
+    eqns[[1]] <- gl
+  }
 
   if (missing(weights))
     wts <- NULL
