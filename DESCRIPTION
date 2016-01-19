@@ -12,6 +12,8 @@ Depends:
     stats
 Imports:
     RcppArmadillo
+Suggests:
+    testthat
 Description: "Estimation of Nonlinear Least Squares (NLS), Feasibe Generalized
     NLS (FGNLS) and Iterative FGNLS (IFGNLS) for Systems of Equations."
 License: MIT + file LICENSE
