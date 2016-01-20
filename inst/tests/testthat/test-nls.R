@@ -47,8 +47,3 @@ test_that("weighted nls", {
   expect_equal(bw, Bw)
   expect_equal(cw, Cw)
 })
-
-#### vcov ####
-test_that("vcov", {
-  expect_equal(va, vA)
-})
