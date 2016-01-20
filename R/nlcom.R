@@ -42,7 +42,7 @@ nlcom <- function(object, form, alpha, rname) {
   # the current form with the older formula.
   if( !identical(vars, character(0)) ){
     for (i in vars){
-      tmp <- get(x = i)
+      tmp <- get0(x = i)
 
       if(!(class(tmp) == "nlcom"))
         stop(paste(i, "is not of class nlcom."))

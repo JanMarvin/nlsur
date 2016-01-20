@@ -19,9 +19,9 @@ row.names = 1)
 greene <- greene[order(row.names(greene)),]
 
 dat  <- NULL
-erg1 <- NULL
 erg2 <- NULL
-erg3 <- NULL
+
+bm <- dkm <- dlm <- dem <- dmm <- NULL
 
 # use costs data
 data(costs)
@@ -56,7 +56,10 @@ dlm <- nlcom(object = erg2, form = "-dkl -dll -dle", rname = "dlm")
 dem <- nlcom(object = erg2, form = "-dke -dle -dee", rname = "dem")
 # dem
 
-dmm <- nlcom(object = erg2, form = "-dkm -dlm -dem", rname = "dmm")
+# # testthat does not like my get.
+# dmm <- nlcom(object = erg2, form = "-dkm -dlm -dem", rname = "dmm")
+dmm <- nlcom(object = erg2,
+             form = "-(-dkk -dkl -dke) -(-dkl -dll -dle) -(-dke -dle -dee)")
 # dmm
 
 est <- summary(erg2)$coefficients
