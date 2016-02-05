@@ -71,8 +71,7 @@
 #' @export .nlsur
 .nlsur <- function(eqns, data, startvalues, S = NULL, debug = FALSE,
                    nls = FALSE, fgnls = FALSE, ifgnls = FALSE, qrsolve = FALSE,
-                   MASS = FALSE, trace = FALSE, eps = eps, tau = tau,
-                   wts = wts)
+                   MASS = FALSE, trace = FALSE, eps = eps, tau = tau)
 {
   z    <- list()
   itr  <- 0
@@ -85,6 +84,8 @@
   n    <- vector("integer", length=neqs)
   k    <- vector("integer", length=neqs)
   df   <- vector("integer", length=neqs)
+
+  wts  <- data$w
 
   # set initial theta
   theta <- startvalues
@@ -382,7 +383,7 @@
   z$deviance     <- as.numeric(ssr)
   z$df.residual  <- df
 
-  z$wts      <- wts
+  z$wts          <- wts
   z$cov          <- covb
 
   class(z) <- "nlsur"
@@ -554,14 +555,16 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
 
   # Check for wts
   if ( is.null(wts) )
-    w <- rep(x = 1, nrow(data))
+    data$w <- 1
   else {
     wts <- as.name(wts)
 
-    w <- eval(substitute(wts), data)
+    data$w <- eval(substitute(wts), data)
   }
 
-  data <- na.omit(data[unique(parms)])
+  # include weights to assure the correct length
+  # of weights if missings are excluded.
+  data <- na.omit(data[unique(c(parms,"w"))])
 
   nls    <- FALSE
   fgnls  <- FALSE
@@ -570,7 +573,7 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
   n      <- nrow(data)
 
   # normwts
-  w <- w/sum(w) * n
+  data$w <- data$w/sum(data$w) * n
 
   cl <- match.call()
 
@@ -597,7 +600,7 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
 
   z <- .nlsur( eqns = eqns, data = data, startvalues = startvalues, S = S,
                debug = debug, nls = TRUE, trace = trace, qrsolve = qrsolve,
-               MASS = MASS, eps = eps, tau = tau, wts = w)
+               MASS = MASS, eps = eps, tau = tau)
 
   if (nls & stata) {
 
@@ -607,7 +610,7 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
 
     z <- .nlsur( eqns = eqns, data = data, startvalues = z$coefficients, S = S,
                  debug = debug, nls = nls, trace = trace, qrsolve = qrsolve,
-                 MASS = MASS, eps = eps, tau = tau, wts = w)
+                 MASS = MASS, eps = eps, tau = tau)
 
     # FixMe: Stata uses this sigma for covb, not the updated?
     z$sigma <- diag(diag(S))
@@ -625,8 +628,7 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
 
     z <- .nlsur(eqns = eqns, data = data, startvalues = z$coefficients,
                 S = S, debug = debug, nls = FALSE, trace = trace,
-                qrsolve = qrsolve, MASS = MASS, eps = eps, tau = tau,
-                wts = w)
+                qrsolve = qrsolve, MASS = MASS, eps = eps, tau = tau)
 
     # FixMe: Stata uses this sigma for covb, not the updated?
     if (!ifgnls)
@@ -658,14 +660,13 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
 
         z <- .nlsur(eqns = eqns, data = data, startvalues = z$coefficients,
                     S = S, debug = debug, nls = FALSE,
-                    qrsolve = qrsolve, MASS = MASS, eps = eps, tau = tau,
-                    wts = w)
+                    qrsolve = qrsolve, MASS = MASS, eps = eps, tau = tau)
 
         r <- z$residuals
         S <- z$sigma
         s <- chol(qr.solve(S))
 
-        rss <- calc_ssr(r, s, w)
+        rss <- calc_ssr(r, s, data$w)
 
         iter <- iter +1
 
@@ -716,10 +717,10 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
   # LL <- -N * (log(2 * pi) + 1 - log(N) - sum(log(w + zw)) + log(sum(w*r^2)))/2
   # LL <-      (sum(log(w)) - N * (log(2 * pi) + 1 - log(N) + log(sum(w*r^2))))/2
 
-  LL <- ( sum(log(w)) -(M*N) * (log(2 * pi) +
+  LL <- ( sum(log(data$w)) -(M*N) * (log(2 * pi) +
                                   1 - log(N) +
                                   log(det(S)) / M  +
-                                  log(sum(w))) )/2
+                                  log(sum(data$w))) )/2
 
   z$LL    <- LL
   z$model <- eqns
