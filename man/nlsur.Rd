@@ -6,7 +6,7 @@
 \usage{
 nlsur(eqns, data, startvalues, type = NULL, S = NULL, debug = FALSE,
   trace = FALSE, stata = TRUE, qrsolve = FALSE, weights, MASS = FALSE,
-  eps = 1e-05, ifgnlseps = 1e-10, tau = 0.001)
+  maxiter = 1000, eps = 1e-05, ifgnlseps = 1e-10, tau = 0.001)
 }
 \arguments{
 \item{eqns}{is a list object containing the model as formula. This list can
@@ -42,6 +42,8 @@ of the I matrix with the coefficients.}
 \item{MASS}{is a logical wheather the MASS::lm.gls() function should be used
 for weighted Regression. This can cause sever RAM usage as the weight matrix
 tend to be huge (n-equations * n-rows).}
+
+\item{maxiter}{Maximum number of iterations.}
 
 \item{eps}{the epislon used for convergence in nlsur(). Default is 1e-5.}
 

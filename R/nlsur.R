@@ -71,7 +71,8 @@
 #' @export .nlsur
 .nlsur <- function(eqns, data, startvalues, S = NULL, debug = FALSE,
                    nls = FALSE, fgnls = FALSE, ifgnls = FALSE, qrsolve = FALSE,
-                   MASS = FALSE, trace = FALSE, eps = eps, tau = tau)
+                   MASS = FALSE, trace = FALSE, eps = eps, tau = tau,
+                   maxiter = maxiter)
 {
   z    <- list()
   itr  <- 0
@@ -162,7 +163,7 @@
     if (debug)
       cat("Iteration: ", itr , "\n")
 
-    if (itr == 1000){
+    if (itr == maxiter){
       message(paste(itr, "nls iterations and convergence not reached."),
               paste("Last theta is: \n", theta, "\n"))
       return(0)
@@ -423,6 +424,7 @@
 #' for weighted Regression. This can cause sever RAM usage as the weight matrix
 #' tend to be huge (n-equations * n-rows).
 #' @param weights Additional weight vector.
+#' @param maxiter Maximum number of iterations.
 #'
 #' @details nlsur() is a wrapper around .nlsur(). The function was initialy
 #' inspired by the Stata Corp Function nlsur.
@@ -494,7 +496,7 @@
 #' @export
 nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
                   trace = FALSE, stata = TRUE, qrsolve = FALSE,
-                  weights, MASS = FALSE,
+                  weights, MASS = FALSE, maxiter = 1000,
                   eps = 1e-5, ifgnlseps = 1e-10, tau = 1e-3) {
 
   # Check if eqns might be a formula
@@ -600,7 +602,7 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
 
   z <- .nlsur( eqns = eqns, data = data, startvalues = startvalues, S = S,
                debug = debug, nls = TRUE, trace = trace, qrsolve = qrsolve,
-               MASS = MASS, eps = eps, tau = tau)
+               MASS = MASS, eps = eps, tau = tau, maxiter = maxiter)
 
   if (nls & stata) {
 
@@ -610,7 +612,7 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
 
     z <- .nlsur( eqns = eqns, data = data, startvalues = z$coefficients, S = S,
                  debug = debug, nls = nls, trace = trace, qrsolve = qrsolve,
-                 MASS = MASS, eps = eps, tau = tau)
+                 MASS = MASS, eps = eps, tau = tau, maxiter = maxiter)
 
     # FixMe: Stata uses this sigma for covb, not the updated?
     z$sigma <- diag(diag(S))
@@ -628,7 +630,8 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
 
     z <- .nlsur(eqns = eqns, data = data, startvalues = z$coefficients,
                 S = S, debug = debug, nls = FALSE, trace = trace,
-                qrsolve = qrsolve, MASS = MASS, eps = eps, tau = tau)
+                qrsolve = qrsolve, MASS = MASS, eps = eps, tau = tau,
+                maxiter = maxiter)
 
     # FixMe: Stata uses this sigma for covb, not the updated?
     if (!ifgnls)
@@ -648,7 +651,7 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
       while (!conv)
       {
 
-        if (iter == 1000){
+        if (iter == maxiter){
           message(paste(iter, "nls iterations and convergence not reached."),
                   paste("Last theta is: \n"))
           print(coef(z))
@@ -660,7 +663,8 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
 
         z <- .nlsur(eqns = eqns, data = data, startvalues = z$coefficients,
                     S = S, debug = debug, nls = FALSE,
-                    qrsolve = qrsolve, MASS = MASS, eps = eps, tau = tau)
+                    qrsolve = qrsolve, MASS = MASS, eps = eps, tau = tau,
+                    maxiter = maxiter)
 
         r <- z$residuals
         S <- z$sigma
