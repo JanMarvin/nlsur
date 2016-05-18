@@ -615,7 +615,8 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
                  MASS = MASS, eps = eps, tau = tau, maxiter = maxiter)
 
     # FixMe: Stata uses this sigma for covb, not the updated?
-    z$sigma <- diag(diag(S))
+    z$sigma <- diag(diag(S), nrow = ncol(z$fitted), ncol = ncol(z$fitted))
+
   }
   z$nlsur <- "NLS"
 
@@ -717,7 +718,6 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
   M <- nrow(S)
 
   # LL <- -(M*N)/2 * (1 + log(2*pi)) - N/2 * log(det(S))
-
   # LL <- -N * (log(2 * pi) + 1 - log(N) - sum(log(w + zw)) + log(sum(w*r^2)))/2
   # LL <-      (sum(log(w)) - N * (log(2 * pi) + 1 - log(N) + log(sum(w*r^2))))/2
 
