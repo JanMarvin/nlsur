@@ -149,6 +149,10 @@
   if (debug)
     print(r)
 
+  divi <- 2
+  alph <- 1
+
+
   # Evaluate initial ssr
   ssr.old <- calc_ssr(r, s, wts)
 
@@ -156,7 +160,7 @@
     cat("Initial SSR: ", ssr.old, "\n")
 
   itr        <- 0
-  alpha      <- 1 # stepsizeparameter
+  alpha      <- alph # stepsizeparameter
 
   while (!conv) {
 
@@ -169,10 +173,13 @@
       return(0)
     }
 
-    # If alpha < 1 increase it again. Spotted in nls.c
-    alpha <- min(2*alpha, 1)
-    # Alt: Stata variant, set alpha to 1
-    # alpha <- 1
+    # If alpha < alph increase it again. Spotted in nls.c
+    alpha <- min(divi*alpha, alph)
+    # Alt: Stata variant, set alpha to alph
+    # alpha <- alph
+
+    if(debug)
+      print(alpha)
 
     # initiate while loop
     ssr <- Inf
@@ -275,22 +282,25 @@
       K  <- k
       DF <- df
 
+      r <- do.call(cbind, ri)
+      x <- do.call(cbind, xi)
+
       df <- unique(df)
       k  <- unique(k)
       n  <- unique(n)
 
+      if (length(n)>1 | length(k)>1) {
+        warning("unequal n or k")
 
-      if (length(n)>1 | length(k)>1)
-        stop ("unequal n or k")
-
-      r <- do.call(cbind, ri)
-      x <- do.call(cbind, xi)
+        # message(n)
+        message(k)
+      }
 
       # Evaluate initial ssr
       ssr <- calc_ssr(r, s, wts)
 
       # divide stepsizeparameter
-      alpha <- alpha/2
+      alpha <- alpha/divi
 
 
       if (debug)
