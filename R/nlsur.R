@@ -64,7 +64,7 @@
 #'  Applications, Wiley
 #' @references
 #' Gallant, A. Ronald (1987): Nonlinear Statistical Models. Wiley: New York
-#' @importFrom Matrix kronecker diag
+#' @importFrom Matrix diag kronecker rankMatrix
 #' @importFrom MASS lm.gls
 #' @importFrom stats as.formula coef
 #' @import RcppArmadillo
@@ -275,7 +275,8 @@
                                              envir = data))), "gradient")
 
         n[i]     <- length(rhs[[i]])
-        k[i]     <- qr(xi[[i]])$rank
+        # k[i]     <- qr(xi[[i]])$rank
+        k[i]     <- as.integer(rankMatrix(xi[[i]]))
         df[i]    <- n[i] - k[i]
       }
 
@@ -291,15 +292,16 @@
       n  <- unique(n)
 
       if (length(n)>1 | length(k)>1) {
+
         warning("unequal n or k")
 
         if (length(n)>1) {
           cat("n\n")
-          print(n)
+          print(N)
         }
         if (length(k)>1) {
           cat("k\n")
-          print(k)
+          print(K)
         }
       }
 
