@@ -292,8 +292,14 @@
       if (length(n)>1 | length(k)>1) {
         warning("unequal n or k")
 
-        # message(n)
-        message(k)
+        if (length(n)>1) {
+          cat("n\n")
+          print(n)
+        }
+        if (length(k)>1) {
+          cat("k\n")
+          print(k)
+        }
       }
 
       # Evaluate initial ssr
