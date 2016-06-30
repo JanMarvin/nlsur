@@ -66,6 +66,7 @@
 #' Gallant, A. Ronald (1987): Nonlinear Statistical Models. Wiley: New York
 #' @importFrom Matrix kronecker diag
 #' @importFrom MASS lm.gls
+#' @importFrom stats as.formula coef
 #' @import RcppArmadillo
 #' @useDynLib nlsur
 #' @export .nlsur
@@ -506,6 +507,7 @@
 #' erg
 #' }
 #' @seealso \link{nls}
+#' @importFrom stats as.formula coef na.omit
 #' @import RcppArmadillo
 #' @useDynLib nlsur
 #'
@@ -763,6 +765,7 @@ print.nlsur <- function(x, ...) {
   print(x$coefficients, ...)
 }
 
+#' @importFrom stats as.formula pt residuals weights
 #' @export
 summary.nlsur <- function(object, const = TRUE, ...) {
   # ... is to please check()
@@ -894,6 +897,7 @@ summary.nlsur <- function(object, const = TRUE, ...) {
   ans
 }
 
+#' @importFrom stats printCoefmat weights
 #' @export
 print.summary.nlsur <- function(x, ...) {
   # ... is to please check()
@@ -951,6 +955,7 @@ vcov.summary.nlsur <- function(object, ...) {
 #' estimated on larger data.frames.
 #'
 #' @examples # predict(nlsurObj, dataframe)
+#' @importFrom stats coef
 #'
 #' @export
 predict.nlsur <- function(object, newdata, ...) {

@@ -7,6 +7,7 @@
 #' @param alpha value for conf. interval
 #' @param rname optional rowname for result
 #' @importFrom car deltaMethod
+#' @importFrom stats coef formula pt qnorm
 #' @seealso \link{deltaMethod}
 #' @examples
 #' \dontrun{

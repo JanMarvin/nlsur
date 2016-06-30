@@ -25,6 +25,5 @@ estimated on larger data.frames.
 }
 \examples{
 # predict(nlsurObj, dataframe)
-
 }
 
