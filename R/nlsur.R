@@ -287,9 +287,9 @@
       r <- do.call(cbind, ri)
       x <- do.call(cbind, xi)
 
-      df <- unique(df)
-      k  <- unique(k)
-      n  <- unique(n)
+      # df <- unique(df)
+      # k  <- unique(k)
+      # n  <- unique(n)
 
       # if (length(n)>1 | length(k)>1) {
       #
