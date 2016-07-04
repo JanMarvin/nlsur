@@ -291,19 +291,19 @@
       k  <- unique(k)
       n  <- unique(n)
 
-      if (length(n)>1 | length(k)>1) {
-
-        warning("unequal n or k")
-
-        if (length(n)>1) {
-          cat("n\n")
-          print(N)
-        }
-        if (length(k)>1) {
-          cat("k\n")
-          print(K)
-        }
-      }
+      # if (length(n)>1 | length(k)>1) {
+      #
+      #   warning("unequal n or k")
+      #
+      #   # if (length(n)>1) {
+      #   #   cat("n\n")
+      #   #   print(N)
+      #   # }
+      #   # if (length(k)>1) {
+      #   #   cat("k\n")
+      #   #   print(K)
+      #   # }
+      # }
 
       # Evaluate initial ssr
       ssr <- calc_ssr(r, s, wts)
@@ -354,7 +354,7 @@
     # conv2 <- all( alpha * abs(theta.new) <= eps * (abs(theta) + tau) )
 
     # both convergence criteria must be TRUE
-    conv <- all(conv1, conv2)
+    conv <- any(conv1, conv2)
 
     if(debug)
       print(b)
@@ -785,11 +785,9 @@ summary.nlsur <- function(object, const = TRUE, ...) {
   r       <- residuals(z)
   eqconst <- z$const
 
-  # if eqconst = NULL: lenght = 0
-  consts <- unlist(eqconst)
+  # FixMe: reverse logic const == TRUE : no const
+  const <- sapply(eqconst, identical, character(0))
 
-  if (length(consts)==0 & !isTRUE(const))
-    const <- FALSE
 
   if (!all(w > 0))
     stop("Negative or zero weight found.")
@@ -833,7 +831,8 @@ summary.nlsur <- function(object, const = TRUE, ...) {
 
     ssr[i]   <- sum( r[,i]^2 * w) * scale[i]
 
-    if (const) {
+    # FixMe: Reverse logic again
+    if (!const[i]) {
       lhs_wm   <- wt_mean(x = lhs[[i]], w = wi)
       wvar     <- (1/(n[i] - 1)) * sum( wi * (lhs[[i]] - lhs_wm)^2)
       mss[i]   <- wvar * div[i] - ssr[i]
@@ -847,7 +846,13 @@ summary.nlsur <- function(object, const = TRUE, ...) {
     mae[i]   <- sum(abs(r[, i]))/n[i]
 
     r2[i]  <- mss[i] / (mss[i] + ssr[i])
-    adjr2[i] <- 1 - ((n[i] - 1) / df[i]) * (1 - r2[i])
+
+    # correct adjr2 if n - df = 1
+    if (div[i] > 1) {
+      adjr2[i] <- 1 - (div[i] / df[i]) * (1 - r2[i])
+    } else {
+      adjr2[i] <- 1 - (n[i] / df[i]) * (1 - r2[i])
+    }
   }
 
   nE <- sum(n) / sum ( w/sum(w) )
@@ -860,15 +865,33 @@ summary.nlsur <- function(object, const = TRUE, ...) {
 
   # per equation statistics
   zi   <- cbind(n, k, rmse, mae, r2, adjr2)
-  dimnames(zi) <- list(as.character(z$eqnames),
-                       c("n", "k", "RMSE", "MAE", "R-squared",
-                         "Adj-R-sqr."))
+  zi <- as.data.frame(zi)
 
-  if (const){
-    eqconst <- do.call(rbind, eqconst)
-
-    zi <- data.frame(zi, eqconst)
+  # replace all character(0)
+  for (i in 1:neqs){
+    eqconst[[i]][identical(eqconst[[i]], character(0))] <- ""
   }
+
+  # add constant variables to summary
+  if (any(!const)){
+    eqconst <- do.call(rbind, eqconst)
+    neqconst <- ncol(eqconst)
+
+    zi <- data.frame(cbind(zi, eqconst))
+  }
+
+  zi <- data.frame(as.character(z$eqnames),zi)
+
+  cnst <- character(0)
+  if (any(!const)) {
+    cnst <- c("Const")
+    if (neqconst>1){
+      cnst <- c(cnst, rep(x = "", (neqconst-1)))
+    }
+  }
+
+  colnames(zi) <- c("","n", "k", "RMSE", "MAE", "R-squared",
+                         "Adj-R-sqr.", cnst)
 
   # ans: returned object
   ans <- NULL
