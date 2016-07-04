@@ -353,7 +353,9 @@
     # and this is what Stata documents what they do for nl
     # conv2 <- all( alpha * abs(theta.new) <= eps * (abs(theta) + tau) )
 
-    # both convergence criteria must be TRUE
+    # both convergence criteria should be TRUE
+    # For some models this is impossible. Tested with a system of linear
+    # regression variables
     conv <- any(conv1, conv2)
 
     if(debug)
