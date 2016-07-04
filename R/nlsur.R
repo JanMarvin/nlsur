@@ -287,24 +287,6 @@
       r <- do.call(cbind, ri)
       x <- do.call(cbind, xi)
 
-      # df <- unique(df)
-      # k  <- unique(k)
-      # n  <- unique(n)
-
-      # if (length(n)>1 | length(k)>1) {
-      #
-      #   warning("unequal n or k")
-      #
-      #   # if (length(n)>1) {
-      #   #   cat("n\n")
-      #   #   print(N)
-      #   # }
-      #   # if (length(k)>1) {
-      #   #   cat("k\n")
-      #   #   print(K)
-      #   # }
-      # }
-
       # Evaluate initial ssr
       ssr <- calc_ssr(r, s, wts)
 
