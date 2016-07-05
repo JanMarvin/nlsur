@@ -53,6 +53,7 @@
 #' @param trace is a logical. If TRUE the current iterations SSR is called.
 #' @param eps the epislon used for convergence in nlsur(). Default is 1e-5.
 #' @param tau is another convergence variable. Default is 1e-3.
+#' @param tol qr.solves tolerance for detecting linear dependencies.
 #'
 #' @details nlsur is a function for estimation of a non-linear least squares
 #' (NLS). In addition to \code{nls()} it is capable of estimation of system of
@@ -73,7 +74,7 @@
 .nlsur <- function(eqns, data, startvalues, S = NULL, debug = FALSE,
                    nls = FALSE, fgnls = FALSE, ifgnls = FALSE, qrsolve = FALSE,
                    MASS = FALSE, trace = FALSE, eps = eps, tau = tau,
-                   maxiter = maxiter)
+                   maxiter = maxiter, tol = tol)
 {
   z    <- list()
   itr  <- 0
@@ -110,7 +111,7 @@
   if (debug)
     print(S)
 
-  qS <- qr.solve(S)
+  qS <- qr.solve(S, tol = tol)
   s  <- chol(qS)
 
   eqnames <- NULL
@@ -428,6 +429,7 @@
 #' @param type can be 1 Nonlinear Least Squares (NLS), 2 Feasible Generalised
 #' NLS (FGNLS) or 3 Iterative FGNLS (IFGNLS) or the respective abbrevations in
 #' character form.
+#' @param tol qr.solves tolerance for detecting linear dependencies.
 #' @param eps the epislon used for convergence in nlsur(). Default is 1e-5.
 #' @param tau is another convergence variable. Default is 1e-3.
 #' @param ifgnlseps is epislon for ifgnls(). Default is 1e-10.
@@ -519,6 +521,7 @@
 nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
                   trace = FALSE, stata = TRUE, qrsolve = FALSE,
                   weights, MASS = FALSE, maxiter = 1000,
+                  tol = .Machine$double.eps,
                   eps = 1e-5, ifgnlseps = 1e-10, tau = 1e-3) {
 
   # Check if eqns might be a formula
@@ -624,7 +627,8 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
 
   z <- .nlsur( eqns = eqns, data = data, startvalues = startvalues, S = S,
                debug = debug, nls = TRUE, trace = trace, qrsolve = qrsolve,
-               MASS = MASS, eps = eps, tau = tau, maxiter = maxiter)
+               MASS = MASS, eps = eps, tau = tau, maxiter = maxiter,
+               tol = tol)
 
   if (nls & stata) {
 
@@ -634,7 +638,8 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
 
     z <- .nlsur( eqns = eqns, data = data, startvalues = z$coefficients, S = S,
                  debug = debug, nls = nls, trace = trace, qrsolve = qrsolve,
-                 MASS = MASS, eps = eps, tau = tau, maxiter = maxiter)
+                 MASS = MASS, eps = eps, tau = tau, maxiter = maxiter,
+                 tol = tol)
 
     # FixMe: Stata uses this sigma for covb, not the updated?
     z$sigma <- diag(diag(S), nrow = ncol(z$fitted), ncol = ncol(z$fitted))
@@ -654,7 +659,7 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
     z <- .nlsur(eqns = eqns, data = data, startvalues = z$coefficients,
                 S = S, debug = debug, nls = FALSE, trace = trace,
                 qrsolve = qrsolve, MASS = MASS, eps = eps, tau = tau,
-                maxiter = maxiter)
+                maxiter = maxiter, tol = tol)
 
     # FixMe: Stata uses this sigma for covb, not the updated?
     if (!ifgnls)
@@ -687,11 +692,11 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
         z <- .nlsur(eqns = eqns, data = data, startvalues = z$coefficients,
                     S = S, debug = debug, nls = FALSE,
                     qrsolve = qrsolve, MASS = MASS, eps = eps, tau = tau,
-                    maxiter = maxiter)
+                    maxiter = maxiter, tol = tol)
 
         r <- z$residuals
         S <- z$sigma
-        s <- chol(qr.solve(S))
+        s <- chol(qr.solve(S, tol = tol))
 
         rss <- calc_ssr(r, s, data$w)
 
