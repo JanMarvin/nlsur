@@ -366,34 +366,21 @@
 
   }
 
-  # Estimate covb
-  # if (neqs == 1){
-  #
-  #   scale <- n/sum(wts)
-  #
-  #   # single eqs: covb is s *(XX)-1 for single equations
-  #   covb <- 1/(n-k) *
-  #     sum(r^2* wts) *
-  #     scale *
-  #     qr.solve(Matrix::crossprod(x, wts*x), tol = tol)
-  #
-  # } else {
+  # replace 0 values with NA
+  theta[theta_na] <- NA
 
 
-    theta[theta_na] <- NA
+  ## Create covb matrix ##
 
-    # covb is solve(XDX)
-    covb <- calc_reg(x, r, qS, wts, length(theta), 0, tol)
+  # get xdx from calc_reg
+  covb <- calc_reg(x, r, qS, wts, length(theta), 0, tol)
 
-    coef_names <- names(theta)[!(names(theta) %in% coef_na)]
+  # if singularities are detected covb will contain cols and rows with NA
+  covb <- covb[!is.na(theta), !is.na(theta)]
+  covb <- qr.solve(qr(covb), tol = tol)
 
-    # Alert!!! FixMe!
-    covb <- covb[!is.na(theta), !is.na(theta)]
-    covb <- qr.solve(qr(covb), tol = tol)
-
-  # }
+  coef_names <- names(theta)[!(names(theta) %in% coef_na)]
   dimnames(covb) <- list(coef_names, coef_names)
-
 
 
   # fitted
