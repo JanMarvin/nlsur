@@ -960,7 +960,8 @@ summary.nlsur <- function(object, const = TRUE, ...) {
 
 #' @importFrom stats printCoefmat weights
 #' @export
-print.summary.nlsur <- function(x, ...) {
+print.summary.nlsur <- function(x, digits, ...) {
+
   # ... is to please check()
   cat("NLSUR Object of type:", x$nlsur, "\n\n")
 
@@ -968,7 +969,10 @@ print.summary.nlsur <- function(x, ...) {
     cat("Scaled R-squared: \n\n")
   }
 
-  print(x$zi, digits = 4)
+  if(missing(digits))
+    digits <- 4
+
+  print(x$zi, digits = digits)
 
   cat("\n")
   cat("Coefficients:\n")
@@ -977,7 +981,9 @@ print.summary.nlsur <- function(x, ...) {
     cat("Weighted nlsur: \n\n")
   }
 
-  printCoefmat(x$coefficients, digits = 4)
+  print(digits)
+
+  printCoefmat(x$coefficients, digits = digits, ...)
 
   if (x$nlsur == "IFGNLS")
     cat("Log-Likelihood:", x$LL, "\n")
