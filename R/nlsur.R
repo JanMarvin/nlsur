@@ -744,9 +744,9 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
   # LL <-      (sum(log(w)) - N * (log(2 * pi) + 1 - log(N) + log(sum(w*r^2))))/2
 
   LL <- ( sum(log(data$w)) -(M*N) * (log(2 * pi) +
-                                  1 - log(N) +
-                                  log(det(S)) / M  +
-                                  log(sum(data$w))) )/2
+                                       1 - log(N) +
+                                       log(det(S)) / M  +
+                                       log(sum(data$w))) )/2
 
   z$LL    <- LL
   z$model <- eqns
@@ -864,7 +864,7 @@ summary.nlsur <- function(object, const = TRUE, ...) {
   resvar <- 1
 
   # special problem
-  if( neqs == 1)
+  if (neqs == 1)
     resvar <- ssr / df
 
 
@@ -882,11 +882,12 @@ summary.nlsur <- function(object, const = TRUE, ...) {
   se <- c(se, se_na)
   se <- se[names(est)]
 
-
-
-
   tval <- est / se
+
+  # z vs t
   prob <- 2 * (1 - pt(abs(tval), (nE * kE )))
+  if (neqs == 1)
+    prob <- 2 * pt(abs(tval), df, lower.tail = FALSE)
 
   # per equation statistics
   zi   <- cbind(n, k, rmse, mae, r2, adjr2)
@@ -916,7 +917,7 @@ summary.nlsur <- function(object, const = TRUE, ...) {
   }
 
   colnames(zi) <- c("","n", "k", "RMSE", "MAE", "R-squared",
-                         "Adj-R-sqr.", cnst)
+                    "Adj-R-sqr.", cnst)
 
   # ans: returned object
   ans <- NULL
