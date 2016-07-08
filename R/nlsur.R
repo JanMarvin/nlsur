@@ -230,13 +230,11 @@
       } else {
 
         # Weighted regression of residuals on derivs ---
-        theta_test <- calc_reg(x, r, qS, wts, length(theta), 1, tol)$coefficients
+        theta_test <- calc_reg(x, r, qS, wts, length(theta), 1, tol)
         theta.new <- as.vector(theta_test)
 
         names(theta.new) <- names(theta)
         theta <- theta.new
-
-        print(theta)
 
       }
 
