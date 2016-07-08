@@ -32,8 +32,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // calc_reg
-SEXP calc_reg(arma::Mat<double> x, arma::Mat<double> r, arma::Mat<double> qS, arma::Col<double> w, int sizetheta, bool fullreg);
-RcppExport SEXP nlsur_calc_reg(SEXP xSEXP, SEXP rSEXP, SEXP qSSEXP, SEXP wSEXP, SEXP sizethetaSEXP, SEXP fullregSEXP) {
+SEXP calc_reg(arma::Mat<double> x, arma::Mat<double> r, arma::Mat<double> qS, arma::Col<double> w, int sizetheta, bool fullreg, double tol);
+RcppExport SEXP nlsur_calc_reg(SEXP xSEXP, SEXP rSEXP, SEXP qSSEXP, SEXP wSEXP, SEXP sizethetaSEXP, SEXP fullregSEXP, SEXP tolSEXP) {
 BEGIN_RCPP
     Rcpp::RObject __result;
     Rcpp::RNGScope __rngScope;
@@ -43,7 +43,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< arma::Col<double> >::type w(wSEXP);
     Rcpp::traits::input_parameter< int >::type sizetheta(sizethetaSEXP);
     Rcpp::traits::input_parameter< bool >::type fullreg(fullregSEXP);
-    __result = Rcpp::wrap(calc_reg(x, r, qS, w, sizetheta, fullreg));
+    Rcpp::traits::input_parameter< double >::type tol(tolSEXP);
+    __result = Rcpp::wrap(calc_reg(x, r, qS, w, sizetheta, fullreg, tol));
     return __result;
 END_RCPP
 }

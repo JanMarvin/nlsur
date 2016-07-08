@@ -230,11 +230,13 @@
       } else {
 
         # Weighted regression of residuals on derivs ---
-        theta_test <- calc_reg(x, r, qS, wts, length(theta), 1)$coefficients
+        theta_test <- calc_reg(x, r, qS, wts, length(theta), 1, tol)$coefficients
         theta.new <- as.vector(theta_test)
 
         names(theta.new) <- names(theta)
         theta <- theta.new
+
+        print(theta)
 
       }
 
@@ -376,7 +378,7 @@
   #
   # } else {
     # covb is solve(XDX)
-    covb <- calc_reg(x, r, qS, wts, length(theta), 0)
+    covb <- calc_reg(x, r, qS, wts, length(theta), 0, tol)
   # }
   dimnames(covb) <- list(names(theta), names(theta))
 
