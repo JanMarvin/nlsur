@@ -63,7 +63,6 @@ SEXP calc_reg (arma::Mat<double> x, arma::Mat<double> r, arma::Mat<double> qS,
   arma::Mat<double> XDX(sizetheta, sizetheta, fill::zeros);
   arma::Mat<double> XDy(sizetheta, 1, fill::zeros);
 
-  // arma::Mat<double> qS = pinv(S);
   Function Rf_qr("qr");
   Function Rf_qrcoef("qr.coef");
 
