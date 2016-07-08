@@ -696,9 +696,11 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
         iter <- iter +1
 
         maxthetachange <- max(abs(coef(z.old) - coef(z)) /
-                                ( abs(coef(z.old)) +1) )
+                                ( abs(coef(z.old)) +1),
+                              na.rm = TRUE )
         maxSigmachange <- max(abs(S.old - S) /
-                                (abs(S.old) + 1))
+                                (abs(S.old) + 1),
+                              na.rm = TRUE)
 
         if (is.nan(maxSigmachange))
           maxSigmachange <- 0
@@ -967,8 +969,6 @@ print.summary.nlsur <- function(x, digits, ...) {
   if (!is.null(weights(x))) {
     cat("Weighted nlsur: \n\n")
   }
-
-  print(digits)
 
   printCoefmat(x$coefficients, digits = digits, ...)
 
