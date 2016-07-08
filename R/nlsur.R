@@ -784,12 +784,13 @@ summary.nlsur <- function(object, const = TRUE, ...) {
   # FixMe: reverse logic const == TRUE : no const
   const <- sapply(eqconst, identical, character(0))
 
-
+  
+  if (is.null(w)) {
+    w <- rep(1, nrow(data))
+  # check weights
   if (!all(w > 0))
     stop("Negative or zero weight found.")
 
-  if (is.null(w))
-    w <- rep(1, nrow(data))
 
 
   #### Estimation of covariance matrix, standard errors and z/t-values ####
@@ -810,6 +811,7 @@ summary.nlsur <- function(object, const = TRUE, ...) {
   # Get coefficients from the last estimation.
   est     <- z$coefficients
 
+  # Assign values for eval
   for (i in 1:length(est)) {
     name <- names(est)[i]
     val <- est[i]

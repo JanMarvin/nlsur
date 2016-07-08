@@ -4,7 +4,7 @@
 \alias{calc_reg}
 \title{calc_reg}
 \usage{
-calc_reg(x, r, qS, w, sizetheta, fullreg)
+calc_reg(x, r, qS, w, sizetheta, fullreg, tol)
 }
 \arguments{
 \item{x}{x}
@@ -18,6 +18,8 @@ calc_reg(x, r, qS, w, sizetheta, fullreg)
 \item{sizetheta}{sizetheta}
 
 \item{fullreg}{fullreg}
+
+\item{tol}{tol}
 }
 \description{
 calc_reg
