@@ -920,7 +920,7 @@ summary.nlsur <- function(object, const = TRUE, ...) {
   ans$coefficients <- cbind(est, se, tval, prob)
 
   cnames <- c("Estimate", "Std. Error", "z value", "Pr(>|z|)")
-  if (neqs == 1)
+  if (neqs == 1 & nlsonly)
     cnames <- c("Estimate", "Std. Error", "t value", "Pr(>|t|)")
 
   dimnames(ans$coefficients) <- list(
