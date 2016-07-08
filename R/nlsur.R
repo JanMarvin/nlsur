@@ -784,12 +784,13 @@ summary.nlsur <- function(object, const = TRUE, ...) {
   # FixMe: reverse logic const == TRUE : no const
   const <- sapply(eqconst, identical, character(0))
 
-  
+  # check weights
   if (is.null(w)) {
     w <- rep(1, nrow(data))
-  # check weights
-  if (!all(w > 0))
-    stop("Negative or zero weight found.")
+  } else {
+    if (!all(w > 0))
+      stop("Negative or zero weight found.")
+  }
 
 
 
@@ -819,7 +820,7 @@ summary.nlsur <- function(object, const = TRUE, ...) {
     assign(name, val)
   }
 
-  # contains some duplicated code.
+  # Evaluate everything required for summary printing
   for (i in 1:neqs) {
     lhs[[i]]  <- eval(as.formula(eqns[[i]])[[2L]], envir = data)
 
