@@ -871,8 +871,13 @@ summary.nlsur <- function(object, const = TRUE, ...) {
   nE <- sum(n) / sum ( w/sum(w) )
   kE  <- sum(k)
 
-  resvar <- sum(r^2* w) / (n-k)
-  print(resvar)
+
+  resvar <- 1
+
+  # special problem
+  if( neqs == 1)
+    resvar <- ssr / df
+
 
   # Estimate se, tval and prob
   se <- sqrt(diag(z$cov) * resvar)
