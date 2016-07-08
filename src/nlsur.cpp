@@ -64,8 +64,9 @@ SEXP calc_reg (arma::Mat<double> x, arma::Mat<double> r, arma::Mat<double> qS,
   arma::Mat<double> XDy(sizetheta, 1, fill::zeros);
 
   // arma::Mat<double> qS = pinv(S);
-  Function lmfit("lm.fit");
-  Function qrsolve("qr.solve");
+  Function Rf_qr("qr");
+  Function Rf_qrcoef("qr.coef");
+  Function Rf_qrsolve("qr.solve");
 
   int n = r.n_rows;
   int k = r.n_cols;
@@ -82,11 +83,10 @@ SEXP calc_reg (arma::Mat<double> x, arma::Mat<double> r, arma::Mat<double> qS,
 
   XDX = 0.5 * ( XDX + XDX.t() );
 
-
   if (fullreg) /* weighted regression */
-    return lmfit(XDX, XDy);
+    return Rf_qrcoef(Rf_qr(XDX), XDy);
   else         /* covb */
-    return qrsolve(XDX, _["tol"] = tol);
+    return Rf_qrsolve(XDX);
 }
 
 
