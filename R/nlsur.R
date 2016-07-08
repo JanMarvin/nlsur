@@ -255,6 +255,10 @@
       # use the scalar to get a new theta
       theta.new <- startvalues + alpha * theta
 
+      # theta.new can be NA change its value to 0.
+      coef_na <- names(theta.new)[is.na(theta.new)]
+      theta.new[is.na(theta.new)] <- 0
+
       ## assign new thetas thetas = makes them available to eval
       for (i in 1:length(theta.new)) {
         name <- names(theta.new)[i]
@@ -289,16 +293,15 @@
       r <- do.call(cbind, ri)
       x <- do.call(cbind, xi)
 
+      theta_na <- names(theta)[is.na(theta)]
+      x[,colnames(x) %in% theta_na] <- NA
+
       df <- unique(df)
       k  <- unique(k)
       n  <- unique(n)
 
       # Evaluate initial ssr
       ssr <- calc_ssr(r, s, wts)
-
-      if(is.na(ssr)){
-        ssr <- 0
-      }
 
       # divide stepsizeparameter
       alpha <- alpha/divi
@@ -364,7 +367,7 @@
 
   }
 
-  # # Estimate covb
+  # Estimate covb
   # if (neqs == 1){
   #
   #   scale <- n/sum(wts)
@@ -373,13 +376,26 @@
   #   covb <- 1/(n-k) *
   #     sum(r^2* wts) *
   #     scale *
-  #     qr.solve(Matrix::crossprod(x, wts*x))
+  #     qr.solve(Matrix::crossprod(x, wts*x), tol = tol)
   #
   # } else {
+
+
+    theta[theta_na] <- NA
+
     # covb is solve(XDX)
     covb <- calc_reg(x, r, qS, wts, length(theta), 0, tol)
+
+    coef_names <- names(theta)[!(names(theta) %in% coef_na)]
+
+    # Alert!!! FixMe!
+    covb <- covb[!is.na(theta), !is.na(theta)]
+    covb <- qr.solve(qr(covb), tol = tol)
+
   # }
-  dimnames(covb) <- list(names(theta), names(theta))
+  dimnames(covb) <- list(coef_names, coef_names)
+
+
 
   # fitted
   fitted <- as.data.frame(rhs)
@@ -856,8 +872,26 @@ summary.nlsur <- function(object, const = TRUE, ...) {
   nE <- sum(n) / sum ( w/sum(w) )
   kE  <- sum(k)
 
+  resvar <- sum(r^2* w) / (n-k)
+  print(resvar)
+
   # Estimate se, tval and prob
-  se <- sqrt(diag(z$cov))
+  se <- sqrt(diag(z$cov) * resvar)
+
+  # Add names of vars that lead to these se values
+  names(se) <- names(est[!is.na(est)])
+
+  # Add names of vars that have no se value
+  se_na <- est[is.na(est)]
+  names(se_na) <- names(est[is.na(est)])
+
+  # Combine and change order
+  se <- c(se, se_na)
+  se <- se[names(est)]
+
+
+
+
   tval <- est / se
   prob <- 2 * (1 - pt(abs(tval), (nE * kE )))
 
