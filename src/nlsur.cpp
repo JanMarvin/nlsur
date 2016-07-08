@@ -66,7 +66,6 @@ SEXP calc_reg (arma::Mat<double> x, arma::Mat<double> r, arma::Mat<double> qS,
   // arma::Mat<double> qS = pinv(S);
   Function Rf_qr("qr");
   Function Rf_qrcoef("qr.coef");
-  Function Rf_qrsolve("qr.solve");
 
   int n = r.n_rows;
   int k = r.n_cols;
@@ -86,7 +85,7 @@ SEXP calc_reg (arma::Mat<double> x, arma::Mat<double> r, arma::Mat<double> qS,
   if (fullreg) /* weighted regression */
     return Rf_qrcoef(Rf_qr(XDX), XDy);
   else         /* covb */
-    return Rf_qrsolve(XDX);
+    return wrap(XDX);
 }
 
 

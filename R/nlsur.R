@@ -281,7 +281,6 @@
                                              envir = data))), "gradient")
 
         n[i]     <- length(rhs[[i]])
-        # k[i]     <- qr(xi[[i]])$rank
         k[i]     <- as.integer(rankMatrix(xi[[i]]))
         df[i]    <- n[i] - k[i]
       }
