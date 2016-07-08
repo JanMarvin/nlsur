@@ -54,6 +54,7 @@ arma::Mat<double> arma_reshape(arma::Mat<double> mm, int sizetheta) {
 //' @param w w
 //' @param sizetheta sizetheta
 //' @param fullreg fullreg
+//' @param tol tol
 //' @export
 // [[Rcpp::export]]
 SEXP calc_reg (arma::Mat<double> x, arma::Mat<double> r, arma::Mat<double> qS,
@@ -63,6 +64,7 @@ SEXP calc_reg (arma::Mat<double> x, arma::Mat<double> r, arma::Mat<double> qS,
   arma::Mat<double> XDy(sizetheta, 1, fill::zeros);
 
   // arma::Mat<double> qS = pinv(S);
+  Function lmfit("lm.fit");
 
   int n = r.n_rows;
   int k = r.n_cols;
@@ -81,7 +83,7 @@ SEXP calc_reg (arma::Mat<double> x, arma::Mat<double> r, arma::Mat<double> qS,
 
 
   if (fullreg) /* weighted regression */
-    return wrap(solve(XDX, XDy).t());
+    return lmfit(XDX, XDy);
   else         /* covb */
     return wrap(inv(XDX));
 }

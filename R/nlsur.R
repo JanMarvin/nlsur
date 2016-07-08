@@ -230,7 +230,7 @@
       } else {
 
         # Weighted regression of residuals on derivs ---
-        theta_test <- calc_reg(x, r, qS, wts, length(theta), 1)
+        theta_test <- calc_reg(x, r, qS, wts, length(theta), 1)$coefficients
         theta.new <- as.vector(theta_test)
 
         names(theta.new) <- names(theta)
@@ -292,22 +292,12 @@
       k  <- unique(k)
       n  <- unique(n)
 
-      # if (length(n)>1 | length(k)>1) {
-      #
-      #   warning("unequal n or k")
-      #
-      #   # if (length(n)>1) {
-      #   #   cat("n\n")
-      #   #   print(N)
-      #   # }
-      #   # if (length(k)>1) {
-      #   #   cat("k\n")
-      #   #   print(K)
-      #   # }
-      # }
-
       # Evaluate initial ssr
       ssr <- calc_ssr(r, s, wts)
+
+      if(is.na(ssr)){
+        ssr <- 0
+      }
 
       # divide stepsizeparameter
       alpha <- alpha/divi
@@ -373,21 +363,21 @@
 
   }
 
-  # Estimate covb
-  if (neqs == 1){
-
-    scale <- n/sum(wts)
-
-    # single eqs: covb is s *(XX)-1 for single equations
-    covb <- 1/(n-k) *
-      sum(r^2* wts) *
-      scale *
-      qr.solve(Matrix::crossprod(x, wts*x))
-
-  } else {
+  # # Estimate covb
+  # if (neqs == 1){
+  #
+  #   scale <- n/sum(wts)
+  #
+  #   # single eqs: covb is s *(XX)-1 for single equations
+  #   covb <- 1/(n-k) *
+  #     sum(r^2* wts) *
+  #     scale *
+  #     qr.solve(Matrix::crossprod(x, wts*x))
+  #
+  # } else {
     # covb is solve(XDX)
     covb <- calc_reg(x, r, qS, wts, length(theta), 0)
-  }
+  # }
   dimnames(covb) <- list(names(theta), names(theta))
 
   # fitted

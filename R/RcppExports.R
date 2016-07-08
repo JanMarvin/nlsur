@@ -25,6 +25,7 @@ arma_reshape <- function(mm, sizetheta) {
 #' @param w w
 #' @param sizetheta sizetheta
 #' @param fullreg fullreg
+#' @param tol tol
 #' @export
 calc_reg <- function(x, r, qS, w, sizetheta, fullreg) {
     .Call('nlsur_calc_reg', PACKAGE = 'nlsur', x, r, qS, w, sizetheta, fullreg)
