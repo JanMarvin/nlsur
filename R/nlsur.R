@@ -746,6 +746,7 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
   z$data  <- data
   z$call  <- cl
   z$start <- startvalues
+  z$nlsonly <- all(nls & !stata)
 
   if (is.null(wts))
     z$wts <- NULL
@@ -778,6 +779,7 @@ summary.nlsur <- function(object, const = TRUE, ...) {
   df      <- z$df
   r       <- residuals(z)
   eqconst <- z$const
+  nlsonly <- z$nlsonly
 
   # FixMe: reverse logic const == TRUE : no const
   const <- sapply(eqconst, identical, character(0))
@@ -856,7 +858,7 @@ summary.nlsur <- function(object, const = TRUE, ...) {
   resvar <- 1
 
   # special problem
-  if (neqs == 1)
+  if (neqs == 1 & nlsonly)
     resvar <- ssr / df
 
 
@@ -878,7 +880,7 @@ summary.nlsur <- function(object, const = TRUE, ...) {
 
   # z vs t
   prob <- 2 * (1 - pt(abs(tval), (nE * kE )))
-  if (neqs == 1)
+  if (neqs == 1 & nlsonly)
     prob <- 2 * pt(abs(tval), df, lower.tail = FALSE)
 
   # per equation statistics
