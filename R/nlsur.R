@@ -285,19 +285,11 @@
         df[i]    <- n[i] - k[i]
       }
 
-      N  <- n
-      K  <- k
-      DF <- df
-
       r <- do.call(cbind, ri)
       x <- do.call(cbind, xi)
 
       theta_na <- names(theta)[is.na(theta)]
       x[,colnames(x) %in% theta_na] <- NA
-
-      df <- unique(df)
-      k  <- unique(k)
-      n  <- unique(n)
 
       # Evaluate initial ssr
       ssr <- calc_ssr(r, s, wts)
@@ -393,9 +385,9 @@
   z$eqnames      <- eqnames
   z$sigma        <- 1/n * crossprod(r, wts * r)
 
-  z$n            <- N
-  z$k            <- K
-  z$df           <- DF
+  z$n            <- n
+  z$k            <- k
+  z$df           <- df
   z$deviance     <- as.numeric(ssr)
   z$df.residual  <- df
 
