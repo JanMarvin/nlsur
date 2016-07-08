@@ -90,8 +90,9 @@
 
   wts  <- data$w
 
-  # set initial theta
+  # set initial theta, if it contains NA values replace it with 0
   theta <- startvalues
+  theta[is.na(theta)] <- 0
 
   if (nls){
     if (is.null(S)) {
