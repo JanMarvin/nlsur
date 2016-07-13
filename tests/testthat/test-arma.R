@@ -59,7 +59,7 @@ BB <- t(qr.solve(XDX, XDY))
 Bb <- coef(lm.gls(R ~ 0 + X, W = W))
 bb <- calc_reg(x = x, r = r, qS = qS,
                w = w, sizetheta = length(theta),
-               fullreg = 1)
+               fullreg = 1, tol = .Machine$double.eps)
 
 BB <- as.vector(BB)
 Bb <- as.vector(Bb)
