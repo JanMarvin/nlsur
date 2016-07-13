@@ -293,8 +293,6 @@
 
     conv2 <- !isTRUE(all( alpha * abs(theta) > eps * (abs(startvalues) + tau) ))
     # conv2 <- !isTRUE( alpha * all(abs(theta - theta.new) > eps * (theta + tau)) )
-    # print(theta)
-    # conv2 <- FALSE
 
     # and this is what Stata documents what they do for nl
     # conv2 <- all( alpha * abs(theta.new) <= eps * (abs(theta) + tau) )
@@ -657,9 +655,6 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
         #   eps * (norm(as.matrix(z.old$coefficients)) + tau)
 
         # conv <- any(conv1, conv2)
-
-        # print(maxthetachange)
-        # print(maxSigmachange)
 
         conv1 <- maxthetachange < eps
         conv2 <- maxSigmachange < ifgnlseps
