@@ -706,6 +706,7 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
   z$call  <- cl
   z$start <- startvalues
   z$nlsonly <- all(nls & !stata)
+  z$robust <- robust
 
   if (is.null(wts))
     z$wts <- NULL
