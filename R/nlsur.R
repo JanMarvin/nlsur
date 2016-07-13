@@ -281,8 +281,6 @@
                                              envir = data))), "gradient")
 
         n[i]     <- length(rhs[[i]])
-        k[i]     <- as.integer(rankMatrix(xi[[i]]))
-        df[i]    <- n[i] - k[i]
       }
 
       r <- do.call(cbind, ri)
@@ -378,6 +376,10 @@
   # fitted
   fitted <- as.data.frame(rhs)
   names(fitted) <- eqnames
+
+
+  k <- as.integer(lapply(X = xi, FUN = rankMatrix))
+  df    <- n - k
 
   z$fitted       <- fitted
   z$coefficients <- theta
