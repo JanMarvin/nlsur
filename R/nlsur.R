@@ -327,7 +327,10 @@
     # get xdu from calc_robust
     xdu <- calc_robust(x, r, qS, wts, length(theta))
 
-    # get robust covb
+    # only good rows
+    xdu <- xdu[!is.na(theta), !is.na(theta)]
+
+    # calc robust covb
     covb <- covb %*% xdu %*% covb
   }
 
