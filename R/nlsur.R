@@ -33,8 +33,6 @@
 #' Non-Linear Least Squares (FGNLS) and Iterative FGNLS. For \code{nlsur()}
 #' this is assumed to be the identity matrix. Hence, it is not included. If
 #' included S is expected to be a matrix.
-#' @param debug is a logical if debug output should be included. This can be a
-#' lot and might not be of any help to you.
 #' @param nls is a logical and default if estimation is done for NLSUR or NLS.
 #' @param fgnls is a logical and must be set, if estimation is done for FGNLS.
 #' This is called in a function called \code{fgnls()} and should not be set by
@@ -71,7 +69,7 @@
 #' @import RcppArmadillo
 #' @useDynLib nlsur
 #' @export .nlsur
-.nlsur <- function(eqns, data, startvalues, S = NULL, debug = FALSE,
+.nlsur <- function(eqns, data, startvalues, S = NULL,
                    nls = FALSE, fgnls = FALSE, ifgnls = FALSE, qrsolve = FALSE,
                    MASS = FALSE, trace = FALSE, eps = eps, tau = tau,
                    maxiter = maxiter, tol = tol)
@@ -108,10 +106,6 @@
     }
   }
 
-
-  if (debug)
-    print(S)
-
   qS <- qr.solve(S, tol = tol)
   s  <- chol(qS)
 
@@ -147,9 +141,6 @@
     stop("NA/NaN/Inf in derivation found. Most likely due to artificial data.")
   }
 
-  if (debug)
-    print(r)
-
   divi <- 2
   alph <- 1
 
@@ -165,9 +156,6 @@
 
   while (!conv) {
 
-    if (debug)
-      cat("Iteration: ", itr , "\n")
-
     if (itr == maxiter){
       message(paste(itr, "nls iterations and convergence not reached."),
               paste("Last theta is: \n", theta, "\n"))
@@ -178,9 +166,6 @@
     alpha <- min(divi*alpha, alph)
     # Alt: Stata variant, set alpha to alph
     # alpha <- alph
-
-    if(debug)
-      print(alpha)
 
     # initiate while loop
     ssr <- Inf
@@ -241,14 +226,8 @@
     }
     # end regression
 
-    if (debug)
-      cat("enter while ( ssr > ssr.old ) loop\n")
-
     while ( ssr > ssr.old )
     { # begin iter
-
-      if (debug)
-        cat("alpha: ", alpha, "\n")
 
       # use the scalar to get a new theta
       theta.new <- startvalues + alpha * theta
@@ -291,25 +270,12 @@
       # divide stepsizeparameter
       alpha <- alpha/divi
 
-
-      if (debug)
-        cat("SSR :", ssr, "SSR_Old:", ssr.old, "\n")
-
     } # end iter
 
     ssr.old <- ssr
 
-    if (debug)
-      print(r)
-
     if (trace)
       cat("SSR: ", ssr, "\n")
-
-    if(debug){
-      print(warnings())
-      b <- cbind(theta.old, theta)
-      print(b)
-    }
 
     # Stopping rule. [Gallant (1987) p.29]
     # Note: R uses a different convergence criterium
@@ -338,17 +304,10 @@
     # regression variables
     conv <- any(conv1, conv2)
 
-    if(debug)
-      print(b)
-
     itr <- itr + 1
     theta <- theta.new
     ssr.old <- ssr
     startvalues <- theta
-
-
-    if(debug)
-      print(itr)
 
   }
 
@@ -420,8 +379,6 @@
 #' Stata does this by default. For this second run Stata replaces the diagonal
 #' of the I matrix with the coefficients.
 #' @param trace logical wheather or not SSR information should be printed.
-#' Default is FALSE.
-#' @param debug logical wheater or not debug information will be printed.
 #' Default is FALSE.
 #' @param S is a weight matrix used for evaluation. If no weight matrix is
 #' provided the identity matrix I will be used.
@@ -501,7 +458,7 @@
 #' @useDynLib nlsur
 #'
 #' @export
-nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
+nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
                   trace = FALSE, stata = TRUE, qrsolve = FALSE,
                   weights, MASS = FALSE, maxiter = 1000,
                   tol = .Machine$double.eps,
@@ -609,7 +566,7 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
     cat("-- NLS\n")
 
   z <- .nlsur( eqns = eqns, data = data, startvalues = startvalues, S = S,
-               debug = debug, nls = TRUE, trace = trace, qrsolve = qrsolve,
+               nls = TRUE, trace = trace, qrsolve = qrsolve,
                MASS = MASS, eps = eps, tau = tau, maxiter = maxiter,
                tol = tol)
 
@@ -620,7 +577,7 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
     S <- z$sigma
 
     z <- .nlsur( eqns = eqns, data = data, startvalues = z$coefficients, S = S,
-                 debug = debug, nls = nls, trace = trace, qrsolve = qrsolve,
+                 nls = nls, trace = trace, qrsolve = qrsolve,
                  MASS = MASS, eps = eps, tau = tau, maxiter = maxiter,
                  tol = tol)
 
@@ -640,7 +597,7 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
     S <- z$sigma
 
     z <- .nlsur(eqns = eqns, data = data, startvalues = z$coefficients,
-                S = S, debug = debug, nls = FALSE, trace = trace,
+                S = S, nls = FALSE, trace = trace,
                 qrsolve = qrsolve, MASS = MASS, eps = eps, tau = tau,
                 maxiter = maxiter, tol = tol)
 
@@ -673,7 +630,7 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL, debug = FALSE,
         S.old <- S
 
         z <- .nlsur(eqns = eqns, data = data, startvalues = z$coefficients,
-                    S = S, debug = debug, nls = FALSE,
+                    S = S, nls = FALSE,
                     qrsolve = qrsolve, MASS = MASS, eps = eps, tau = tau,
                     maxiter = maxiter, tol = tol)
 

@@ -4,10 +4,10 @@
 \alias{nlsur}
 \title{Fitting Iterative Feasible Non-Linear Seemingly Unrelated Regression Model}
 \usage{
-nlsur(eqns, data, startvalues, type = NULL, S = NULL, debug = FALSE,
-  trace = FALSE, stata = TRUE, qrsolve = FALSE, weights, MASS = FALSE,
-  maxiter = 1000, tol = .Machine$double.eps, eps = 1e-05,
-  ifgnlseps = 1e-10, tau = 0.001)
+nlsur(eqns, data, startvalues, type = NULL, S = NULL, trace = FALSE,
+  stata = TRUE, qrsolve = FALSE, weights, MASS = FALSE, maxiter = 1000,
+  tol = .Machine$double.eps, eps = 1e-05, ifgnlseps = 1e-10,
+  tau = 0.001)
 }
 \arguments{
 \item{eqns}{is a list object containing the model as formula. This list can
@@ -25,9 +25,6 @@ character form.}
 
 \item{S}{is a weight matrix used for evaluation. If no weight matrix is
 provided the identity matrix I will be used.}
-
-\item{debug}{logical wheater or not debug information will be printed.
-Default is FALSE.}
 
 \item{trace}{logical wheather or not SSR information should be printed.
 Default is FALSE.}
