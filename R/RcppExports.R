@@ -39,3 +39,14 @@ wt_mean <- function(x, w) {
     .Call('nlsur_wt_mean', PACKAGE = 'nlsur', x, w)
 }
 
+#' calc_robust
+#' @param x x
+#' @param u u
+#' @param qS qS
+#' @param w w
+#' @param sizetheta sizetheta
+#' @export
+calc_robust <- function(x, u, qS, w, sizetheta) {
+    .Call('nlsur_calc_robust', PACKAGE = 'nlsur', x, u, qS, w, sizetheta)
+}
+

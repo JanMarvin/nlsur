@@ -69,7 +69,7 @@
 #' @import RcppArmadillo
 #' @useDynLib nlsur
 #' @export .nlsur
-.nlsur <- function(eqns, data, startvalues, S = NULL,
+.nlsur <- function(eqns, data, startvalues, S = NULL, robust = robust,
                    nls = FALSE, fgnls = FALSE, ifgnls = FALSE, qrsolve = FALSE,
                    MASS = FALSE, trace = FALSE, eps = eps, tau = tau,
                    maxiter = maxiter, tol = tol)
@@ -318,9 +318,18 @@
   # get xdx from calc_reg
   covb <- calc_reg(x, r, qS, wts, length(theta), 0, tol)
 
-  # if singularities are detected covb will contain cols and rows with NA
+  # # if singularities are detected covb will contain cols and rows with NA
   covb <- covb[!is.na(theta), !is.na(theta)]
   covb <- qr.solve(qr(covb), tol = tol)
+
+  # calculate robust standard errors
+  if (robust) {
+    # get xdu from calc_robust
+    xdu <- calc_robust(x, r, qS, wts, length(theta))
+
+    # get robust covb
+    covb <- covb %*% xdu %*% covb
+  }
 
   coef_names <- names(theta)[!(names(theta) %in% coef_na)]
   dimnames(covb) <- list(coef_names, coef_names)
@@ -378,6 +387,7 @@
 #' of the I matrix with the coefficients.
 #' @param trace logical wheather or not SSR information should be printed.
 #' Default is FALSE.
+#' @param robust logical if true robust standard errors are estimated.
 #' @param S is a weight matrix used for evaluation. If no weight matrix is
 #' provided the identity matrix I will be used.
 #' @param qrsolve logical
@@ -457,7 +467,7 @@
 #'
 #' @export
 nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
-                  trace = FALSE, stata = TRUE, qrsolve = FALSE,
+                  trace = FALSE, robust = FALSE, stata = TRUE, qrsolve = FALSE,
                   weights, MASS = FALSE, maxiter = 1000,
                   tol = .Machine$double.eps,
                   eps = 1e-5, ifgnlseps = 1e-10, tau = 1e-3) {
@@ -564,7 +574,7 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
     cat("-- NLS\n")
 
   z <- .nlsur( eqns = eqns, data = data, startvalues = startvalues, S = S,
-               nls = TRUE, trace = trace, qrsolve = qrsolve,
+               robust = robust, nls = TRUE, trace = trace, qrsolve = qrsolve,
                MASS = MASS, eps = eps, tau = tau, maxiter = maxiter,
                tol = tol)
 
@@ -575,7 +585,7 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
     S <- z$sigma
 
     z <- .nlsur( eqns = eqns, data = data, startvalues = z$coefficients, S = S,
-                 nls = nls, trace = trace, qrsolve = qrsolve,
+                 robust = robust, nls = nls, trace = trace, qrsolve = qrsolve,
                  MASS = MASS, eps = eps, tau = tau, maxiter = maxiter,
                  tol = tol)
 
@@ -594,10 +604,10 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
 
     S <- z$sigma
 
-    z <- .nlsur(eqns = eqns, data = data, startvalues = z$coefficients,
-                S = S, nls = FALSE, trace = trace,
-                qrsolve = qrsolve, MASS = MASS, eps = eps, tau = tau,
-                maxiter = maxiter, tol = tol)
+    z <- .nlsur(eqns = eqns, data = data, startvalues = z$coefficients, S = S,
+                robust = robust, nls = FALSE, trace = trace, qrsolve = qrsolve,
+                MASS = MASS, eps = eps, tau = tau, maxiter = maxiter,
+                tol = tol)
 
     # FixMe: Stata uses this sigma for covb, not the updated?
     if (!ifgnls)
@@ -628,7 +638,7 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
         S.old <- S
 
         z <- .nlsur(eqns = eqns, data = data, startvalues = z$coefficients,
-                    S = S, nls = FALSE,
+                    S = S, robust = robust, nls = FALSE,
                     qrsolve = qrsolve, MASS = MASS, eps = eps, tau = tau,
                     maxiter = maxiter, tol = tol)
 
@@ -680,10 +690,6 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
   S <- z$sigma
   N <- n
   M <- nrow(S)
-
-  # LL <- -(M*N)/2 * (1 + log(2*pi)) - N/2 * log(det(S))
-  # LL <- -N * (log(2 * pi) + 1 - log(N) - sum(log(w + zw)) + log(sum(w*r^2)))/2
-  # LL <-      (sum(log(w)) - N * (log(2 * pi) + 1 - log(N) + log(sum(w*r^2))))/2
 
   LL <- ( sum(log(data$w)) -(M*N) * (log(2 * pi) +
                                        1 - log(N) +

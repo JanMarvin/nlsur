@@ -5,9 +5,9 @@
 \title{Fitting Iterative Feasible Non-Linear Seemingly Unrelated Regression Model}
 \usage{
 nlsur(eqns, data, startvalues, type = NULL, S = NULL, trace = FALSE,
-  stata = TRUE, qrsolve = FALSE, weights, MASS = FALSE, maxiter = 1000,
-  tol = .Machine$double.eps, eps = 1e-05, ifgnlseps = 1e-10,
-  tau = 0.001)
+  robust = FALSE, stata = TRUE, qrsolve = FALSE, weights, MASS = FALSE,
+  maxiter = 1000, tol = .Machine$double.eps, eps = 1e-05,
+  ifgnlseps = 1e-10, tau = 0.001)
 }
 \arguments{
 \item{eqns}{is a list object containing the model as formula. This list can
@@ -28,6 +28,8 @@ provided the identity matrix I will be used.}
 
 \item{trace}{logical wheather or not SSR information should be printed.
 Default is FALSE.}
+
+\item{robust}{logical if true robust standard errors are estimated.}
 
 \item{stata}{is a logical. If TRUE for nls a second evaluation will be run.
 Stata does this by default. For this second run Stata replaces the diagonal

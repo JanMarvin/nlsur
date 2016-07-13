@@ -106,29 +106,27 @@ SEXP wt_mean(arma::Col<double>& x, arma::Col<double>& w) {
 //' @param qS qS
 //' @param w w
 //' @param sizetheta sizetheta
-//' @param neqs neqs
 //' @export
 // [[Rcpp::export]]
 SEXP calc_robust (arma::Mat<double> x, arma::Mat<double> u, arma::Mat<double> qS,
-                  arma::Col<double> w, int sizetheta, int neqs) {
+                  arma::Col<double> w, int sizetheta) {
 
-  arma::Mat<double> XDuuDX()sizetheta, sizetheta, fill::zeros);
+  arma::Mat<double> XDuuDX(sizetheta, sizetheta, fill::zeros);
 
-  // arma::Mat<double> qS = pinv(S);
-
-  int n = x.n_rows;
+  int n = u.n_rows;
+  int k = u.n_cols;
 
   for (int i = 0; i < n; ++i) {
 
-    arma::Mat<double> XI = arma_reshape(x.row(i), neqs);
+    arma::Mat<double> XI = arma_reshape(x.row(i), k);
 
     arma::Mat<double> UI = u.row(i).t();
 
-    XDX += w(i) * XI.t() * qS * UI * UI.t() * qS * XI;
+    XDuuDX += w(i) * XI.t() * qS * UI * UI.t() * qS * XI;
   }
 
-  XDX = 0.5 * ( XDX + XDX.t() );
+  XDuuDX = 0.5 * ( XDuuDX + XDuuDX.t() );
 
 
-  return wrap(inv(XDX));
+  return wrap(XDuuDX);
 }

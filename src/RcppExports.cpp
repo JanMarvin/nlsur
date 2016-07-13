@@ -60,3 +60,18 @@ BEGIN_RCPP
     return __result;
 END_RCPP
 }
+// calc_robust
+SEXP calc_robust(arma::Mat<double> x, arma::Mat<double> u, arma::Mat<double> qS, arma::Col<double> w, int sizetheta);
+RcppExport SEXP nlsur_calc_robust(SEXP xSEXP, SEXP uSEXP, SEXP qSSEXP, SEXP wSEXP, SEXP sizethetaSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject __result;
+    Rcpp::RNGScope __rngScope;
+    Rcpp::traits::input_parameter< arma::Mat<double> >::type x(xSEXP);
+    Rcpp::traits::input_parameter< arma::Mat<double> >::type u(uSEXP);
+    Rcpp::traits::input_parameter< arma::Mat<double> >::type qS(qSSEXP);
+    Rcpp::traits::input_parameter< arma::Col<double> >::type w(wSEXP);
+    Rcpp::traits::input_parameter< int >::type sizetheta(sizethetaSEXP);
+    __result = Rcpp::wrap(calc_robust(x, u, qS, w, sizetheta));
+    return __result;
+END_RCPP
+}
