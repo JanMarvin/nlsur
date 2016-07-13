@@ -373,7 +373,7 @@
   fitted <- as.data.frame(rhs)
   names(fitted) <- eqnames
 
-  n <- as.integer(lapply(X = xi, FUN = length))
+  n <- as.integer(lapply(X = xi, FUN = nrow))
   k <- as.integer(lapply(X = xi, FUN = rankMatrix))
   df    <- n - k
 
