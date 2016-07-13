@@ -128,16 +128,14 @@
   #### Initial evaluation ------------------------------------------------------
   # Evaluate inital lhs, rhs, ri, r and xi and x
   for (i in 1:neqs) {
-    eqnames <- c(eqnames, as.formula(eqns[[i]])[[2L]])
+    eqnames  <- c(eqnames, as.formula(eqns[[i]])[[2L]])
     lhs[[i]] <- eval(as.formula(eqns[[i]])[[2L]], envir = data)
     rhs[[i]] <- eval(as.formula(eqns[[i]])[[3L]], envir = data)
 
-    ri[[i]] <- lhs[[i]] - rhs[[i]]
+    ri[[i]]  <- lhs[[i]] - rhs[[i]]
 
-    xi[[i]] <- attr(with(data, with(as.list(theta),
-                                    eval(deriv(eqns[[i]], names(theta)),
-                                         envir = data))), "gradient")
-    n[[i]] <- length(lhs[[i]])
+    xi[[i]]  <- attr(eval(deriv(eqns[[i]], names(theta)),
+                                          envir = data), "gradient")
   }
 
   r <- do.call(cbind, ri)
@@ -274,13 +272,10 @@
       for (i in 1:neqs) {
         lhs[[i]] <- eval(as.formula(eqns[[i]])[[2L]], envir = data)
         rhs[[i]] <- eval(as.formula(eqns[[i]])[[3L]], envir = data)
-        ri[[i]] <- lhs[[i]] - rhs[[i]]
+        ri[[i]]  <- lhs[[i]] - rhs[[i]]
 
-        xi[[i]] <- attr(with(data, with(as.list(theta.new),
-                                        eval(deriv(eqns[[i]], names(theta.new)),
-                                             envir = data))), "gradient")
-
-        n[i]     <- length(rhs[[i]])
+        xi[[i]]  <- attr(eval(deriv(eqns[[i]], names(theta)),
+                             envir = data), "gradient")
       }
 
       r <- do.call(cbind, ri)
@@ -377,7 +372,7 @@
   fitted <- as.data.frame(rhs)
   names(fitted) <- eqnames
 
-
+  n <- as.integer(lapply(X = xi, FUN = length))
   k <- as.integer(lapply(X = xi, FUN = rankMatrix))
   df    <- n - k
 
