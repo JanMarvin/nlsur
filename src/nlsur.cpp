@@ -100,6 +100,14 @@ SEXP wt_mean(arma::Col<double>& x, arma::Col<double>& w) {
 }
 
 
+//' calc_robust
+//' @param x x
+//' @param u u
+//' @param qS qS
+//' @param w w
+//' @param sizetheta sizetheta
+//' @param neqs neqs
+//' @export
 // [[Rcpp::export]]
 SEXP calc_robust (arma::Mat<double> x, arma::Mat<double> u, arma::Mat<double> qS,
                   arma::Col<double> w, int sizetheta, int neqs) {
