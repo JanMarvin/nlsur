@@ -1002,6 +1002,11 @@ predict.nlsur <- function(object, newdata, ...) {
 
   eqs <- object$model
 
+  eqns_lhs <- lapply(X = eqs, FUN = function(x)x[[2L]])
+  eqns_rhs <- lapply(X = eqs, FUN = function(x)x[[3L]])
+  vnam     <- sapply(X = eqns_lhs, FUN = as.character)
+
+  # check for newdata
   if (missing(newdata) || is.null(newdata)) {
     data <- object$data
   } else {
@@ -1010,13 +1015,7 @@ predict.nlsur <- function(object, newdata, ...) {
 
   data2 <- data.frame(data, as.list(coef(object)))
 
-  fit <- list()
-  vnam <- NULL
-  for (i in seq(length(eqs))){
-    fit[[i]] <- eval(eqs[[i]][[3]], envir = data2)
-    vnam.i <- eqs[[i]][[2]]
-    vnam <- c(vnam, vnam.i)
-  }
+  fit <- lapply(X = eqns_rhs, FUN = eval, envir = data2)
 
   fit <- data.frame(fit)
   names(fit) <- vnam
