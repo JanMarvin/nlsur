@@ -182,7 +182,7 @@
 
     # begin regression
     # Regression of residuals on derivs
-    if (nls & qrsolve & identical(var(wts),0) ) {
+    if (nls & qrsolve) {
 
       r <- matrix(r, ncol = 1)
       x <- do.call(rbind, xi)
@@ -519,7 +519,7 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
   }
 
   # lm.gls does not allow weights
-  if (isTRUE(MASS) & !is.null(wts))
+  if ((isTRUE(qrsolve) | isTRUE(MASS)) & !is.null(wts))
     stop("With MASS you can not use weights.")
 
 
