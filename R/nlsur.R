@@ -847,11 +847,9 @@ summary.nlsur <- function(object, const = TRUE, ...) {
 
 
   resvar <- 1
-
-  # special problem
+  # for single equation
   if (neqs == 1 & nlsonly)
     resvar <- ssr / df
-
 
   # Estimate se, tval and prob
   se <- sqrt(diag(z$cov) * resvar)
@@ -876,7 +874,7 @@ summary.nlsur <- function(object, const = TRUE, ...) {
     prob <- 2 * pt(abs(tval), df, lower.tail = FALSE)
 
   # per equation statistics
-  zi   <- cbind(n, k, rmse, mae, r2, adjr2)
+  zi <- cbind(n, k, rmse, mae, r2, adjr2)
   zi <- as.data.frame(zi)
 
   # replace all character(0) if a equation does not contain a constant
