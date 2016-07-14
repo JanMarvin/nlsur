@@ -189,11 +189,6 @@
 
       theta.new <- qr.coef(qr(x), r)
 
-      # update theta
-      theta.new        <- as.vector(theta.new)
-      names(theta.new) <- names(theta)
-      theta            <- theta.new
-
     } else {
 
       # use MASS function lm.gls
@@ -211,24 +206,21 @@
         # cause huge matrices as lm.gls() is not able to handle sparse Matrices.
         theta.new <- coef(MASS::lm.gls(r ~ 0 + x, W = Sigma))
 
-        # update theta
-        names(theta.new) <- names(theta)
-        theta            <- theta.new
-
       } else {
 
         # Weighted regression of residuals on derivs ---
         theta.new <- calc_reg(x, r, qS, wts, length(theta), 1, tol)
-
-        theta.new        <- as.vector(theta.new)
-        names(theta.new) <- names(theta)
-        theta            <- theta.new
 
       }
 
 
     }
     # end regression
+
+    # update theta
+    theta.new        <- as.vector(theta.new)
+    names(theta.new) <- names(theta)
+    theta            <- theta.new
 
     while ( ssr > ssr.old )
     { # begin iter
