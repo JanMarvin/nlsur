@@ -871,6 +871,7 @@ summary.nlsur <- function(object, const = TRUE, ...) {
 
   # z vs t
   prob <- 2 * (1 - pt(abs(tval), (nE * kE )))
+  # if single equation
   if (neqs == 1 & nlsonly)
     prob <- 2 * pt(abs(tval), df, lower.tail = FALSE)
 
@@ -878,7 +879,7 @@ summary.nlsur <- function(object, const = TRUE, ...) {
   zi   <- cbind(n, k, rmse, mae, r2, adjr2)
   zi <- as.data.frame(zi)
 
-  # replace all character(0)
+  # replace all character(0) if a equation does not contain a constant
   for (i in 1:neqs){
     eqconst[[i]][identical(eqconst[[i]], character(0))] <- ""
   }
@@ -894,6 +895,8 @@ summary.nlsur <- function(object, const = TRUE, ...) {
   zi <- data.frame(as.character(z$eqnames),zi)
 
   cnst <- character(0)
+  # if a equation contians more than one const only add it once and fill the
+  # rest with blanks
   if (any(!const)) {
     cnst <- c("Const")
     if (neqconst>1){
@@ -911,6 +914,7 @@ summary.nlsur <- function(object, const = TRUE, ...) {
   ans$coefficients <- cbind(est, se, tval, prob)
 
   cnames <- c("Estimate", "Std. Error", "z value", "Pr(>|z|)")
+  # for single equation return t values
   if (neqs == 1 & nlsonly)
     cnames <- c("Estimate", "Std. Error", "t value", "Pr(>|t|)")
 
@@ -925,6 +929,7 @@ summary.nlsur <- function(object, const = TRUE, ...) {
   ans$weights      <- weights(z)
   ans$cov          <- z$cov
 
+  # for ifgnls add log likelihood
   if (ans$nlsur == "IFGNLS")
     ans$LL <- z$LL
 
@@ -940,10 +945,12 @@ print.summary.nlsur <- function(x, digits, ...) {
   # ... is to please check()
   cat("NLSUR Object of type:", x$nlsur, "\n\n")
 
+  # check if estimation contains weights
   if (!is.null(weights(x))) {
     cat("Scaled R-squared: \n\n")
   }
 
+  # digits to be presented
   if(missing(digits))
     digits <- 4
 
@@ -952,12 +959,14 @@ print.summary.nlsur <- function(x, digits, ...) {
   cat("\n")
   cat("Coefficients:\n")
 
+  # Weights again
   if (!is.null(weights(x))) {
     cat("Weighted nlsur: \n\n")
   }
 
   printCoefmat(x$coefficients, digits = digits, ...)
 
+  # For ifgnls print log likelihood
   if (x$nlsur == "IFGNLS")
     cat("Log-Likelihood:", x$LL, "\n")
 }
