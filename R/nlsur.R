@@ -111,26 +111,33 @@
 
   eqnames <- NULL
 
+  eqns_lhs <- lapply(X = eqns, FUN = function(x)x[[2L]])
+  eqns_rhs <- lapply(X = eqns, FUN = function(x)x[[3L]])
+
+  eqnames <- sapply(X = eqns_lhs, FUN = function(x)as.character(x))
+
+  nlsur_coef <- new.env(hash = TRUE)
+
   ## assign theta: make them available for eval
   for (i in 1:length(theta)) {
     name <- names(theta)[i]
     val <- theta[i]
     storage.mode(val) <- "double"
-    assign(name, val)
+    assign(name, val, envir = nlsur_coef)
   }
 
   #### Initial evaluation ------------------------------------------------------
-  # Evaluate inital lhs, rhs, ri, r and xi and x
-  for (i in 1:neqs) {
-    eqnames  <- c(eqnames, as.formula(eqns[[i]])[[2L]])
-    lhs[[i]] <- eval(as.formula(eqns[[i]])[[2L]], envir = data)
-    rhs[[i]] <- eval(as.formula(eqns[[i]])[[3L]], envir = data)
 
-    ri[[i]]  <- lhs[[i]] - rhs[[i]]
+  # begin equation loop: for (i in 1:neqs) {}
+  lhs <- lapply(X = eqns_lhs, FUN = eval, envir = data, enclos = nlsur_coef)
+  rhs <- lapply(X = eqns_rhs, FUN = eval, envir = data, enclos = nlsur_coef)
+  ri  <- mapply("-", lhs, rhs, SIMPLIFY = FALSE)
 
-    xi[[i]]  <- attr(eval(deriv(eqns[[i]], names(theta)),
-                                          envir = data), "gradient")
-  }
+  xi <- lapply(X = eqns, FUN = function(x) {
+    attr(eval(deriv(x, names(theta)),
+              envir = data, enclos = nlsur_coef), "gradient")
+  })
+  # end equation loop
 
   r <- do.call(cbind, ri)
   x <- do.call(cbind, xi)
@@ -241,21 +248,24 @@
         name <- names(theta.new)[i]
         val <- theta.new[i]
         storage.mode(val) <- "double"
-        assign(name, val)
+        assign(name, val, envir = nlsur_coef)
       }
 
       # eval eqn with the new theta
       lhs <- rhs <- ri <- xi <- list()
       r <- x <- NULL
 
-      for (i in 1:neqs) {
-        lhs[[i]] <- eval(as.formula(eqns[[i]])[[2L]], envir = data)
-        rhs[[i]] <- eval(as.formula(eqns[[i]])[[3L]], envir = data)
-        ri[[i]]  <- lhs[[i]] - rhs[[i]]
+      # begin equation loop: for (i in 1:neqs) {}
+      lhs <- lapply(X = eqns_lhs, FUN = eval, envir = data, enclos = nlsur_coef)
+      rhs <- lapply(X = eqns_rhs, FUN = eval, envir = data, enclos = nlsur_coef)
+      ri  <- mapply("-", lhs, rhs, SIMPLIFY = FALSE)
 
-        xi[[i]]  <- attr(eval(deriv(eqns[[i]], names(theta)),
-                             envir = data), "gradient")
-      }
+      xi <- lapply(X = eqns, FUN = function(x) {
+        attr(eval(deriv(x, names(theta)),
+                  envir = data, enclos = nlsur_coef), "gradient")
+      })
+      # end equation loop
+
 
       r <- do.call(cbind, ri)
       x <- do.call(cbind, xi)
