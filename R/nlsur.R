@@ -189,15 +189,6 @@
 
       theta.new <- qr.coef(qr(x), r)
 
-      if (any(is.na(theta.new))) {
-        warning("fix NA in theta.new")
-        message(
-          "During nls for the following variables NA was replaced with 0."
-        )
-        print(names(theta)[is.na(theta.new)])
-        theta.new[is.na(theta.new)] <- 0
-      }
-
       # update theta
       theta.new        <- as.vector(theta.new)
       names(theta.new) <- names(theta)
@@ -227,11 +218,11 @@
       } else {
 
         # Weighted regression of residuals on derivs ---
-        theta_test <- calc_reg(x, r, qS, wts, length(theta), 1, tol)
-        theta.new <- as.vector(theta_test)
+        theta.new <- calc_reg(x, r, qS, wts, length(theta), 1, tol)
 
+        theta.new        <- as.vector(theta.new)
         names(theta.new) <- names(theta)
-        theta <- theta.new
+        theta            <- theta.new
 
       }
 
