@@ -6,7 +6,7 @@
 \usage{
 nlsur(eqns, data, startvalues, type = NULL, S = NULL, trace = FALSE,
   robust = FALSE, stata = TRUE, qrsolve = FALSE, weights, MASS = FALSE,
-  maxiter = 1000, tol = .Machine$double.eps, eps = 1e-05,
+  maxiter = 1000, val = 0, tol = .Machine$double.eps, eps = 1e-05,
   ifgnlseps = 1e-10, tau = 0.001)
 }
 \arguments{
@@ -44,6 +44,9 @@ for weighted Regression. This can cause sever RAM usage as the weight matrix
 tend to be huge (n-equations * n-rows).}
 
 \item{maxiter}{Maximum number of iterations.}
+
+\item{val}{If no start values supplied, create them with this start value.
+Default is 0.}
 
 \item{tol}{qr.solves tolerance for detecting linear dependencies.}
 
@@ -123,6 +126,10 @@ erg <- nlsur(eqns = eqns, data = dd, startvalues = strtvls, type = 2,
 
 erg
 }
+}
+\references{
+Gallant, A. Ronald (1987): Nonlinear Statistical Models.
+ Wiley: New York
 }
 \seealso{
 \link{nls}

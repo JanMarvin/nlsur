@@ -88,7 +88,9 @@
 
   wts  <- data$w
 
-  # set initial theta, if it contains NA values replace it with 0
+  nlsur_coef <- new.env(hash = TRUE)
+
+  # set initial theta, if it contains NA values replace them with 0
   theta <- startvalues
   theta[is.na(theta)] <- 0
 
@@ -109,14 +111,11 @@
   qS <- qr.solve(S, tol = tol)
   s  <- chol(qS)
 
-  eqnames <- NULL
 
   eqns_lhs <- lapply(X = eqns, FUN = function(x)x[[2L]])
   eqns_rhs <- lapply(X = eqns, FUN = function(x)x[[3L]])
 
   eqnames <- sapply(X = eqns_lhs, FUN = function(x)as.character(x))
-
-  nlsur_coef <- new.env(hash = TRUE)
 
   ## assign theta: make them available for eval
   for (i in 1:length(theta)) {
@@ -142,14 +141,11 @@
   r <- do.call(cbind, ri)
   x <- do.call(cbind, xi)
 
+
+  # eval might return NaN. lm.gls will complain, since r is smaller than S.
   if ( any (is.nan(x))){
-    # eval might return NaN. lm.gls will complain, since r is smaller than S.
-    # Fix this by changing its value to zero.
     stop("NA/NaN/Inf in derivation found. Most likely due to artificial data.")
   }
-
-  divi <- 2
-  alph <- 1
 
 
   # Evaluate initial ssr
@@ -158,9 +154,15 @@
   if (trace)
     cat("Initial SSR: ", ssr.old, "\n")
 
+
+
+  # values for initial alpha and its divisor
+  alph       <- 1
+  divi       <- 2
   itr        <- 0
   alpha      <- alph # stepsizeparameter
 
+  # repeat until convergence is reached
   while (!conv) {
 
     if (itr == maxiter){
@@ -196,12 +198,14 @@
         theta.new[is.na(theta.new)] <- 0
       }
 
-      theta.new <- as.vector(theta.new)
+      # update theta
+      theta.new        <- as.vector(theta.new)
       names(theta.new) <- names(theta)
-      theta <- theta.new
+      theta            <- theta.new
 
     } else {
 
+      # use MASS function lm.gls
       if (MASS)
       {
 
@@ -215,8 +219,10 @@
         # to pre-weight r and x which then can be solved with qr. This can
         # cause huge matrices as lm.gls() is not able to handle sparse Matrices.
         theta.new <- coef(MASS::lm.gls(r ~ 0 + x, W = Sigma))
+
+        # update theta
         names(theta.new) <- names(theta)
-        theta <- theta.new
+        theta            <- theta.new
 
       } else {
 
@@ -239,7 +245,7 @@
       # use the scalar to get a new theta
       theta.new <- startvalues + alpha * theta
 
-      # theta.new can be NA change its value to 0.
+      # theta.new can be NA. Change NA to 0.
       coef_na <- names(theta.new)[is.na(theta.new)]
       theta.new[is.na(theta.new)] <- 0
 
@@ -409,6 +415,8 @@
 #' tend to be huge (n-equations * n-rows).
 #' @param weights Additional weight vector.
 #' @param maxiter Maximum number of iterations.
+#' @param val If no start values supplied, create them with this start value.
+#' Default is 0.
 #'
 #' @details nlsur() is a wrapper around .nlsur(). The function was initialy
 #' inspired by the Stata Corp Function nlsur.
@@ -473,6 +481,8 @@
 #'
 #' erg
 #' }
+#' @references Gallant, A. Ronald (1987): Nonlinear Statistical Models.
+#'  Wiley: New York
 #' @seealso \link{nls}
 #' @importFrom stats as.formula coef na.omit
 #' @import RcppArmadillo
@@ -481,9 +491,9 @@
 #' @export
 nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
                   trace = FALSE, robust = FALSE, stata = TRUE, qrsolve = FALSE,
-                  weights, MASS = FALSE, maxiter = 1000,
-                  tol = .Machine$double.eps,
-                  eps = 1e-5, ifgnlseps = 1e-10, tau = 1e-3) {
+                  weights, MASS = FALSE, maxiter = 1000, val = 0,
+                  tol = .Machine$double.eps, eps = 1e-5, ifgnlseps = 1e-10,
+                  tau = 1e-3) {
 
   # Check if eqns might be a formula
   if (!is.list(eqns)){
@@ -501,26 +511,31 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
     eqns[[1]] <- gl
   }
 
+  # Check if original call contains weights
   if (missing(weights))
     wts <- NULL
   else
     wts <- as.character(substitute(weights))
 
+  # If no startvalues supplied, create them.
   if (missing (startvalues)) {
-    message("startvalues created with val = 0.")
+    message(cat("startvalues created with val = ", val, ".\n"))
 
-    startvalues <- getstartvals(model = eqns, data = data, val = 0)
+    startvalues <- getstartvals(model = eqns, data = data, val = val)
   }
 
   # Check if all variables that are not startvalues exist in data.
   vars <- unlist(lapply(eqns, all.vars))
   vars <- vars[which(!vars %in% names(startvalues))]
-  ok <- all(vars%in%names(data))
+  ok   <- all(vars%in%names(data))
+
+  # if not ok bail out
   if (!ok) {
     message("Missmatch in model and dataset.")
     return(0)
   }
 
+  # lm.gls does not allow weights
   if (isTRUE(MASS) & !is.null(wts))
     stop("With MASS you can not use weights.")
 
@@ -531,20 +546,21 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
 
   # check for equation constants
   eqconst <- list()
+  # if model contains constants a uncentered otherwise a centered R-square value
+  # is calculated
   for (i in 1:length(eqns)) {
     gl_lhs <- as.character(eqns[[i]])
 
     terms <- strsplit(gl_lhs[3], split = " + ", fixed = T)[[1]]
-
     terms <- terms[which(terms %in% names(startvalues))]
 
     eqconst[[i]] <- terms
   }
 
   # Check for wts
-  if ( is.null(wts) )
+  if ( is.null(wts) ) {
     data$w <- 1
-  else {
+  } else {
     wts <- as.name(wts)
 
     data$w <- eval(substitute(wts), data)
@@ -554,18 +570,16 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
   # of weights if missings are excluded.
   data <- na.omit(data[unique(c(parms,"w"))])
 
-  nls    <- FALSE
-  fgnls  <- FALSE
-  ifgnls <- FALSE
-  z      <- NULL
-  n      <- nrow(data)
+  nls  <- fgnls <- ifgnls <- FALSE
+  z    <- NULL
+  n    <- nrow(data)
 
   # normwts
   data$w <- data$w/sum(data$w) * n
 
   cl <- match.call()
 
-  #
+  # define what will be done
   if (!is.null(type)) {
     if(type == "NLS" | type == 1) {
       nls <- TRUE
@@ -581,8 +595,9 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
     }
   }
 
-  # Estimation of NLS
-  # nls
+  # Estimation of NLS ##########################################################
+
+  # print NLS
   if (trace)
     cat("-- NLS\n")
 
@@ -591,10 +606,11 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
                MASS = MASS, eps = eps, tau = tau, maxiter = maxiter,
                tol = tol)
 
+
+  # To update standard errors in nls case Stata estimates a second nls with
+  # diag(S) instead of I.
   if (nls & stata) {
 
-    # For w/e kind of reason, Stata estimates a second nls with diag(S) instead
-    #  of I.
     S <- z$sigma
 
     z <- .nlsur( eqns = eqns, data = data, startvalues = z$coefficients, S = S,
@@ -602,16 +618,17 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
                  MASS = MASS, eps = eps, tau = tau, maxiter = maxiter,
                  tol = tol)
 
-    # FixMe: Stata uses this sigma for covb, not the updated?
+    # Stata uses the orignal sigma for covb
     z$sigma <- diag(diag(S), nrow = ncol(z$fitted), ncol = ncol(z$fitted))
 
   }
   z$nlsur <- "NLS"
 
 
-  # Estimation of FGNLS
+  # Estimation of FGNLS ########################################################
   if (fgnls) {
-    # fgnls
+
+    # print FGNLS
     if (trace)
       cat("-- FGNLS\n")
 
@@ -622,24 +639,28 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
                 MASS = MASS, eps = eps, tau = tau, maxiter = maxiter,
                 tol = tol)
 
-    # FixMe: Stata uses this sigma for covb, not the updated?
+    # Stata uses the orignal sigma for covb
     if (!ifgnls)
       z$sigma <- S
 
     z$nlsur <- "FGNLS"
 
-    # Estimation of IFGNLS
+    # Estimation of IFGNLS #####################################################
     if (ifgnls) {
 
+      # print IFGNLS
       if (trace)
         cat("-- IFGNLS\n")
 
       S <- z$sigma
       conv <- FALSE
       iter <- 0
+
+      # repeat nlsur estimation until convergence is reached
       while (!conv)
       {
 
+        # if convergence is not reached
         if (iter == maxiter){
           message(paste(iter, "nls iterations and convergence not reached."),
                   paste("Last theta is: \n"))
@@ -647,18 +668,18 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
           return(0)
         }
 
-        z.old <- z
-        S.old <- S
+        # backup of z and S
+        z.old <- z; S.old <- S
 
         z <- .nlsur(eqns = eqns, data = data, startvalues = z$coefficients,
                     S = S, robust = robust, nls = FALSE,
                     qrsolve = qrsolve, MASS = MASS, eps = eps, tau = tau,
                     maxiter = maxiter, tol = tol)
 
-        r <- z$residuals
         S <- z$sigma
-        s <- chol(qr.solve(S, tol = tol))
+        r <- z$residuals
 
+        s   <- chol(qr.solve(S, tol = tol))
         rss <- calc_ssr(r, s, data$w)
 
         iter <- iter +1
@@ -670,13 +691,9 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
                                 (abs(S.old) + 1),
                               na.rm = TRUE)
 
-        if (is.nan(maxSigmachange))
-          maxSigmachange <- 0
-
         # conv1 <- abs(rss.old - rss) < eps * (rss.old + tau)
         # conv2 <- norm(as.matrix(z.old$coefficients - z$coefficients)) <
         #   eps * (norm(as.matrix(z.old$coefficients)) + tau)
-
         # conv <- any(conv1, conv2)
 
         conv1 <- maxthetachange < eps
@@ -684,6 +701,7 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
 
         conv <- any(conv1, conv2)
 
+        # Iteration output
         if (trace)
           cat("Iteration", iter, ": SSR", rss, "\n")
 
@@ -691,15 +709,13 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
       message <- paste("Convergence after iteration:", iter,".")
 
 
-
       z$message   <- message
-      z$sigma     <- S
-      z$residuals <- r
       z$nlsur     <- "IFGNLS"
 
     }
   }
 
+  # Estimate log likelihood ####################################################
   S <- z$sigma
   N <- n
   M <- nrow(S)
@@ -718,13 +734,12 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
   z$nlsonly <- all(nls & !stata)
   z$robust <- robust
 
+  # if call did not contain weights: drop them
   if (is.null(wts))
     z$wts <- NULL
 
   z
 }
-
-# [Gallant, A. Ronald (1987): Nonlinear Statistical Models. Wiley: New York]
 
 #' @export
 print.nlsur <- function(x, ...) {
