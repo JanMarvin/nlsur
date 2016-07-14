@@ -182,7 +182,7 @@
 
     # begin regression
     # Regression of residuals on derivs
-    if (nls & qrsolve & is.null(wts)) {
+    if (nls & qrsolve & identical(var(wts),0) ) {
 
       r <- matrix(r, ncol = 1)
       x <- do.call(rbind, xi)
