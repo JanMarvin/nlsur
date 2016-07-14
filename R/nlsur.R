@@ -708,14 +708,15 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
                                        log(det(S)) / M  +
                                        log(sum(data$w))) )/2
 
-  z$LL    <- LL
-  z$model <- eqns
-  z$const <- eqconst
-  z$data  <- data
-  z$call  <- cl
-  z$start <- startvalues
+  # create output
+  z$LL      <- LL
+  z$model   <- eqns
+  z$const   <- eqconst
+  z$data    <- data
+  z$call    <- cl
+  z$start   <- startvalues
   z$nlsonly <- all(nls & !stata)
-  z$robust <- robust
+  z$robust  <- robust
 
   # if call did not contain weights: drop them
   if (is.null(wts))
@@ -735,7 +736,6 @@ print.nlsur <- function(x, ...) {
 summary.nlsur <- function(object, const = TRUE, ...) {
   # ... is to please check()
 
-  # z is shorter
   z <- object
 
   data    <- z$data
@@ -748,6 +748,7 @@ summary.nlsur <- function(object, const = TRUE, ...) {
   r       <- residuals(z)
   eqconst <- z$const
   nlsonly <- z$nlsonly
+  est     <- z$coefficients
 
   # FixMe: reverse logic const == TRUE : no const
   const <- sapply(eqconst, identical, character(0))
@@ -756,6 +757,7 @@ summary.nlsur <- function(object, const = TRUE, ...) {
   if (is.null(w)) {
     w <- rep(1, nrow(data))
   } else {
+    # check maleformed weights
     if (!all(w > 0))
       stop("Negative or zero weight found.")
   }
@@ -768,7 +770,6 @@ summary.nlsur <- function(object, const = TRUE, ...) {
   scale   <- vector("numeric", length=neqs)      # scalefactor
   div     <- vector("numeric", length=neqs)      # divisor
   wi      <- vector("numeric", length=neqs)      # normalized wts
-  # regressors in each equation
   ssr     <- vector("numeric", length=neqs)      # sum of squared residuals
   mss     <- vector("numeric", length=neqs)
   mse     <- vector("numeric", length=neqs)      # mean square error
@@ -777,9 +778,6 @@ summary.nlsur <- function(object, const = TRUE, ...) {
   r2      <- vector("numeric", length=neqs)      # R-squared value
   adjr2   <- vector("numeric", length=neqs)      # adjusted R-squared value
 
-
-  # Get coefficients from the last estimation.
-  est     <- z$coefficients
 
   nlsur_coef <- new.env(hash = TRUE)
 
@@ -791,25 +789,24 @@ summary.nlsur <- function(object, const = TRUE, ...) {
     assign(name, val, envir = nlsur_coef)
   }
 
-  lhs <- lapply(X = eqns_lhs, FUN = eval, envir = data, enclos = nlsur_coef)
+  lhs   <- lapply(X = eqns_lhs, FUN = eval, envir = data, enclos = nlsur_coef)
   scale <- n/sum(w)
   div   <- n -1
 
   # Evaluate everything required for summary printing
   for (i in 1:neqs) {
-    wi       <- w/sum(w) * n[i]
 
     ssr[i]   <- sum( r[,i]^2 * w) * scale[i]
 
     # FixMe: Reverse logic again
     if (!const[i]) {
+      wi       <- w/sum(w) * n[i]
       lhs_wm   <- wt_mean(x = lhs[[i]], w = wi)
       wvar     <- (1/(n[i] - 1)) * sum( wi * (lhs[[i]] - lhs_wm)^2)
       mss[i]   <- wvar * div[i] - ssr[i]
     } else{
       mss[i]   <- sum(lhs[[i]]^2) * scale[i] - ssr[i]
     }
-
 
     mse[i]   <- ssr[i] / n[i]
     rmse[i]  <- sqrt(mse[i])
