@@ -79,7 +79,7 @@ SEXP calc_reg (arma::Mat<double> x, arma::Mat<double> r, arma::Mat<double> qS,
     XDy += w(i) * XI.t() * qS * YI;
   }
 
-  XDX = 0.5 * ( XDX + XDX.t() );
+  // XDX = 0.5 * ( XDX + XDX.t() );
 
   if (fullreg) /* weighted regression */
     return Rf_qrcoef(Rf_qr(XDX), XDy);
@@ -125,7 +125,7 @@ SEXP calc_robust (arma::Mat<double> x, arma::Mat<double> u, arma::Mat<double> qS
     XDuuDX += w(i) * XI.t() * qS * UI * UI.t() * qS * XI;
   }
 
-  XDuuDX = 0.5 * ( XDuuDX + XDuuDX.t() );
+  // XDuuDX = 0.5 * ( XDuuDX + XDuuDX.t() );
 
 
   return wrap(XDuuDX);
