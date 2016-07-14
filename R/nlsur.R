@@ -777,6 +777,7 @@ summary.nlsur <- function(object, const = TRUE, ...) {
       stop("Negative or zero weight found.")
   }
 
+  eqns_lhs <- lapply(X = eqns, FUN = function(x)x[[2L]])
 
 
   #### Estimation of covariance matrix, standard errors and z/t-values ####
@@ -797,20 +798,22 @@ summary.nlsur <- function(object, const = TRUE, ...) {
   # Get coefficients from the last estimation.
   est     <- z$coefficients
 
+  nlsur_coef <- new.env(hash = TRUE)
+
   # Assign values for eval
   for (i in 1:length(est)) {
     name <- names(est)[i]
     val <- est[i]
     storage.mode(val) <- "double"
-    assign(name, val)
+    assign(name, val, envir = nlsur_coef)
   }
+
+  lhs <- lapply(X = eqns_lhs, FUN = eval, envir = data, enclos = nlsur_coef)
+  scale <- n/sum(w)
+  div   <- n -1
 
   # Evaluate everything required for summary printing
   for (i in 1:neqs) {
-    lhs[[i]]  <- eval(as.formula(eqns[[i]])[[2L]], envir = data)
-
-    scale[i] <- n[i]/sum(w)
-    div[i]   <- n[i] - 1
     wi       <- w/sum(w) * n[i]
 
     ssr[i]   <- sum( r[,i]^2 * w) * scale[i]
