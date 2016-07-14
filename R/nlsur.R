@@ -1024,8 +1024,8 @@ predict.nlsur <- function(object, newdata, ...) {
 
   data2 <- data.frame(data, as.list(coef(object)))
 
+  # create fit: predict result
   fit <- lapply(X = eqns_rhs, FUN = eval, envir = data2)
-
   fit <- data.frame(fit)
   names(fit) <- vnam
 
