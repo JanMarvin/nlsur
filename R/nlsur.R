@@ -305,7 +305,7 @@
     itr <- itr + 1
     theta <- theta.new
     ssr.old <- ssr
-    startvalues <- theta
+    theta.old <- theta
 
   }
 
