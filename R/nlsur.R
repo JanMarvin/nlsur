@@ -984,10 +984,11 @@ vcov.summary.nlsur <- function(object, ...) {
 #' @param ... further arguments for predict. At present no optional arguments
 #'  are used.
 #'
-#' @details In contrast to other regression objects nlsur does not store the
-#' complete model in the resulting object. This requires a data object for
-#' predict. A limitation due to the fact that nlsur estimations tend to be
-#' estimated on larger data.frames.
+#' @details predict.nlsur evaluates the nlsur equation(s) given nlsurs
+#' estimated parameters using either the original data.frame or newdata. Since
+#' nlsur() restricts the data object only to complete cases observations with
+#' missings will not be fitted.
+#'
 #'
 #' @examples # predict(nlsurObj, dataframe)
 #' @importFrom stats coef

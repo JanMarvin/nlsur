@@ -18,10 +18,10 @@ are used.}
 \code{predict()} is a function to predict nlsur results.
 }
 \details{
-In contrast to other regression objects nlsur does not store the
-complete model in the resulting object. This requires a data object for
-predict. A limitation due to the fact that nlsur estimations tend to be
-estimated on larger data.frames.
+predict.nlsur evaluates the nlsur equation(s) given nlsurs
+estimated parameters using either the original data.frame or newdata. Since
+nlsur() restricts the data object only to complete cases observations with
+missings will not be fitted.
 }
 \examples{
 # predict(nlsurObj, dataframe)
