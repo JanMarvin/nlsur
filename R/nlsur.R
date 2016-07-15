@@ -132,7 +132,7 @@
   # begin equation loop: for (i in 1:neqs) {}
   lhs <- mclapply(X = eqns_lhs, FUN = eval, envir = data, enclos = nlsur_coef)
   rhs <- mclapply(X = eqns_rhs, FUN = eval, envir = data, enclos = nlsur_coef)
-  ri  <- mapply("-", lhs, rhs, SIMPLIFY = FALSE)
+  ri  <- mcmapply("-", lhs, rhs, SIMPLIFY = FALSE)
 
   xi <- mclapply(X = eqns, FUN = function(x) {
     attr(eval(deriv(x, names(theta)),
@@ -251,7 +251,7 @@
       # begin equation loop: for (i in 1:neqs) {}
       lhs <- mclapply(X = eqns_lhs, FUN = eval, envir = data, enclos = nlsur_coef)
       rhs <- mclapply(X = eqns_rhs, FUN = eval, envir = data, enclos = nlsur_coef)
-      ri  <- mapply("-", lhs, rhs, SIMPLIFY = FALSE)
+      ri  <- mcmapply("-", lhs, rhs, SIMPLIFY = FALSE)
 
       xi <- mclapply(X = eqns, FUN = function(x) {
         attr(eval(deriv(x, names(theta)),
@@ -470,7 +470,7 @@
 #' @references Gallant, A. Ronald (1987): Nonlinear Statistical Models.
 #'  Wiley: New York
 #' @seealso \link{nls}
-#' @importFrom parallel mclapply
+#' @importFrom parallel mclapply detectCores
 #' @importFrom stats as.formula coef na.omit
 #' @import RcppArmadillo
 #' @useDynLib nlsur
@@ -481,6 +481,10 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
                   weights, MASS = FALSE, maxiter = 1000, val = 0,
                   tol = .Machine$double.eps, eps = 1e-5, ifgnlseps = 1e-10,
                   tau = 1e-3) {
+
+
+  # set multicore process
+  options("mc.cores" = detectCores()-1 )
 
   # Check if eqns might be a formula
   if (!is.list(eqns)){
