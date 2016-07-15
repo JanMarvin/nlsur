@@ -65,6 +65,7 @@
 #' Gallant, A. Ronald (1987): Nonlinear Statistical Models. Wiley: New York
 #' @importFrom Matrix diag kronecker rankMatrix
 #' @importFrom MASS lm.gls
+#' @importFrom parallel mclapply
 #' @importFrom stats as.formula coef deriv
 #' @import RcppArmadillo
 #' @useDynLib nlsur
@@ -113,8 +114,8 @@
   s  <- chol(qS)
 
 
-  eqns_lhs <- lapply(X = eqns, FUN = function(x)x[[2L]])
-  eqns_rhs <- lapply(X = eqns, FUN = function(x)x[[3L]])
+  eqns_lhs <- mclapply(X = eqns, FUN = function(x)x[[2L]])
+  eqns_rhs <- mclapply(X = eqns, FUN = function(x)x[[3L]])
 
   eqnames <- sapply(X = eqns_lhs, FUN = function(x)as.character(x))
 
@@ -129,11 +130,11 @@
   #### Initial evaluation ------------------------------------------------------
 
   # begin equation loop: for (i in 1:neqs) {}
-  lhs <- lapply(X = eqns_lhs, FUN = eval, envir = data, enclos = nlsur_coef)
-  rhs <- lapply(X = eqns_rhs, FUN = eval, envir = data, enclos = nlsur_coef)
+  lhs <- mclapply(X = eqns_lhs, FUN = eval, envir = data, enclos = nlsur_coef)
+  rhs <- mclapply(X = eqns_rhs, FUN = eval, envir = data, enclos = nlsur_coef)
   ri  <- mapply("-", lhs, rhs, SIMPLIFY = FALSE)
 
-  xi <- lapply(X = eqns, FUN = function(x) {
+  xi <- mclapply(X = eqns, FUN = function(x) {
     attr(eval(deriv(x, names(theta)),
               envir = data, enclos = nlsur_coef), "gradient")
   })
@@ -248,11 +249,11 @@
       r <- x <- NULL
 
       # begin equation loop: for (i in 1:neqs) {}
-      lhs <- lapply(X = eqns_lhs, FUN = eval, envir = data, enclos = nlsur_coef)
-      rhs <- lapply(X = eqns_rhs, FUN = eval, envir = data, enclos = nlsur_coef)
+      lhs <- mclapply(X = eqns_lhs, FUN = eval, envir = data, enclos = nlsur_coef)
+      rhs <- mclapply(X = eqns_rhs, FUN = eval, envir = data, enclos = nlsur_coef)
       ri  <- mapply("-", lhs, rhs, SIMPLIFY = FALSE)
 
-      xi <- lapply(X = eqns, FUN = function(x) {
+      xi <- mclapply(X = eqns, FUN = function(x) {
         attr(eval(deriv(x, names(theta)),
                   envir = data, enclos = nlsur_coef), "gradient")
       })
@@ -343,8 +344,8 @@
   fitted <- as.data.frame(rhs)
   names(fitted) <- eqnames
 
-  n <- as.integer(lapply(X = xi, FUN = nrow))
-  k <- as.integer(lapply(X = xi, FUN = rankMatrix))
+  n <- as.integer(mclapply(X = xi, FUN = nrow))
+  k <- as.integer(mclapply(X = xi, FUN = rankMatrix))
   df    <- n - k
 
   z$fitted       <- fitted
@@ -469,6 +470,7 @@
 #' @references Gallant, A. Ronald (1987): Nonlinear Statistical Models.
 #'  Wiley: New York
 #' @seealso \link{nls}
+#' @importFrom parallel mclapply
 #' @importFrom stats as.formula coef na.omit
 #' @import RcppArmadillo
 #' @useDynLib nlsur
@@ -511,7 +513,7 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
   }
 
   # Check if all variables that are not startvalues exist in data.
-  vars <- unlist(lapply(eqns, all.vars))
+  vars <- unlist(mclapply(eqns, all.vars))
   vars <- vars[which(!vars %in% names(startvalues))]
   ok   <- all(vars%in%names(data))
 
@@ -529,7 +531,7 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
 
 
   # remove observation, if observation a parameter contains NA.
-  modelparameters <- c(unlist(lapply(eqns, all.vars)), wts)
+  modelparameters <- c(unlist(mclapply(eqns, all.vars)), wts)
   parms <- modelparameters[which(!modelparameters %in% names(startvalues))]
 
   # check for equation constants
@@ -739,6 +741,7 @@ print.nlsur <- function(x, ...) {
   print(x$coefficients, ...)
 }
 
+#' @importFrom parallel mclapply
 #' @importFrom stats as.formula pt residuals weights
 #' @export
 summary.nlsur <- function(object, const = TRUE, ...) {
@@ -770,7 +773,7 @@ summary.nlsur <- function(object, const = TRUE, ...) {
       stop("Negative or zero weight found.")
   }
 
-  eqns_lhs <- lapply(X = eqns, FUN = function(x)x[[2L]])
+  eqns_lhs <- mclapply(X = eqns, FUN = function(x)x[[2L]])
 
 
   #### Estimation of covariance matrix, standard errors and z/t-values ####
@@ -797,7 +800,7 @@ summary.nlsur <- function(object, const = TRUE, ...) {
     assign(name, val, envir = nlsur_coef)
   }
 
-  lhs   <- lapply(X = eqns_lhs, FUN = eval, envir = data, enclos = nlsur_coef)
+  lhs   <- mclapply(X = eqns_lhs, FUN = eval, envir = data, enclos = nlsur_coef)
   scale <- n/sum(w)
   div   <- n -1
 
@@ -992,14 +995,15 @@ vcov.summary.nlsur <- function(object, ...) {
 #'
 #' @examples # predict(nlsurObj, dataframe)
 #' @importFrom stats coef
+#' @importFrom parallel mclapply
 #'
 #' @export
 predict.nlsur <- function(object, newdata, ...) {
 
   eqs <- object$model
 
-  eqns_lhs <- lapply(X = eqs, FUN = function(x)x[[2L]])
-  eqns_rhs <- lapply(X = eqs, FUN = function(x)x[[3L]])
+  eqns_lhs <- mclapply(X = eqs, FUN = function(x)x[[2L]])
+  eqns_rhs <- mclapply(X = eqs, FUN = function(x)x[[3L]])
   vnam     <- sapply(X = eqns_lhs, FUN = as.character)
 
   # check for newdata
@@ -1012,7 +1016,7 @@ predict.nlsur <- function(object, newdata, ...) {
   data2 <- data.frame(data, as.list(coef(object)))
 
   # create fit: predict result
-  fit <- lapply(X = eqns_rhs, FUN = eval, envir = data2)
+  fit <- mclapply(X = eqns_rhs, FUN = eval, envir = data2)
   fit <- data.frame(fit)
   names(fit) <- vnam
 

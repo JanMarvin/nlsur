@@ -9,6 +9,7 @@ Depends:
     car,
     Matrix,
     MASS,
+    parallel,
     stats
 Imports:
     RcppArmadillo
