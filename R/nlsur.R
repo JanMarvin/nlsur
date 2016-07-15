@@ -152,6 +152,7 @@
   # Evaluate initial ssr
   ssr.old <- calc_ssr(r, s, wts)
 
+  # Print initial ssr
   if (trace)
     cat("Initial SSR: ", ssr.old, "\n")
 
@@ -166,6 +167,7 @@
   # repeat until convergence is reached
   while (!conv) {
 
+    # convergence was not reached given maxiter
     if (itr == maxiter){
       message(paste(itr, "nls iterations and convergence not reached."),
               paste("Last theta is: \n", theta, "\n"))
@@ -192,10 +194,11 @@
 
     } else {
 
-      # use MASS function lm.gls
+      # MASS for calculation of wls
       if (MASS)
       {
 
+        # blow up Sigma
         Sigma <- Matrix::kronecker(X = qS,
                                    Y = Matrix::diag(nrow(r)) )
 
@@ -213,7 +216,6 @@
         theta.new <- calc_reg(x, r, qS, wts, length(theta), 1, tol)
 
       }
-
 
     }
     # end regression
@@ -255,7 +257,6 @@
                   envir = data, enclos = nlsur_coef), "gradient")
       })
       # end equation loop
-
 
       r <- do.call(cbind, ri)
       x <- do.call(cbind, xi)
@@ -503,7 +504,8 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
 
   # If no startvalues supplied, create them.
   if (missing (startvalues)) {
-    message(cat("startvalues created with val = ", val, ".\n"))
+    msg <- paste("startvalues created with val =", val)
+    message(msg)
 
     startvalues <- getstartvals(model = eqns, data = data, val = val)
   }
@@ -515,13 +517,15 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
 
   # if not ok bail out
   if (!ok) {
-    message("Missmatch in model and dataset.")
+    msg <- paste("Missmatch in model and dataset. Some equation variables \n",
+                 "are not in startvalues nor data object.")
+    message(msg)
     return(0)
   }
 
   # lm.gls does not allow weights
   if ((isTRUE(qrsolve) | isTRUE(MASS)) & !is.null(wts))
-    stop("With MASS you can not use weights.")
+    stop("With qrsolve and MASS you can not use weights.")
 
 
   # remove observation, if observation a parameter contains NA.
@@ -646,8 +650,11 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
 
         # if convergence is not reached
         if (iter == maxiter){
-          message(paste(iter, "nls iterations and convergence not reached."),
-                  paste("Last theta is: \n"))
+
+          msg <- paste(iter, "nls iterations and convergence not reached.\n",
+                       "Last theta is: \n")
+
+          message(msg)
           print(coef(z))
           return(0)
         }
