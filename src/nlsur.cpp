@@ -24,9 +24,7 @@ SEXP calc_ssr (arma::Mat<double> r, arma::Mat<double> s, arma::Col<double> w) {
 
   s = s.t();
 
-  #pragma omp parallel for
   for (int j = 0; j < k; ++j) {
-    #pragma omp parallel for
     for (int i = 0; i < n; ++i){
       ssr += w(i) * pow( r.row(i) * s.col(j), 2);
     }
