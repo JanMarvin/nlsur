@@ -91,15 +91,16 @@
   nlsur_coef <- new.env(hash = TRUE)
 
   # set initial theta, if it contains NA values replace them with 0
-  theta <- startvalues
+  theta <- theta.old <- startvalues
   theta[is.na(theta)] <- 0
 
+  # check if S-matrix was provided for estimation of nls step
   if (nls){
     if (is.null(S)) {
       if (trace)
         cat("create initial weight matrix Sigma.\n")
       S <- diag(1, ncol=neqs, nrow=neqs)
-      nls <- TRUE # keep nls flag
+      nls <- TRUE # keep nls flag.
     } else {
       if (trace)
         cat("Use diagonal of Sigma matrix.\n")
@@ -226,7 +227,7 @@
     { # begin iter
 
       # use the scalar to get a new theta
-      theta.new <- startvalues + alpha * theta
+      theta.new <- theta.old + alpha * theta
 
       # theta.new can be NA. Change NA to 0.
       coef_na <- names(theta.new)[is.na(theta.new)]
@@ -273,11 +274,11 @@
 
     ssr.old <- ssr
 
+    # Print updated ssr
     if (trace)
       cat("SSR: ", ssr, "\n")
 
     # Stopping rule. [Gallant (1987) p.29]
-    # Note: R uses a different convergence criterium
 
     # ssr: |ssr.old - ssr| < eps | ssr.old + tau|
     # conv1 <- abs(ssr.old - ssr) < eps * (ssr.old + tau)
@@ -286,12 +287,12 @@
     # conv2 <- norm(as.matrix(theta - theta.new)) <
     #   eps * (norm(as.matrix(theta)) + tau)
 
-    # no idea why, but Stata uses this
+    # Stata version of this
     conv1 <- !isTRUE(abs(ssr.old - ssr) > eps * (ssr.old + tau))
-    # conv1 <- TRUE
 
-    conv2 <- !isTRUE(all( alpha * abs(theta) > eps * (abs(startvalues) + tau) ))
-    # conv2 <- !isTRUE( alpha * all(abs(theta - theta.new) > eps * (theta + tau)) )
+    conv2 <- !isTRUE(all( alpha * abs(theta) > eps * (abs(theta.old) + tau) ))
+    # conv2 <- !isTRUE( alpha * all(abs(theta - theta.new) >
+    #                                 eps * (theta + tau)) )
 
     # and this is what Stata documents what they do for nl
     # conv2 <- all( alpha * abs(theta.new) <= eps * (abs(theta) + tau) )
