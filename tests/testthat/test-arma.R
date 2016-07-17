@@ -55,11 +55,17 @@ mm_a <- arma_reshape(mm, 2)
 mm_m <- matrix(t(mm), nrow = 2, byrow =T )
 
 # wls
-BB <- t(qr.solve(XDX, XDY))
+BB <- t(qr.coef(qr(XDX), XDY))
 Bb <- coef(lm.gls(R ~ 0 + X, W = W))
 bb <- calc_reg(x = x, r = r, qS = qS,
                w = w, sizetheta = length(theta),
                fullreg = 1, tol = .Machine$double.eps)
+
+XDX_a <- calc_reg(x = x, r = r, qS = qS,
+                  w = w, sizetheta = length(theta),
+                  fullreg = 0, tol = .Machine$double.eps)
+
+dimnames(XDX_a) <- list(theta, theta)
 
 BB <- as.vector(BB)
 Bb <- as.vector(Bb)
@@ -68,6 +74,18 @@ bb <- as.vector(bb)
 # wt_mean
 wtm_r <- weighted.mean(x = X[, "a"], w = X[, "b"])
 wtm_a <- wt_mean(x = X[, "a"], w = X[, "b"])
+
+
+# calc_robust
+rob_a <- calc_robust(x = x, u = r, qS = qS,
+                     w = w, sizetheta = length(theta))
+
+calc_robust(x, r, qS, w, length(theta))
+
+rob_m <- t(X) %*% W %*% R %*% t(R) %*% W %*% X
+
+
+dimnames(rob_m) <- c(NULL, NULL) # remove dimnames
 
 
 #### calc_ssr ####
@@ -84,9 +102,16 @@ test_that("arma_reshape", {
 test_that("calc_reg", {
   expect_equal(bb, BB)
   expect_equal(bb, Bb)
+  expect_equal(XDX_a, XDX)
 })
 
 #### wt_mean ####
 test_that("wt_mean", {
   expect_equal(wtm_r, wtm_a)
 })
+
+#### calc_reg ####
+test_that("calc_robust", {
+  expect_equal(rob_a, rob_m)
+})
+
