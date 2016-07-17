@@ -348,7 +348,7 @@
 
   # rankMatrix uses svd and is slow use once only
   if (initial) {
-    k <- as.integer(mclapply(X = xi, FUN = rankMatrix))
+    k <- as.integer(lapply(X = xi, FUN = rankMatrix))
     df    <- n - k
 
     z$k            <- k
