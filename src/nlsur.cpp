@@ -70,7 +70,7 @@ SEXP calc_reg (arma::Mat<double> x, arma::Mat<double> r, arma::Mat<double> qS,
   int n = r.n_rows;
   int k = r.n_cols;
 
-  #pragma omp parallel for
+  // #pragma omp parallel for ordered
   for (int i = 0; i < n; ++i) {
 
     arma::Mat<double> XI = arma_reshape(x.row(i), k);
@@ -118,7 +118,7 @@ SEXP calc_robust (arma::Mat<double> x, arma::Mat<double> u, arma::Mat<double> qS
   int n = u.n_rows;
   int k = u.n_cols;
 
-  #pragma omp parallel for
+  // #pragma omp parallel for
   for (int i = 0; i < n; ++i) {
 
     arma::Mat<double> XI = arma_reshape(x.row(i), k);
