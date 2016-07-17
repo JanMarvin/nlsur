@@ -409,6 +409,8 @@
 #' Default is 0.
 #' @param initial logical value to define if rankMatrix is calculated every
 #' iteration of nlsur.
+#' @param multicores number of cores used for parallel mcl-/mcmapply if no value
+#' is set this defaults to n-1.
 #'
 #' @details nlsur() is a wrapper around .nlsur(). The function was initialy
 #' inspired by the Stata Corp Function nlsur.
@@ -494,11 +496,16 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
                   trace = FALSE, robust = FALSE, stata = TRUE, qrsolve = FALSE,
                   weights, MASS = FALSE, maxiter = 1000, val = 0,
                   tol = .Machine$double.eps, eps = 1e-5, ifgnlseps = 1e-10,
-                  tau = 1e-3, initial = FALSE) {
+                  tau = 1e-3, initial = FALSE, multicores) {
 
+  mc <- getOption("mc.cores")
 
   # set multicore process
-  options("mc.cores" = detectCores()-1 )
+  if (missing(multicores))
+    multicores <- detectCores()-1
+
+  options("mc.cores" = multicores )
+
 
   # Check if eqns might be a formula
   if (!is.list(eqns)){
@@ -761,6 +768,9 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
   if (is.null(wts))
     z$wts <- NULL
 
+
+  options("mc.cores" = mc )
+
   z
 }
 
@@ -773,10 +783,19 @@ print.nlsur <- function(x, ...) {
 #' @importFrom parallel mclapply
 #' @importFrom stats as.formula pt residuals weights
 #' @export
-summary.nlsur <- function(object, const = TRUE, ...) {
+summary.nlsur <- function(object, const = TRUE, multicores, ...) {
   # ... is to please check()
 
   z <- object
+
+
+  mc <- getOption("mc.cores")
+
+  # set multicore process
+  if (missing(multicores))
+    multicores <- detectCores()-1
+
+  options("mc.cores" = multicores )
 
   data    <- z$data
   eqns    <- z$model
@@ -950,6 +969,9 @@ summary.nlsur <- function(object, const = TRUE, ...) {
   # for ifgnls add log likelihood
   if (ans$nlsur == "IFGNLS")
     ans$LL <- z$LL
+
+
+  options("mc.cores" = mc )
 
   class(ans) <- "summary.nlsur"
 
