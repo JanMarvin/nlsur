@@ -7,7 +7,7 @@
 nlsur(eqns, data, startvalues, type = NULL, S = NULL, trace = FALSE,
   robust = FALSE, stata = TRUE, qrsolve = FALSE, weights, MASS = FALSE,
   maxiter = 1000, val = 0, tol = .Machine$double.eps, eps = 1e-05,
-  ifgnlseps = 1e-10, tau = 0.001)
+  ifgnlseps = 1e-10, tau = 0.001, initial = FALSE)
 }
 \arguments{
 \item{eqns}{is a list object containing the model as formula. This list can
@@ -55,6 +55,9 @@ Default is 0.}
 \item{ifgnlseps}{is epislon for ifgnls(). Default is 1e-10.}
 
 \item{tau}{is another convergence variable. Default is 1e-3.}
+
+\item{initial}{logical value to define if rankMatrix is calculated every
+iteration of nlsur.}
 }
 \value{
 The function returns a list object of class nlsur. The list includes:
@@ -96,6 +99,14 @@ Most robust regression estimates shall be returned with both qrsolve and MASS
 TRUE, but memory consumtion is largest this way. If MASS is FALSE a memory
 efficent RcppArmadillo solution is used for fgnls and ifgnls. If qrsolve is
 FALSE as well, only the Armadillo function is used.
+
+If \code{robust} is selected Whites HC0 is used to caclulate
+Heteroscedasticity Robust Standard Errors.
+
+If \code{initial} is TRUE rankMatrix will be calculated every iteration of
+nlsur. Meaning for nls at least once, for fgnls at least twice and for ifgnls
+at least three times. This adds a lot of overhead, since rankMatrix is used
+to calculate k. To assure that k does not change this can be set to TRUE.
 
 Nlsur has methods for the generic functions \link{coef}, \link{confint},
 \link{deviance}, \link{df.residual}, \link{fitted}, \link{predict},

@@ -73,7 +73,7 @@
 .nlsur <- function(eqns, data, startvalues, S = NULL, robust = robust,
                    nls = FALSE, fgnls = FALSE, ifgnls = FALSE, qrsolve = FALSE,
                    MASS = FALSE, trace = FALSE, eps = eps, tau = tau,
-                   maxiter = maxiter, tol = tol)
+                   maxiter = maxiter, tol = tol, initial = initial)
 {
   z    <- list()
   itr  <- 0
@@ -345,8 +345,15 @@
   names(fitted) <- eqnames
 
   n <- as.integer(mclapply(X = xi, FUN = nrow))
-  k <- as.integer(mclapply(X = xi, FUN = rankMatrix))
-  df    <- n - k
+
+  # rankMatrix uses svd and is slow use once only
+  if (initial) {
+    k <- as.integer(mclapply(X = xi, FUN = rankMatrix))
+    df    <- n - k
+
+    z$k            <- k
+    z$df           <- df
+  }
 
   z$fitted       <- fitted
   z$coefficients <- theta
@@ -355,10 +362,7 @@
   z$sigma        <- 1/n * crossprod(r, wts * r)
 
   z$n            <- n
-  z$k            <- k
-  z$df           <- df
   z$deviance     <- as.numeric(ssr)
-  z$df.residual  <- df
 
   z$wts          <- wts
   z$cov          <- covb
@@ -403,6 +407,8 @@
 #' @param maxiter Maximum number of iterations.
 #' @param val If no start values supplied, create them with this start value.
 #' Default is 0.
+#' @param initial logical value to define if rankMatrix is calculated every
+#' iteration of nlsur.
 #'
 #' @details nlsur() is a wrapper around .nlsur(). The function was initialy
 #' inspired by the Stata Corp Function nlsur.
@@ -418,6 +424,14 @@
 #' TRUE, but memory consumtion is largest this way. If MASS is FALSE a memory
 #' efficent RcppArmadillo solution is used for fgnls and ifgnls. If qrsolve is
 #' FALSE as well, only the Armadillo function is used.
+#'
+#' If \code{robust} is selected Whites HC0 is used to caclulate
+#' Heteroscedasticity Robust Standard Errors.
+#'
+#' If \code{initial} is TRUE rankMatrix will be calculated every iteration of
+#' nlsur. Meaning for nls at least once, for fgnls at least twice and for ifgnls
+#' at least three times. This adds a lot of overhead, since rankMatrix is used
+#' to calculate k. To assure that k does not change this can be set to TRUE.
 #'
 #' Nlsur has methods for the generic functions \link{coef}, \link{confint},
 #' \link{deviance}, \link{df.residual}, \link{fitted}, \link{predict},
@@ -480,7 +494,7 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
                   trace = FALSE, robust = FALSE, stata = TRUE, qrsolve = FALSE,
                   weights, MASS = FALSE, maxiter = 1000, val = 0,
                   tol = .Machine$double.eps, eps = 1e-5, ifgnlseps = 1e-10,
-                  tau = 1e-3) {
+                  tau = 1e-3, initial = FALSE) {
 
 
   # set multicore process
@@ -565,8 +579,8 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
   data <- na.omit(data[unique(c(parms,"w"))])
 
   nls  <- fgnls <- ifgnls <- FALSE
-  z    <- NULL
   n    <- nrow(data)
+  z    <- NULL
 
   # normwts
   data$w <- data$w/sum(data$w) * n
@@ -598,8 +612,10 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
   z <- .nlsur( eqns = eqns, data = data, startvalues = startvalues, S = S,
                robust = robust, nls = TRUE, trace = trace, qrsolve = qrsolve,
                MASS = MASS, eps = eps, tau = tau, maxiter = maxiter,
-               tol = tol)
+               tol = tol, initial = TRUE)
 
+  # evaluatated at initial stage
+  n <- z$n; k <- z$k; df <- z$df
 
   # To update standard errors in nls case Stata estimates a second nls with
   # diag(S) instead of I.
@@ -610,7 +626,7 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
     z <- .nlsur( eqns = eqns, data = data, startvalues = z$coefficients, S = S,
                  robust = robust, nls = nls, trace = trace, qrsolve = qrsolve,
                  MASS = MASS, eps = eps, tau = tau, maxiter = maxiter,
-                 tol = tol)
+                 tol = tol, initial = initial)
 
     # Stata uses the orignal sigma for covb
     z$sigma <- diag(diag(S), nrow = ncol(z$fitted), ncol = ncol(z$fitted))
@@ -631,7 +647,7 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
     z <- .nlsur(eqns = eqns, data = data, startvalues = z$coefficients, S = S,
                 robust = robust, nls = FALSE, trace = trace, qrsolve = qrsolve,
                 MASS = MASS, eps = eps, tau = tau, maxiter = maxiter,
-                tol = tol)
+                tol = tol, initial = initial)
 
     # Stata uses the orignal sigma for covb
     if (!ifgnls)
@@ -671,7 +687,7 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
         z <- .nlsur(eqns = eqns, data = data, startvalues = z$coefficients,
                     S = S, robust = robust, nls = FALSE,
                     qrsolve = qrsolve, MASS = MASS, eps = eps, tau = tau,
-                    maxiter = maxiter, tol = tol)
+                    maxiter = maxiter, tol = tol, initial = initial)
 
         S <- z$sigma
         r <- z$residuals
@@ -712,6 +728,11 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
     }
   }
 
+  # initial is true so collect final k and df
+  if(initial) {
+    n <- z$n; k <- z$k; df <- z$df
+  }
+
   # Estimate log likelihood ####################################################
   S <- z$sigma
   N <- n
@@ -723,14 +744,18 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
                                        log(sum(data$w))) )/2
 
   # create output
-  z$LL      <- LL
-  z$model   <- eqns
-  z$const   <- eqconst
-  z$data    <- data
-  z$call    <- cl
-  z$start   <- startvalues
-  z$nlsonly <- all(nls & !stata)
-  z$robust  <- robust
+  z$n           <- n
+  z$k           <- k
+  z$df          <- df
+  z$df.residual <- df
+  z$LL          <- LL
+  z$model       <- eqns
+  z$const       <- eqconst
+  z$data        <- data
+  z$call        <- cl
+  z$start       <- startvalues
+  z$nlsonly     <- all(nls & !stata)
+  z$robust      <- robust
 
   # if call did not contain weights: drop them
   if (is.null(wts))
