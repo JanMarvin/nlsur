@@ -76,17 +76,6 @@ wtm_r <- weighted.mean(x = X[, "a"], w = X[, "b"])
 wtm_a <- wt_mean(x = X[, "a"], w = X[, "b"])
 
 
-# calc_robust
-rob_a <- calc_robust(x = x, u = r, qS = qS,
-                     w = w, sizetheta = length(theta))
-
-calc_robust(x, r, qS, w, length(theta))
-
-rob_m <- t(X) %*% W %*% R %*% t(R) %*% W %*% X
-
-
-dimnames(rob_m) <- c(NULL, NULL) # remove dimnames
-
 
 #### calc_ssr ####
 test_that("calc_ssr", {
@@ -109,9 +98,3 @@ test_that("calc_reg", {
 test_that("wt_mean", {
   expect_equal(wtm_r, wtm_a)
 })
-
-#### calc_reg ####
-test_that("calc_robust", {
-  expect_equal(rob_a, rob_m)
-})
-
