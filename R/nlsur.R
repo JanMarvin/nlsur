@@ -302,7 +302,7 @@
     # both convergence criteria should be TRUE
     # For some models this is impossible. Tested with a system of linear
     # regression variables
-    conv <- any(conv1, conv2)
+    conv <- all(conv1, conv2)
 
     itr <- itr + 1
     theta <- theta.new
