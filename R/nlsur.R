@@ -271,10 +271,6 @@
       # divide stepsizeparameter
       alpha <- alpha/divi
 
-      # ssr moves into the wrong direction
-      if(ssr.old < ssr)
-        stop("SSR is increasing!")
-
     } # end iter
 
     ssr.old <- ssr
