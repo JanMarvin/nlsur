@@ -292,8 +292,8 @@
     conv1 <- !isTRUE(abs(ssr.old - ssr) >=
                        eps * (ssr.old + tau))
 
-    conv2 <- !isTRUE(all( alpha * abs(theta) >=
-                            eps * (abs(theta.old) + tau) ))
+    # conv2 <- !isTRUE(all( alpha * abs(theta) >=
+    #                         eps * (abs(theta.old) + tau) ))
     conv2 <- !isTRUE( alpha * all(abs(theta - theta.new) >
                                     eps * (theta + tau)) )
 
