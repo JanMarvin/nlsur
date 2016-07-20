@@ -731,7 +731,7 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
 
   # Estimate log likelihood ####################################################
   S <- z$sigma
-  N <- n
+  N <- unique(n)
   M <- nrow(S)
 
   LL <- ( sum(log(data$w)) -(M*N) * (log(2 * pi) +
