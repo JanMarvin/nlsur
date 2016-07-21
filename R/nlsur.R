@@ -266,7 +266,7 @@
       theta_na <- names(theta)[is.na(theta)]
       x[,colnames(x) %in% theta_na] <- NA
 
-      # Evaluate initial ssr
+      # Reevaluation of ssr
       ssr <- calc_ssr(r, s, wts)
 
       # divide stepsizeparameter
@@ -290,11 +290,13 @@
     #   eps * (norm(as.matrix(theta)) + tau)
 
     # Stata version of this
-    conv1 <- !isTRUE(abs(ssr.old - ssr) > eps * (ssr.old + tau))
+    conv1 <- !isTRUE(abs(ssr.old - ssr) >=
+                       eps * (ssr.old + tau))
 
-    conv2 <- !isTRUE(all( alpha * abs(theta) > eps * (abs(theta.old) + tau) ))
-    # conv2 <- !isTRUE( alpha * all(abs(theta - theta.new) >
-    #                                 eps * (theta + tau)) )
+    # conv2 <- !isTRUE(all( alpha * abs(theta) >=
+    #                         eps * (abs(theta.old) + tau) ))
+    conv2 <- !isTRUE( alpha * all(abs(theta - theta.new) >
+                                    eps * (theta + tau)) )
 
     # and this is what Stata documents what they do for nl
     # conv2 <- all( alpha * abs(theta.new) <= eps * (abs(theta) + tau) )
@@ -302,7 +304,7 @@
     # both convergence criteria should be TRUE
     # For some models this is impossible. Tested with a system of linear
     # regression variables
-    conv <- any(conv1, conv2)
+    conv <- all(conv1, conv2)
 
     itr <- itr + 1
     theta <- theta.new
@@ -742,7 +744,7 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
 
   # Estimate log likelihood ####################################################
   S <- z$sigma
-  N <- n
+  N <- unique(n)
   M <- nrow(S)
 
   LL <- ( sum(log(data$w)) -(M*N) * (log(2 * pi) +
