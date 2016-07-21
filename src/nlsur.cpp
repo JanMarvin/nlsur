@@ -86,7 +86,7 @@ SEXP calc_reg (arma::Mat<double> x, arma::Mat<double> r, arma::Mat<double> qS,
   XDX = 0.5 * ( XDX + XDX.t() );
 
   if (fullreg) /* weighted regression */
-    return Rf_qrcoef(Rf_qr(XDX), XDy);
+    return Rf_qrcoef(Rf_qr(XDX, _["tol"] = tol), XDy);
   else         /* covb */
     return wrap(XDX);
 }

@@ -110,7 +110,7 @@
     }
   }
 
-  qS <- qr.solve(S, tol = tol)
+  qS <- qr.solve(qr(S, tol = tol), tol = tol)
   s  <- chol(qS)
 
 
@@ -319,7 +319,7 @@
 
   # # if singularities are detected covb will contain cols and rows with NA
   covb <- covb[!is.na(theta), !is.na(theta)]
-  covb <- qr.solve(qr(covb), tol = tol)
+  covb <- qr.solve(qr(covb, tol = tol), tol = tol)
 
   # calculate robust standard errors
   if (robust) {
