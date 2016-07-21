@@ -290,7 +290,7 @@
     #   eps * (norm(as.matrix(theta)) + tau)
 
     # Stata version of this
-    conv1 <- !isTRUE(abs(ssr.old - ssr) >=
+    conv1 <- !isTRUE(abs(ssr.old - ssr) <
                        eps * (ssr.old + tau))
 
     # conv2 <- !isTRUE(all( alpha * abs(theta) >=
