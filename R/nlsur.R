@@ -283,7 +283,6 @@
     # Stopping rules. [Gallant (1987) p.29]
 
     # ssr: |ssr.old - ssr| < eps | ssr.old + tau|
-    # conv1 <- abs(ssr.old - ssr) < eps * (ssr.old + tau)
 
     conv1 <- !isTRUE(abs(ssr.old - ssr) <
                        eps * (ssr.old + tau))
@@ -293,9 +292,9 @@
     #                    eps * (norm(as.matrix(theta)) + tau))
 
     conv2 <- !isTRUE( sum(abs(theta - theta.new)) <
-                              eps * sum(abs(theta) + tau) )
+                        eps * sum(abs(theta) + tau) )
 
-    # because this is what Stata documents what they do for nl
+    # this is what Stata documents what they do for nl. include alpha?
     # conv2 <- all( alpha * abs(theta.new) <= eps * (abs(theta) + tau) )
 
     # both convergence criteria should be TRUE Himmelblau (1972) according to
