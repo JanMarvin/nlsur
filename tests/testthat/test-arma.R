@@ -75,7 +75,24 @@ bb <- as.vector(bb)
 wtm_r <- weighted.mean(x = X[, "a"], w = X[, "b"])
 wtm_a <- wt_mean(x = X[, "a"], w = X[, "b"])
 
+# calc_robust
 
+data( costs )
+# library(sandwich)
+# res <- lm("Cost ~ Sk + Sl + Se", data = costs)
+# sandwich_se <- sqrt(diag(vcovHC(res, type = "HC0")))
+sandwich_se <- c(355.081244412386,
+                 3161.61958708514,
+                 1095.47069852517,
+                 3296.21760057729)
+
+
+eqs <- "Cost ~ b0 + b1 * Sk  + b2 * Sl  + b3 * Se"
+nes <- nlsur(eqns = eqs, data = costs,
+             type = "NLS", stata = TRUE, robust = TRUE)
+
+nlsur_se <- summary(nes)$coefficients[,2]
+names(nlsur_se) <- NULL
 
 #### calc_ssr ####
 test_that("calc_ssr", {
@@ -97,4 +114,9 @@ test_that("calc_reg", {
 #### wt_mean ####
 test_that("wt_mean", {
   expect_equal(wtm_r, wtm_a)
+})
+
+#### calc_robust ####
+test_that("calc_robust", {
+  expect_equal(sandwich_se, nlsur_se)
 })

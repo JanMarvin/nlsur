@@ -65,7 +65,7 @@
 #' Gallant, A. Ronald (1987): Nonlinear Statistical Models. Wiley: New York
 #' @importFrom Matrix diag kronecker rankMatrix
 #' @importFrom MASS lm.gls
-#' @importFrom parallel mclapply
+#' @importFrom parallel mcmapply mclapply
 #' @importFrom stats as.formula coef deriv
 #' @import RcppArmadillo
 #' @useDynLib nlsur
@@ -110,14 +110,14 @@
     }
   }
 
-  qS <- qr.solve(S, tol = tol)
+  qS <- qr.solve(qr(S, tol = tol), tol = tol)
   s  <- chol(qS)
 
 
   eqns_lhs <- mclapply(X = eqns, FUN = function(x)x[[2L]])
   eqns_rhs <- mclapply(X = eqns, FUN = function(x)x[[3L]])
 
-  eqnames <- sapply(X = eqns_lhs, FUN = function(x)as.character(x))
+  eqnames <- sapply(X = eqns_lhs, FUN = function(x)capture.output(print(x)))
 
   ## assign theta: make them available for eval
   for (i in 1:length(theta)) {
@@ -266,7 +266,7 @@
       theta_na <- names(theta)[is.na(theta)]
       x[,colnames(x) %in% theta_na] <- NA
 
-      # Evaluate initial ssr
+      # Reevaluation of ssr
       ssr <- calc_ssr(r, s, wts)
 
       # divide stepsizeparameter
@@ -280,28 +280,25 @@
     if (trace)
       cat("SSR: ", ssr, "\n")
 
-    # Stopping rule. [Gallant (1987) p.29]
+    # Stopping rules. [Gallant (1987) p.29]
 
     # ssr: |ssr.old - ssr| < eps | ssr.old + tau|
-    # conv1 <- abs(ssr.old - ssr) < eps * (ssr.old + tau)
+
+    conv1 <- !isTRUE(abs(ssr.old - ssr) <
+                       eps * (ssr.old + tau))
 
     # theta: ||theta - theta.new|| < eps (||theta|| + tau)
-    # conv2 <- norm(as.matrix(theta - theta.new)) <
-    #   eps * (norm(as.matrix(theta)) + tau)
+    # conv2 <- !isTRUE(norm(as.matrix(theta - theta.new)) <
+    #                    eps * (norm(as.matrix(theta)) + tau))
 
-    # Stata version of this
-    conv1 <- !isTRUE(abs(ssr.old - ssr) > eps * (ssr.old + tau))
+    conv2 <- !isTRUE( sum(abs(theta - theta.new)) <
+                        eps * sum(abs(theta) + tau) )
 
-    conv2 <- !isTRUE(all( alpha * abs(theta) > eps * (abs(theta.old) + tau) ))
-    # conv2 <- !isTRUE( alpha * all(abs(theta - theta.new) >
-    #                                 eps * (theta + tau)) )
-
-    # and this is what Stata documents what they do for nl
+    # this is what Stata documents what they do for nl. include alpha?
     # conv2 <- all( alpha * abs(theta.new) <= eps * (abs(theta) + tau) )
 
-    # both convergence criteria should be TRUE
-    # For some models this is impossible. Tested with a system of linear
-    # regression variables
+    # both convergence criteria should be TRUE [Himmelblau (1972)] according to
+    # Bates and Watts (1988) p.49
     conv <- all(conv1, conv2)
 
     itr <- itr + 1
@@ -322,7 +319,7 @@
 
   # # if singularities are detected covb will contain cols and rows with NA
   covb <- covb[!is.na(theta), !is.na(theta)]
-  covb <- qr.solve(qr(covb), tol = tol)
+  covb <- qr.solve(qr(covb, tol = tol), tol = tol)
 
   # calculate robust standard errors
   if (robust) {
@@ -742,7 +739,7 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
 
   # Estimate log likelihood ####################################################
   S <- z$sigma
-  N <- n
+  N <- unique(n)
   M <- nrow(S)
 
   LL <- ( sum(log(data$w)) -(M*N) * (log(2 * pi) +
