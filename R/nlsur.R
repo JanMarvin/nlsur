@@ -298,7 +298,8 @@
     # and this is what Stata documents what they do for nl
     # conv2 <- all( alpha * abs(theta.new) <= eps * (abs(theta) + tau) )
 
-    # both convergence criteria should be TRUE Himmelblau (1972)
+    # both convergence criteria should be TRUE Himmelblau (1972) according to
+    # Bates and Watts (1988) p.49
     conv <- all(conv1, conv2)
 
     itr <- itr + 1
