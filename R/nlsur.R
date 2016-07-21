@@ -292,10 +292,10 @@
     # conv2 <- !isTRUE(norm(as.matrix(theta - theta.new)) <
     #                    eps * (norm(as.matrix(theta)) + tau))
 
-    conv2 <- !isTRUE( alpha * all(abs(theta - theta.new) >
-                                    eps * (theta + tau)) )
+    conv2 <- !isTRUE( all(  abs(theta - theta.new) <
+                              eps * (abs(theta) + tau) ) )
 
-    # and this is what Stata documents what they do for nl
+    # because this is what Stata documents what they do for nl
     # conv2 <- all( alpha * abs(theta.new) <= eps * (abs(theta) + tau) )
 
     # both convergence criteria should be TRUE Himmelblau (1972) according to
