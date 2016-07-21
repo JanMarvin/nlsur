@@ -117,7 +117,7 @@
   eqns_lhs <- mclapply(X = eqns, FUN = function(x)x[[2L]])
   eqns_rhs <- mclapply(X = eqns, FUN = function(x)x[[3L]])
 
-  eqnames <- sapply(X = eqns_lhs, FUN = function(x)as.character(x))
+  eqnames <- sapply(X = eqns_lhs, FUN = function(x)capture.output(print(x)))
 
   ## assign theta: make them available for eval
   for (i in 1:length(theta)) {
