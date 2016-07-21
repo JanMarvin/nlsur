@@ -280,30 +280,25 @@
     if (trace)
       cat("SSR: ", ssr, "\n")
 
-    # Stopping rule. [Gallant (1987) p.29]
+    # Stopping rules. [Gallant (1987) p.29]
 
     # ssr: |ssr.old - ssr| < eps | ssr.old + tau|
     # conv1 <- abs(ssr.old - ssr) < eps * (ssr.old + tau)
 
-    # theta: ||theta - theta.new|| < eps (||theta|| + tau)
-    # conv2 <- norm(as.matrix(theta - theta.new)) <
-    #   eps * (norm(as.matrix(theta)) + tau)
-
-    # Stata version of this
     conv1 <- !isTRUE(abs(ssr.old - ssr) <
                        eps * (ssr.old + tau))
 
-    # conv2 <- !isTRUE(all( alpha * abs(theta) >=
-    #                         eps * (abs(theta.old) + tau) ))
+    # theta: ||theta - theta.new|| < eps (||theta|| + tau)
+    # conv2 <- !isTRUE(norm(as.matrix(theta - theta.new)) <
+    #                    eps * (norm(as.matrix(theta)) + tau))
+
     conv2 <- !isTRUE( alpha * all(abs(theta - theta.new) >
                                     eps * (theta + tau)) )
 
     # and this is what Stata documents what they do for nl
     # conv2 <- all( alpha * abs(theta.new) <= eps * (abs(theta) + tau) )
 
-    # both convergence criteria should be TRUE
-    # For some models this is impossible. Tested with a system of linear
-    # regression variables
+    # both convergence criteria should be TRUE Himmelblau (1972)
     conv <- all(conv1, conv2)
 
     itr <- itr + 1
