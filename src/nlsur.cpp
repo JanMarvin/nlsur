@@ -72,14 +72,14 @@ SEXP calc_reg (arma::Mat<double> x, arma::Mat<double> r, arma::Mat<double> qS,
   for (int i = 0; i < n; ++i) {
 
     arma::Mat<double> XI = arma_reshape(x.row(i), k);
-
-    arma::Mat<double> YI = r.row(i).t();
-
     XDX += w(i) * XI.t() * qS * XI;
-    XDy += w(i) * XI.t() * qS * YI;
-  }
 
-  XDX = 0.5 * ( XDX + XDX.t() );
+    if (fullreg) {
+      arma::Mat<double> YI = r.row(i).t();
+      XDy += w(i) * XI.t() * qS * YI;
+    }
+
+  }
 
   if (fullreg) /* weighted regression */
     return Rf_qrcoef(Rf_qr(XDX, _["tol"] = tol), XDy);
