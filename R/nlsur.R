@@ -292,8 +292,8 @@
     # conv2 <- !isTRUE(norm(as.matrix(theta - theta.new)) <
     #                    eps * (norm(as.matrix(theta)) + tau))
 
-    conv2 <- !isTRUE( all(  abs(theta - theta.new) <
-                              eps * (abs(theta) + tau) ) )
+    conv2 <- !isTRUE( sum(abs(theta - theta.new)) <
+                              eps * sum(abs(theta) + tau) )
 
     # because this is what Stata documents what they do for nl
     # conv2 <- all( alpha * abs(theta.new) <= eps * (abs(theta) + tau) )
