@@ -80,7 +80,6 @@ SEXP calc_reg (arma::Mat<double> x, arma::Mat<double> r, arma::Mat<double> qS,
     }
 
   }
-  XDX = 0.5 * ( XDX + XDX.t() );
 
   XDX = 0.5 * (XDX + XDX.t());
 
