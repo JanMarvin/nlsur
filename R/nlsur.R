@@ -703,7 +703,7 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
         conv1 <- maxthetachange < eps
         conv2 <- maxSigmachange < ifgnlseps
 
-        conv <- any(conv1, conv2)
+        conv <- all(conv1, conv2)
 
         # Iteration output
         if (trace)
