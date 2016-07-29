@@ -64,7 +64,6 @@
 #' @references
 #' Gallant, A. Ronald (1987): Nonlinear Statistical Models. Wiley: New York
 #' @importFrom Matrix diag kronecker rankMatrix
-#' @importFrom MASS lm.gls
 #' @importFrom parallel mcmapply mclapply
 #' @importFrom stats as.formula coef deriv
 #' @import RcppArmadillo
@@ -85,7 +84,6 @@
   neqs <- length(eqns)
   n    <- vector("integer", length=neqs)
   k    <- vector("integer", length=neqs)
-  df   <- vector("integer", length=neqs)
 
   wts  <- data$w
 
@@ -134,17 +132,33 @@
   rhs <- mclapply(X = eqns_rhs, FUN = eval, envir = data, enclos = nlsur_coef)
   ri  <- mcmapply("-", lhs, rhs, SIMPLIFY = FALSE)
 
-  xi <- mclapply(X = eqns, FUN = function(x) {
+  rm(lhs, rhs)
+
+  x   <- mclapply(X = eqns, FUN = function(x) {
     attr(eval(deriv(x, names(theta)),
               envir = data, enclos = nlsur_coef), "gradient")
   })
   # end equation loop
 
+  n <- as.integer(lapply(X = x, FUN = nrow))
+
+  # rankMatrix uses svd and is slow use once only
+  if (initial) {
+    k <- as.integer(lapply(X = x, FUN = rankMatrix))
+
+    z$k            <- k
+    z$df           <- n - k
+  }
+
   r <- do.call(cbind, ri)
-  x <- do.call(cbind, xi)
 
+  if (qrsolve | MASS) {
+    x <- do.call(rbind, x)
+  } else {
+    x <- do.call(cbind, x)
+  }
 
-  # eval might return NaN. lm.gls will complain, since r is smaller than S.
+  # eval might return NaN
   if ( any (is.nan(x))){
     stop("NA/NaN/Inf in derivation found. Most likely due to artificial data.")
   }
@@ -189,7 +203,6 @@
     if (nls & qrsolve) {
 
       r <- matrix(r, ncol = 1)
-      x <- do.call(rbind, xi)
 
       theta.new <- qr.coef(qr(x), r)
 
@@ -199,17 +212,12 @@
       if (MASS)
       {
 
-        # blow up Sigma
-        Sigma <- Matrix::kronecker(X = qS,
-                                   Y = Matrix::diag(nrow(r)) )
-
         r <- matrix(r, ncol = 1)
-        x <- do.call(rbind, xi)
 
-        # Use MASS::lm.gls for the weighted regression, this will call eigen()
-        # to pre-weight r and x which then can be solved with qr. This can
-        # cause huge matrices as lm.gls() is not able to handle sparse Matrices.
-        theta.new <- coef(MASS::lm.gls(r ~ 0 + x, W = Sigma))
+        # Use MASS::lm.gls inspired function for the weighted regression, this
+        # will call eigen() to pre-weight r and x which then can be solved with
+        # qr. This will be slower than blockwise wls but is numerically stable
+        theta.new <- lm_gls(X = x, Y = r, W = S, neqs = neqs, tol = tol)
 
       } else {
 
@@ -253,14 +261,21 @@
       rhs <- mclapply(X = eqns_rhs, FUN = eval, envir = data, enclos = nlsur_coef)
       ri  <- mcmapply("-", lhs, rhs, SIMPLIFY = FALSE)
 
-      xi <- mclapply(X = eqns, FUN = function(x) {
+      rm(lhs, rhs)
+
+      x   <- mclapply(X = eqns, FUN = function(x) {
         attr(eval(deriv(x, names(theta)),
                   envir = data, enclos = nlsur_coef), "gradient")
       })
       # end equation loop
 
       r <- do.call(cbind, ri)
-      x <- do.call(cbind, xi)
+
+      if (qrsolve | MASS) {
+        x <- do.call(rbind, x)
+      } else {
+        x <- do.call(cbind, x)
+      }
 
 
       theta_na <- names(theta)[is.na(theta)]
@@ -311,11 +326,18 @@
   # replace 0 values with NA
   theta[theta_na] <- NA
 
-
   ## Create covb matrix ##
 
-  # get xdx from calc_reg
-  covb <- calc_reg(x, r, qS, wts, length(theta), 0, tol)
+  if (MASS){
+
+    r <- do.call(cbind, ri)
+    r <- matrix(r, ncol = 1)
+
+    covb <- lm_gls(X = x, Y = r, W = S, neqs = neqs, tol = tol, covb = TRUE)
+  } else {
+    # get xdx from calc_reg
+    covb <- calc_reg(x, r, qS, wts, length(theta), 0, tol)
+  }
 
   # # if singularities are detected covb will contain cols and rows with NA
   covb <- covb[!is.na(theta), !is.na(theta)]
@@ -336,23 +358,8 @@
   coef_names <- names(theta)[!(names(theta) %in% coef_na)]
   dimnames(covb) <- list(coef_names, coef_names)
 
+  r <- do.call(cbind, ri)
 
-  # fitted
-  fitted <- as.data.frame(rhs)
-  names(fitted) <- eqnames
-
-  n <- as.integer(mclapply(X = xi, FUN = nrow))
-
-  # rankMatrix uses svd and is slow use once only
-  if (initial) {
-    k <- as.integer(lapply(X = xi, FUN = rankMatrix))
-    df    <- n - k
-
-    z$k            <- k
-    z$df           <- df
-  }
-
-  z$fitted       <- fitted
   z$coefficients <- theta
   z$residuals    <- r
   z$eqnames      <- eqnames
@@ -485,6 +492,7 @@
 #' @seealso \link{nls}
 #' @importFrom parallel mclapply detectCores
 #' @importFrom stats as.formula coef na.omit
+#' @importFrom utils capture.output
 #' @import RcppArmadillo
 #' @useDynLib nlsur
 #'
@@ -625,15 +633,16 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
   # diag(S) instead of I.
   if (nls & stata) {
 
-    S <- z$sigma
+    # backup of theta and S, remove z
+    theta.old <- coef(z); S <- z$sigma; rm(z)
 
-    z <- .nlsur( eqns = eqns, data = data, startvalues = z$coefficients, S = S,
+    z <- .nlsur( eqns = eqns, data = data, startvalues = theta.old, S = S,
                  robust = robust, nls = nls, trace = trace, qrsolve = qrsolve,
                  MASS = MASS, eps = eps, tau = tau, maxiter = maxiter,
                  tol = tol, initial = initial)
 
     # Stata uses the orignal sigma for covb
-    z$sigma <- diag(diag(S), nrow = ncol(z$fitted), ncol = ncol(z$fitted))
+    z$sigma <- diag(diag(S), nrow = n, ncol = n)
 
   }
   z$nlsur <- "NLS"
@@ -646,9 +655,10 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
     if (trace)
       cat("-- FGNLS\n")
 
-    S <- z$sigma
+    # backup of theta and S, remove z
+    theta.old <- coef(z); S <- z$sigma; rm(z)
 
-    z <- .nlsur(eqns = eqns, data = data, startvalues = z$coefficients, S = S,
+    z <- .nlsur(eqns = eqns, data = data, startvalues = theta.old, S = S,
                 robust = robust, nls = FALSE, trace = trace, qrsolve = qrsolve,
                 MASS = MASS, eps = eps, tau = tau, maxiter = maxiter,
                 tol = tol, initial = initial)
@@ -685,24 +695,25 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
           return(0)
         }
 
-        # backup of z and S
-        z.old <- z; S.old <- S
+        # backup of theta and S remove z
+        theta.old <- coef(z); S.old <- S; rm(z)
 
-        z <- .nlsur(eqns = eqns, data = data, startvalues = z$coefficients,
+        z <- .nlsur(eqns = eqns, data = data, startvalues = theta.old,
                     S = S, robust = robust, nls = FALSE,
                     qrsolve = qrsolve, MASS = MASS, eps = eps, tau = tau,
                     maxiter = maxiter, tol = tol, initial = initial)
 
-        S <- z$sigma
-        r <- z$residuals
+        S     <- z$sigma
+        r     <- z$residuals
+        theta <- coef(z)
 
         s   <- chol(qr.solve(S, tol = tol))
         rss <- calc_ssr(r, s, data$w)
 
         iter <- iter +1
 
-        maxthetachange <- max(abs(coef(z.old) - coef(z)) /
-                                ( abs(coef(z.old)) +1),
+        maxthetachange <- max(abs(theta.old - theta) /
+                                ( abs(theta) +1),
                               na.rm = TRUE )
         maxSigmachange <- max(abs(S.old - S) /
                                 (abs(S.old) + 1),
@@ -747,6 +758,26 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
                                        log(det(S)) / M  +
                                        log(sum(data$w))) )/2
 
+
+  # Fitted values ##############################################################
+  nlsur_coef <- new.env(hash = TRUE)
+  eqns_lhs   <- lapply(X = eqns, FUN = function(x)x[[2L]])
+  eqns_rhs   <- lapply(X = eqns, FUN = function(x)x[[3L]])
+  eqnames    <- sapply(X = eqns_lhs, FUN = function(x)capture.output(print(x)))
+  theta      <- coef(z)
+
+  # assign theta: make them available for eval
+  for (i in 1:length(theta)) {
+    name <- names(theta)[i]
+    val <- theta[i]
+    storage.mode(val) <- "double"
+    assign(name, val, envir = nlsur_coef)
+  }
+
+  fitted <- lapply(X = eqns_rhs, FUN = eval, envir = data, enclos = nlsur_coef)
+  fitted <- as.data.frame(fitted)
+  names(fitted) <- eqnames
+
   # create output
   z$n           <- n
   z$k           <- k
@@ -760,6 +791,7 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
   z$start       <- startvalues
   z$nlsonly     <- all(nls & !stata)
   z$robust      <- robust
+  z$fitted      <- fitted
 
   # if call did not contain weights: drop them
   if (is.null(wts))
@@ -1067,6 +1099,42 @@ predict.nlsur <- function(object, newdata, ...) {
   fit <- mclapply(X = eqns_rhs, FUN = eval, envir = data2)
   fit <- data.frame(fit)
   names(fit) <- vnam
+
+  fit
+}
+
+#' Calculate WLS using sparse matrix and qr
+#'
+#' @param X n x m X matrix
+#' @param Y n x k matrix
+#' @param W n x n
+#' @param neqs k
+#' @param tol tolerance for qr
+#' @param covb if true covb is calculated else theta
+#' @importFrom Matrix crossprod kronecker Diagonal
+#' @export
+lm_gls <- function(X, Y, W, neqs, tol = 1e-7, covb = FALSE) {
+
+
+  eW <- eigen(W, TRUE)
+  d <- eW$values
+  if (any(d <= 0))
+    stop("'W' is not positive definite")
+
+  A <- diag(d^-0.5,
+            nrow = length(d),
+            ncol = length(d)) %*% t(eW$vectors)
+
+  n <- nrow(X)/neqs
+
+  A <- Matrix::kronecker(X = A,
+                         Y = Matrix::Diagonal(n))
+
+  if (covb)
+    fit <- Matrix::crossprod(A %*% X)
+
+  if (!covb)
+    fit <- qr.coef(qr(A %*% X, tol = tol), A %*% Y)
 
   fit
 }
