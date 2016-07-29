@@ -761,8 +761,8 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
 
   # Fitted values ##############################################################
   nlsur_coef <- new.env(hash = TRUE)
-  eqns_lhs   <- lapply(X = eqns, FUN = function(x)x[[2L]])
-  eqns_rhs   <- lapply(X = eqns, FUN = function(x)x[[3L]])
+  eqns_lhs   <- mclapply(X = eqns, FUN = function(x)x[[2L]])
+  eqns_rhs   <- mclapply(X = eqns, FUN = function(x)x[[3L]])
   eqnames    <- sapply(X = eqns_lhs, FUN = function(x)capture.output(print(x)))
   theta      <- coef(z)
 
@@ -774,7 +774,7 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
     assign(name, val, envir = nlsur_coef)
   }
 
-  fitted <- lapply(X = eqns_rhs, FUN = eval, envir = data, enclos = nlsur_coef)
+  fitted <- mclapply(X = eqns_rhs, FUN = eval, envir = data, enclos = nlsur_coef)
   fitted <- as.data.frame(fitted)
   names(fitted) <- eqnames
 
