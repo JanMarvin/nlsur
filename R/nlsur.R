@@ -624,7 +624,7 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
     theta.old <- coef(z); S <- z$sigma; rm(z)
 
     z <- .nlsur( eqns = eqns, data = data, startvalues = theta.old, S = S,
-                 robust = robust, nls = nls, trace = trace, qrsolve = qrsolve,
+                 robust = robust, nls = nls, trace = trace, qrsolve = FALSE,
                  MASS = MASS, eps = eps, tau = tau, maxiter = maxiter,
                  tol = tol, initial = initial)
 
@@ -646,7 +646,7 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
     theta.old <- coef(z); S <- z$sigma; rm(z)
 
     z <- .nlsur(eqns = eqns, data = data, startvalues = theta.old, S = S,
-                robust = robust, nls = FALSE, trace = trace, qrsolve = qrsolve,
+                robust = robust, nls = FALSE, trace = trace, qrsolve = FALSE,
                 MASS = MASS, eps = eps, tau = tau, maxiter = maxiter,
                 tol = tol, initial = initial)
 
@@ -686,9 +686,9 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
         theta.old <- coef(z); S.old <- S; rm(z)
 
         z <- .nlsur(eqns = eqns, data = data, startvalues = theta.old,
-                    S = S, robust = robust, nls = FALSE,
-                    qrsolve = qrsolve, MASS = MASS, eps = eps, tau = tau,
-                    maxiter = maxiter, tol = tol, initial = initial)
+                    S = S, robust = robust, nls = FALSE, qrsolve = FALSE,
+                    MASS = MASS, eps = eps, tau = tau, maxiter = maxiter,
+                    tol = tol, initial = initial)
 
         S     <- z$sigma
         r     <- z$residuals
