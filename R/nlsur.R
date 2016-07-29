@@ -500,7 +500,7 @@
 nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
                   trace = FALSE, robust = FALSE, stata = TRUE, qrsolve = FALSE,
                   weights, MASS = FALSE, maxiter = 1000, val = 0,
-                  tol = .Machine$double.eps, eps = 1e-5, ifgnlseps = 1e-10,
+                  tol = 1e-7, eps = 1e-5, ifgnlseps = 1e-10,
                   tau = 1e-3, initial = FALSE, multicores) {
 
   mc <- getOption("mc.cores")
@@ -510,7 +510,6 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
     multicores <- detectCores()-1
 
   options("mc.cores" = multicores )
-
 
   # Check if eqns might be a formula
   if (!is.list(eqns)){
