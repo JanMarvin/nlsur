@@ -8,7 +8,6 @@ Maintainer: Jan Marvin Garbuszus <jan.garbuszus@ruhr-uni-bochum.de>
 Depends:
     car,
     Matrix,
-    MASS,
     stats
 Imports:
     RcppArmadillo
