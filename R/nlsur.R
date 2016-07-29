@@ -328,7 +328,7 @@
 
   ## Create covb matrix ##
 
-  if (MASS){
+  if (qrsolve | MASS){
 
     r <- do.call(cbind, ri)
     r <- matrix(r, ncol = 1)
