@@ -40,6 +40,18 @@ model <- list(
   Se ~ be + dke * log(Pk/Pm) + dle * log(Pl/Pm) + dee * log(Pe/Pm)
 )
 
+e1   <- nlsur(eqns = model, data = dat, type = "NLS", stata = FALSE,
+              qrsolve = FALSE)
+e2   <- nlsur(eqns = model, data = dat, type = "NLS", stata = FALSE,
+              qrsolve = TRUE)
+
+
+E1   <- nlsur(eqns = model, data = dat, type = "IFGNLS",
+              MASS = FALSE)
+E2   <- nlsur(eqns = model, data = dat, type = "IFGNLS",
+              MASS = TRUE)
+
+
 erg2 <- nlsur(eqns = model, data = dat, type = "FGNLS")
 erg2
 
@@ -73,6 +85,12 @@ res_n <- round(unlist(res[, "Estimate"]), digits = 5)
 res_g <- round(greene$Coef, digits = 5)
 
 names(res_g) <- rownames(greene)
+
+
+test_that("Compare nlsur options", {
+  expect_equal(coef(e1), coef(e2))
+  expect_equal(coef(E1), coef(E2))
+})
 
 test_that("Compare Greene to nlsur", {
   expect_equal(res_n, res_g)
