@@ -552,17 +552,7 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
   parms <- modelparameters[which(!modelparameters %in% names(startvalues))]
 
   # check for equation constants
-  eqconst <- list()
-  # if model contains constants a uncentered otherwise a centered R-square value
-  # is calculated
-  for (i in 1:length(eqns)) {
-    gl_lhs <- as.character(eqns[[i]])
-
-    terms <- strsplit(gl_lhs[3], split = " + ", fixed = T)[[1]]
-    terms <- terms[which(terms %in% names(startvalues))]
-
-    eqconst[[i]] <- terms
-  }
+  eqconst <- lapply(X = eqns, FUN = constant)
 
   # Check for wts
   if ( is.null(wts) ) {
