@@ -785,7 +785,7 @@ print.nlsur <- function(x, ...) {
 
 #' @importFrom stats as.formula pt residuals weights
 #' @export
-summary.nlsur <- function(object, const = TRUE, ...) {
+summary.nlsur <- function(object, noconst = TRUE, ...) {
   # ... is to please check()
 
   z <- object
@@ -802,8 +802,7 @@ summary.nlsur <- function(object, const = TRUE, ...) {
   nlsonly <- z$nlsonly
   est     <- z$coefficients
 
-  # FixMe: reverse logic const == TRUE : no const
-  const <- sapply(eqconst, identical, character(0))
+  noconst <- sapply(eqconst, identical, character(0))
 
   # check weights
   if (is.null(w)) {
@@ -850,8 +849,8 @@ summary.nlsur <- function(object, const = TRUE, ...) {
 
     ssr[i]   <- sum( r[,i]^2 * w) * scale[i]
 
-    # FixMe: Reverse logic again
-    if (!const[i]) {
+    # No constant found
+    if (!noconst[i]) {
       wi       <- w/sum(w) * n[i]
       lhs_wm   <- wt_mean(x = lhs[[i]], w = wi)
       wvar     <- (1/(n[i] - 1)) * sum( wi * (lhs[[i]] - lhs_wm)^2)
@@ -915,7 +914,7 @@ summary.nlsur <- function(object, const = TRUE, ...) {
   }
 
   # add constant variables to summary
-  if (any(!const)){
+  if (any(!noconst)){
     eqconst <- do.call(rbind, eqconst)
     neqconst <- ncol(eqconst)
 
@@ -927,7 +926,7 @@ summary.nlsur <- function(object, const = TRUE, ...) {
   cnst <- character(0)
   # if a equation contians more than one const only add it once and fill the
   # rest with blanks
-  if (any(!const)) {
+  if (any(!noconst)) {
     cnst <- c("Const")
     if (neqconst>1){
       cnst <- c(cnst, rep(x = "", (neqconst-1)))
