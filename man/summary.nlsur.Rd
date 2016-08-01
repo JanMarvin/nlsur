@@ -10,6 +10,8 @@
 \item{object}{object of class nlsur.}
 
 \item{noconst}{logical value determining if model uses a constant or not.}
+
+\item{...}{additional parameters (currently not used)}
 }
 \description{
 Summary of nlsur objects

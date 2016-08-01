@@ -32,6 +32,7 @@ is.formula <- function(x) {
 #' Function checks first and last term on rhs for constant variables
 #' at front and back position.
 #' @examples
+#' \dontrun{
 #' constant(y ~ x + a * z) # x
 #' constant(y ~ x * b + 1) # 1
 #' constant(y  ~ 0 + x) # NULL
@@ -41,6 +42,7 @@ is.formula <- function(x) {
 #' constant( y  ~ (k+ x*b) + a*y + b*z ) # k
 #' constant( y  ~  a*y + b*z + (k + x*b) ) # wont find k
 #' constant( y  ~  a*y + b*z + (x*b + k) ) # k
+#' }
 #' @export
 constant <- function(x) {
 
