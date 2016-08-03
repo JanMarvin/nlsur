@@ -564,17 +564,7 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
   parms <- modelparameters[which(!modelparameters %in% names(startvalues))]
 
   # check for equation constants
-  eqconst <- list()
-  # if model contains constants a uncentered otherwise a centered R-square value
-  # is calculated
-  for (i in 1:length(eqns)) {
-    gl_lhs <- as.character(eqns[[i]])
-
-    terms <- strsplit(gl_lhs[3], split = " + ", fixed = T)[[1]]
-    terms <- terms[which(terms %in% names(startvalues))]
-
-    eqconst[[i]] <- terms
-  }
+  eqconst <- lapply(X = eqns, FUN = constant)
 
   # Check for wts
   if ( is.null(wts) ) {
@@ -808,10 +798,16 @@ print.nlsur <- function(x, ...) {
   print(x$coefficients, ...)
 }
 
+#' Summary of nlsur objects
+#'
+#' @param object object of class nlsur.
+#' @param noconst logical value determining if model uses a constant or not.
+#' @param multicores number of cores to be used, default n - 1
+#' @param ... additional parameters (currently not used)
 #' @importFrom parallel mclapply
 #' @importFrom stats as.formula pt residuals weights
 #' @export
-summary.nlsur <- function(object, const = TRUE, multicores, ...) {
+summary.nlsur <- function(object, noconst = TRUE, multicores, ...) {
   # ... is to please check()
 
   z <- object
@@ -837,8 +833,7 @@ summary.nlsur <- function(object, const = TRUE, multicores, ...) {
   nlsonly <- z$nlsonly
   est     <- z$coefficients
 
-  # FixMe: reverse logic const == TRUE : no const
-  const <- sapply(eqconst, identical, character(0))
+  noconst <- sapply(eqconst, identical, character(0))
 
   # check weights
   if (is.null(w)) {
@@ -885,8 +880,8 @@ summary.nlsur <- function(object, const = TRUE, multicores, ...) {
 
     ssr[i]   <- sum( r[,i]^2 * w) * scale[i]
 
-    # FixMe: Reverse logic again
-    if (!const[i]) {
+    # No constant found
+    if (!noconst[i]) {
       wi       <- w/sum(w) * n[i]
       lhs_wm   <- wt_mean(x = lhs[[i]], w = wi)
       wvar     <- (1/(n[i] - 1)) * sum( wi * (lhs[[i]] - lhs_wm)^2)
@@ -950,7 +945,7 @@ summary.nlsur <- function(object, const = TRUE, multicores, ...) {
   }
 
   # add constant variables to summary
-  if (any(!const)){
+  if (any(!noconst)){
     eqconst <- do.call(rbind, eqconst)
     neqconst <- ncol(eqconst)
 
@@ -962,7 +957,7 @@ summary.nlsur <- function(object, const = TRUE, multicores, ...) {
   cnst <- character(0)
   # if a equation contians more than one const only add it once and fill the
   # rest with blanks
-  if (any(!const)) {
+  if (any(!noconst)) {
     cnst <- c("Const")
     if (neqconst>1){
       cnst <- c(cnst, rep(x = "", (neqconst-1)))
