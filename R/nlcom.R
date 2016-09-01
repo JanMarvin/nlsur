@@ -4,7 +4,7 @@
 #' @param object of class nlsur
 #' @param form formula e.g. "be/bk". May contain names(coef(object)) or prior
 #' nlcom estimations.
-#' @param alpha value for conf. interval
+#' @param alpha value for conf. interval default is 0.05
 #' @param rname optional rowname for result
 #' @importFrom car deltaMethod
 #' @importFrom stats coef formula pt qnorm
@@ -30,7 +30,7 @@
 #' }
 #'
 #' @export
-nlcom <- function(object, form, alpha, rname) {
+nlcom <- function(object, form, alpha = 0.05, rname) {
 
   # store original form
   oform <- form
@@ -55,30 +55,29 @@ nlcom <- function(object, form, alpha, rname) {
       }
   }
 
-  z <- deltaMethod(object, form)
+  alevel <- 1 - alpha
 
+  z <- deltaMethod(object, form, level = alevel)
+
+  # separate the convinterval from the z output
+  cinterv <- z[-c(1:2)]
+
+  # only keep est and se
+  z <- z[c("Estimate", "SE")]
+
+  # calculate t-value
   tval <- z$Estimate / z$SE
 
-  nE <- sum(object$n)
-  kE <- sum(object$k)
-
+  # calculate prob
+  nE <- sum(object$n); kE <- sum(object$k)
   prob <- 2 * (1 - pt(abs(tval), (nE * kE )))
 
+  # create output
   z   <- cbind(z, tval, prob)
-
   colnames(z) <- c("Estimate", "Std. Error", "z value", "Pr(>|z|)" )
 
   lk <- length(coef(object))
   neqs <- length(object$n)
-
-  if (missing (alpha))
-    alpha <- 0.05
-
-  alphaz <- c( alpha/2, 1-alpha/2)
-
-  # add conficence intervals
-  cinterv <- z$Estimate  + qnorm(alphaz) * ( z$`Std. Error`/ sqrt (lk) * neqs )
-  names(cinterv) <- as.character(alphaz)
 
   if(missing(rname))
     attr(z, "rname")   <- oform
