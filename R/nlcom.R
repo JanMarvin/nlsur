@@ -45,14 +45,12 @@ nlcom <- function(object, form, alpha = 0.05, rname) {
     for (i in vars){
       tmp <- get0(x = i)
 
-      if(!(class(tmp) == "nlcom"))
-        paste("Note:", i, "is not of class nlcom.")
+      if(class(tmp) == "nlcom") {
+        fname <- paste("(", attr(tmp, "form"), ")")
 
-      fname <- paste("(", attr(tmp, "form"), ")")
-
-      form <- gsub(pattern = i, replacement = fname, x = form, fixed = TRUE)
-
+        form <- gsub(pattern = i, replacement = fname, x = form, fixed = TRUE)
       }
+    }
   }
 
   alevel <- 1 - alpha
