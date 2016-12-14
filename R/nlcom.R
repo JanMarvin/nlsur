@@ -46,7 +46,7 @@ nlcom <- function(object, form, alpha = 0.05, rname) {
       tmp <- get0(x = i)
 
       if(!(class(tmp) == "nlcom"))
-        stop(paste(i, "is not of class nlcom."))
+        paste("Note:", i, "is not of class nlcom.")
 
       fname <- paste("(", attr(tmp, "form"), ")")
 
