@@ -12,4 +12,3 @@ is.formula(x)
 \description{
 Check if object is of class formula
 }
-

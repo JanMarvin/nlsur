@@ -26,4 +26,3 @@ missings will not be fitted.
 \examples{
 # predict(nlsurObj, dataframe)
 }
-

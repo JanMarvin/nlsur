@@ -18,4 +18,4 @@ Description: "Estimation of Nonlinear Least Squares (NLS), Feasibe Generalized
 License: MIT + file LICENSE
 LinkingTo: Rcpp, RcppArmadillo
 ByteCompile: yes
-RoxygenNote: 5.0.1
+RoxygenNote: 6.0.1

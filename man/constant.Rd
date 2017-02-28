@@ -30,4 +30,3 @@ constant( y  ~  a*y + b*z + (k + x*b) ) # wont find k
 constant( y  ~  a*y + b*z + (x*b + k) ) # k
 }
 }
-

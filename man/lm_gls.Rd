@@ -22,4 +22,3 @@ lm_gls(X, Y, W, neqs, tol = 1e-07, covb = FALSE)
 \description{
 Calculate WLS using sparse matrix and qr
 }
-

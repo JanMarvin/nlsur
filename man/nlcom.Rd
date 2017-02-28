@@ -43,4 +43,3 @@ dmm
 \seealso{
 \link{deltaMethod}
 }
-
