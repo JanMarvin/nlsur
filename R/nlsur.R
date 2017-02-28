@@ -488,7 +488,6 @@
 #' @seealso \link{nls}
 #' @importFrom stats as.formula coef na.omit
 #' @importFrom utils capture.output
-#' @import RcppArmadillo
 #' @useDynLib nlsur
 #'
 #' @export
