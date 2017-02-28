@@ -9,8 +9,6 @@ Depends:
     car,
     Matrix,
     stats
-Imports:
-    RcppArmadillo
 Suggests:
     testthat
 Description: "Estimation of Nonlinear Least Squares (NLS), Feasibe Generalized
