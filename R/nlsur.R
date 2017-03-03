@@ -65,7 +65,7 @@
 #' Gallant, A. Ronald (1987): Nonlinear Statistical Models. Wiley: New York
 #' @importFrom Matrix diag kronecker rankMatrix
 #' @importFrom stats as.formula coef deriv
-#' @useDynLib nlsur
+#' @useDynLib nlsur, .registration=TRUE
 #' @export .nlsur
 .nlsur <- function(eqns, data, startvalues, S = NULL, robust = robust,
                    nls = FALSE, fgnls = FALSE, ifgnls = FALSE, qrsolve = FALSE,
