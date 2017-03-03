@@ -148,4 +148,3 @@ Gallant, A. Ronald (1987): Nonlinear Statistical Models.
 \seealso{
 \link{nls}
 }
-

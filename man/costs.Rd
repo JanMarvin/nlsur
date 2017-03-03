@@ -36,4 +36,3 @@ Berndt, E. R. and Wood, D. O. (1975). Technology, prices, and the derived
 demand for energy. The review of Economics and Statistics, pages 259--268.
 }
 \keyword{datasets}
-

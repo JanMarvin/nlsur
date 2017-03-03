@@ -24,4 +24,3 @@ calc_reg(x, r, qS, w, sizetheta, fullreg, tol)
 \description{
 calc_reg
 }
-

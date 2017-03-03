@@ -20,4 +20,3 @@ calc_robust(x, u, qS, w, sizetheta)
 \description{
 calc_robust
 }
-

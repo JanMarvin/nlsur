@@ -1,4 +1,4 @@
-# Copyright (c) 2015 Jan Marvin Garbuszus
+# Copyright (c) 2017 Jan Marvin Garbuszus
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -66,8 +66,7 @@
 #' @importFrom Matrix diag kronecker rankMatrix
 #' @importFrom parallel mcmapply mclapply
 #' @importFrom stats as.formula coef deriv
-#' @import RcppArmadillo
-#' @useDynLib nlsur
+#' @useDynLib nlsur, .registration=TRUE
 #' @export .nlsur
 .nlsur <- function(eqns, data, startvalues, S = NULL, robust = robust,
                    nls = FALSE, fgnls = FALSE, ifgnls = FALSE, qrsolve = FALSE,
@@ -493,7 +492,6 @@
 #' @importFrom parallel mclapply detectCores
 #' @importFrom stats as.formula coef na.omit
 #' @importFrom utils capture.output
-#' @import RcppArmadillo
 #' @useDynLib nlsur
 #'
 #' @export

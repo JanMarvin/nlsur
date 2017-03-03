@@ -18,4 +18,3 @@
 \description{
 Summary of nlsur objects
 }
-

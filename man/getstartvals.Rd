@@ -16,4 +16,3 @@ getstartvals(model, data, val)
 \description{
 Function to create startvalues for nlsur models
 }
-

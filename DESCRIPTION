@@ -1,7 +1,7 @@
 Package: nlsur
 Type: Package
-Version: 0.5
-Date: 2016-06-30
+Version: 0.5.1
+Date: 2017-02-28
 Title: Estimating Nonlinear Least Squares
 Author: Jan Marvin Garbuszus
 Maintainer: Jan Marvin Garbuszus <jan.garbuszus@ruhr-uni-bochum.de>
@@ -10,13 +10,13 @@ Depends:
     Matrix,
     parallel,
     stats
-Imports:
-    RcppArmadillo
 Suggests:
     testthat
+Imports:
+    Rcpp
 Description: "Estimation of Nonlinear Least Squares (NLS), Feasibe Generalized
     NLS (FGNLS) and Iterative FGNLS (IFGNLS) for Systems of Equations."
 License: MIT + file LICENSE
 LinkingTo: Rcpp, RcppArmadillo
 ByteCompile: yes
-RoxygenNote: 5.0.1
+RoxygenNote: 6.0.1

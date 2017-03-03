@@ -14,4 +14,3 @@ wt_mean(x, w)
 \description{
 wt_mean
 }
-
