@@ -2,11 +2,10 @@
 % Please edit documentation in R/ai_model.R
 \name{ai.model}
 \alias{ai.model}
-\title{Non-Linear Seemingly Unrelated Regression}
+\title{Q/AI model function}
 \usage{
-ai.model(w = budgetshares, p = prices, exp = expenditure, alph0 = 10,
-  logprices = TRUE, logexpenditure = TRUE, priceindex = "translog",
-  modeltype = "AI", RAY = FALSE, demogr)
+ai.model(w, p, exp, alph0 = 10, logp = TRUE, logexp = TRUE,
+  priceindex = "translog", modeltype = "AI", ray = FALSE, demogr)
 }
 \arguments{
 \item{w}{character vector of m budgetshares used for estimation.}
@@ -17,16 +16,16 @@ ai.model(w = budgetshares, p = prices, exp = expenditure, alph0 = 10,
 
 \item{alph0}{start value for translog price index.}
 
-\item{logprices}{logical if prices are log prices.}
+\item{logp}{logical if prices are log prices.}
 
-\item{logexpenditure}{logical if expenditure is log expenditure.}
+\item{logexp}{logical if expenditure is log expenditure.}
 
 \item{priceindex}{character either "translog" or "S" for the stone price
 index.}
 
 \item{modeltype}{character either "AI" or "QAI" for AI or QAI model.}
 
-\item{RAY}{logical if Ray (1983) scaling should be inclued. If TRUE requires
+\item{ray}{logical if Ray (1983) scaling should be inclued. If TRUE requires
 demographic vector.}
 
 \item{demogr}{character vector of k demographic variables.}
@@ -39,14 +38,14 @@ Banks et al. (1997).
 \references{
 Deaton, Angus S., Muellbauer, John: An Almost Ideal Demand
  System, The American Economic Review 70(3), American Economic Association,
- 312–326, 1980
+ 312-326, 1980
 
 Banks, James, Blundell, Richard, Lewbel, Arthur: Quadratic Engel
  Curves and Consumer Demand, The Review of Economics and Statistics 79(4),
- The MIT Press, 527–539, 1997
+ The MIT Press, 527-539, 1997
 
 Ray, Ranjan: Measuring the costs of children: An alternative
- approach, Journal of Public Economics 22(1), 89–102, 1983
+ approach, Journal of Public Economics 22(1), 89-102, 1983
 }
 \seealso{
 ai and qai

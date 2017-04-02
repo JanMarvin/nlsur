@@ -1,4 +1,4 @@
-#' Non-Linear Seemingly Unrelated Regression
+#' Q/AI model function
 #'
 #' Modelfunction to create Deatons and Muellbauers (1980) famouse
 #' Almost-Ideal Demand System or the Quadratic Almost-Ideal Demand System by
@@ -8,33 +8,32 @@
 #' @param p character vector of m prices.
 #' @param exp single character vector of total expenditure.
 #' @param alph0 start value for translog price index.
-#' @param logprices logical if prices are log prices.
-#' @param logexpenditure logical if expenditure is log expenditure.
+#' @param logp logical if prices are log prices.
+#' @param logexp logical if expenditure is log expenditure.
 #' @param priceindex character either "translog" or "S" for the stone price
 #'  index.
 #' @param modeltype character either "AI" or "QAI" for AI or QAI model.
-#' @param RAY logical if Ray (1983) scaling should be inclued. If TRUE requires
+#' @param ray logical if Ray (1983) scaling should be inclued. If TRUE requires
 #' demographic vector.
 #' @param demogr character vector of k demographic variables.
 #'
 #' @references Deaton, Angus S., Muellbauer, John: An Almost Ideal Demand
 #'  System, The American Economic Review 70(3), American Economic Association,
-#'  312–326, 1980
+#'  312-326, 1980
 #' @references Banks, James, Blundell, Richard, Lewbel, Arthur: Quadratic Engel
 #'  Curves and Consumer Demand, The Review of Economics and Statistics 79(4),
-#'  The MIT Press, 527–539, 1997
+#'  The MIT Press, 527-539, 1997
 #' @references Ray, Ranjan: Measuring the costs of children: An alternative
-#'  approach, Journal of Public Economics 22(1), 89–102, 1983
+#'  approach, Journal of Public Economics 22(1), 89-102, 1983
 #'
 #' @seealso ai and qai
 #'
 #' @export
-ai.model <- function(w = budgetshares, p = prices, exp = expenditure,
-                     alph0 = 10, logprices = TRUE, logexpenditure = TRUE,
+ai.model <- function(w, p, exp, alph0 = 10, logp = TRUE, logexp = TRUE,
                      priceindex = "translog", modeltype = "AI",
-                     RAY = FALSE, demogr) {
+                     ray = FALSE, demogr) {
 
-  if (missing(demogr) & RAY)
+  if (missing(demogr) & ray)
     stop("Demogr. scaling selected, but no demographic variables specified.")
 
   if (missing(demogr))
@@ -77,7 +76,7 @@ ai.model <- function(w = budgetshares, p = prices, exp = expenditure,
     gamma[neqs,i] <- paste0("(-",paste(gamma[-neqs,i], collapse="-"),")")
 
   #### logp ####
-  if ( !isTRUE(logprices) ) {
+  if ( !isTRUE(logp) ) {
     logp <- paste0("log(",p,")")
   } else {
     logp <- p
@@ -89,7 +88,7 @@ ai.model <- function(w = budgetshares, p = prices, exp = expenditure,
   beta <- paste0("b", sprintf("%02d",1:neqs))
   beta[neqs] <- paste0("(-",paste(beta[-neqs], collapse="-"),")")
 
-  if (RAY) {
+  if (ray) {
 
     # rho is the scaling parameter
     rho <- paste0("rho_",demogr)
@@ -145,7 +144,7 @@ ai.model <- function(w = budgetshares, p = prices, exp = expenditure,
   lambda[neqs] <- paste0("(-",paste(lambda[-neqs], collapse="-"),")")
 
   #### log(exp) ####
-  if ( !isTRUE(logexpenditure) ) {
+  if ( !isTRUE(logexp) ) {
     logexp <- paste0("log(",exp,")")
   } else {
     logexp <- exp
@@ -177,7 +176,7 @@ ai.model <- function(w = budgetshares, p = prices, exp = expenditure,
   #### combine everything to the final model ####
   eqs <- list()
 
-  if (modeltype == "AI" & !RAY) {
+  if (modeltype == "AI" & !ray) {
 
     #### eqs ####
     for (i in 1:neqs) {
@@ -187,7 +186,7 @@ ai.model <- function(w = budgetshares, p = prices, exp = expenditure,
     }
   }
 
-  if (modeltype == "QAI" & !RAY) {
+  if (modeltype == "QAI" & !ray) {
 
     #### eqs ####
     for (i in 1:neqs) {
@@ -198,7 +197,7 @@ ai.model <- function(w = budgetshares, p = prices, exp = expenditure,
     }
   }
 
-  if (modeltype == "AI" & RAY) {
+  if (modeltype == "AI" & ray) {
 
     translog_star <- paste("(", m0, "+", translog, ")")
 
@@ -210,7 +209,7 @@ ai.model <- function(w = budgetshares, p = prices, exp = expenditure,
     }
   }
 
-  if (modeltype == "QAI" & RAY) {
+  if (modeltype == "QAI" & ray) {
 
     translog_star <- paste("(", m0, "+", translog, ")")
 
@@ -243,17 +242,18 @@ ai.model <- function(w = budgetshares, p = prices, exp = expenditure,
 #' @param w character vector of m budgetshares used for estimation.
 #' @param p character vector of m prices.
 #' @param x single character vector of total expenditure.
+#' @param z character vector of k demographic variables.
 #' @param a0 start value for translog price index.
 #' @param data data.frame containing the variables.
 #' @param scale logical if TRUE Rays (1983) scaling is used.
 #' @param logp logical if prices are log prices.
-#' @param logx logical if expenditure is log expenditure.
+#' @param logexp logical if expenditure is log expenditure.
 #'
 #' @references Deaton, Angus S., Muellbauer, John: An Almost Ideal Demand
 #'  System, The American Economic Review 70(3), American Economic Association,
-#'  312–326, 1980
+#'  312-326, 1980
 #' @references Ray, Ranjan: Measuring the costs of children: An alternative
-#'  approach, Journal of Public Economics 22(1), 89–102, 1983
+#'  approach, Journal of Public Economics 22(1), 89-102, 1983
 #'
 #' @seealso qai and ai.model
 #'
@@ -273,11 +273,11 @@ ai <- function(w, p, x, z, a0 = 0, data, scale = FALSE,
 
   if(!scale) {
     model <- ai.model(w = w, p = p, exp = x, alph0 = a0, modeltype = "AI",
-                      logprices = logp, logexpenditure = logexp)
+                      logp = logp, logexp = logexp)
   } else {
     model <- ai.model(w = w, p = p, exp = x, demogr = z, alph0 = a0,
-                      RAY = TRUE, modeltype = "AI",
-                      logprices = logp, logexpenditure = logexp)
+                      ray = TRUE, modeltype = "AI",
+                      logp = logp, logexp = logexp)
   }
 
   res <- nlsur(eqns = model, data = data, type = 3, qrsolve = TRUE,
@@ -293,17 +293,18 @@ ai <- function(w, p, x, z, a0 = 0, data, scale = FALSE,
 #' @param w character vector of m budgetshares used for estimation.
 #' @param p character vector of m prices.
 #' @param x single character vector of total expenditure.
+#' @param z character vector of k demographic variables.
 #' @param a0 start value for translog price index.
 #' @param data data.frame containing the variables.
 #' @param scale logical if TRUE Rays (1983) scaling is used.
 #' @param logp logical if prices are log prices.
-#' @param logx logical if expenditure is log expenditure.
+#' @param logexp logical if expenditure is log expenditure.
 #'
 #' @references Banks, James, Blundell, Richard, Lewbel, Arthur: Quadratic Engel
 #'  Curves and Consumer Demand, The Review of Economics and Statistics 79(4),
-#'  The MIT Press, 527–539, 1997
+#'  The MIT Press, 527-539, 1997
 #' @references Ray, Ranjan: Measuring the costs of children: An alternative
-#'  approach, Journal of Public Economics 22(1), 89–102, 1983
+#'  approach, Journal of Public Economics 22(1), 89-102, 1983
 #'
 #' @seealso ai and ai.model
 #'
@@ -323,11 +324,11 @@ qai <- function(w, p, x, z, a0 = 0, data, scale = FALSE,
 
   if(!scale) {
     model <- ai.model(w = w, p = p, exp = x, alph0 = a0, modeltype = "QAI",
-                      logprices = logp, logexpenditure = logexp)
+                      logp = logp, logexp = logexp)
   } else {
     model <- ai.model(w = w, p = p, exp = x, demogr = z, alph0 = a0,
-                      RAY = TRUE, modeltype = "QAI",
-                      logprices = logp, logexpenditure = logexp)
+                      ray = TRUE, modeltype = "QAI",
+                      logp = logp, logexp = logexp)
   }
 
   res <- nlsur(eqns = model, data = data, type = 3, qrsolve = TRUE,

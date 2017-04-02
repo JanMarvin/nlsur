@@ -13,6 +13,8 @@ ai(w, p, x, z, a0 = 0, data, scale = FALSE, logp = TRUE, logexp = TRUE)
 
 \item{x}{single character vector of total expenditure.}
 
+\item{z}{character vector of k demographic variables.}
+
 \item{a0}{start value for translog price index.}
 
 \item{data}{data.frame containing the variables.}
@@ -21,7 +23,7 @@ ai(w, p, x, z, a0 = 0, data, scale = FALSE, logp = TRUE, logexp = TRUE)
 
 \item{logp}{logical if prices are log prices.}
 
-\item{logx}{logical if expenditure is log expenditure.}
+\item{logexp}{logical if expenditure is log expenditure.}
 }
 \description{
 Estimation of an Almost-Ideal Demand System using nlsur().
@@ -29,10 +31,10 @@ Estimation of an Almost-Ideal Demand System using nlsur().
 \references{
 Deaton, Angus S., Muellbauer, John: An Almost Ideal Demand
  System, The American Economic Review 70(3), American Economic Association,
- 312–326, 1980
+ 312-326, 1980
 
 Ray, Ranjan: Measuring the costs of children: An alternative
- approach, Journal of Public Economics 22(1), 89–102, 1983
+ approach, Journal of Public Economics 22(1), 89-102, 1983
 }
 \seealso{
 qai and ai.model
