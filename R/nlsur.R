@@ -304,8 +304,9 @@
     # conv2 <- !isTRUE(norm(as.matrix(theta - theta.new)) <
     #                    eps * (norm(as.matrix(theta)) + tau))
 
-    conv2 <- !all( (alpha*2) * abs(theta) >
-                        eps * (abs(theta.old) + tau) )
+    # alpha was already divided
+    conv2 <- !all( (alpha*divi) * abs(theta) >
+                        eps * (abs(theta.old) + tau), na.rm = TRUE )
 
     # this is what Stata documents what they do for nl. include alpha?
     # conv2 <- all( alpha * abs(theta.new) <= eps * (abs(theta) + tau) )
