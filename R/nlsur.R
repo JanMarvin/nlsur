@@ -297,15 +297,15 @@
 
     # ssr: |ssr.old - ssr| < eps | ssr.old + tau|
 
-    conv1 <- !isTRUE(abs(ssr.old - ssr) <
+    conv1 <- !isTRUE(abs(ssr.old - ssr) >
                        eps * (ssr.old + tau))
 
     # theta: ||theta - theta.new|| < eps (||theta|| + tau)
     # conv2 <- !isTRUE(norm(as.matrix(theta - theta.new)) <
     #                    eps * (norm(as.matrix(theta)) + tau))
 
-    conv2 <- !isTRUE( sum(abs(theta - theta.new)) <
-                        eps * sum(abs(theta) + tau) )
+    conv2 <- !all( (alpha*2) * abs(theta) >
+                        eps * (abs(theta.old) + tau) )
 
     # this is what Stata documents what they do for nl. include alpha?
     # conv2 <- all( alpha * abs(theta.new) <= eps * (abs(theta) + tau) )
