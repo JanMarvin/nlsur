@@ -277,7 +277,7 @@
 
 
       theta_na <- names(theta)[is.na(theta)]
-      x[,colnames(x) %in% theta_na] <- NA
+      # x[,colnames(x) %in% theta_na] <- NA
 
       # Reevaluation of ssr
       ssr <- calc_ssr(r, s, wts)
