@@ -278,7 +278,7 @@
 
 
       theta_na <- names(theta)[is.na(theta)]
-      x[,colnames(x) %in% theta_na] <- NA
+      # x[,colnames(x) %in% theta_na] <- NA
 
       # Reevaluation of ssr
       ssr <- calc_ssr(r, s, wts)
@@ -298,15 +298,16 @@
 
     # ssr: |ssr.old - ssr| < eps | ssr.old + tau|
 
-    conv1 <- !isTRUE(abs(ssr.old - ssr) <
+    conv1 <- !isTRUE(abs(ssr.old - ssr) >
                        eps * (ssr.old + tau))
 
     # theta: ||theta - theta.new|| < eps (||theta|| + tau)
     # conv2 <- !isTRUE(norm(as.matrix(theta - theta.new)) <
     #                    eps * (norm(as.matrix(theta)) + tau))
 
-    conv2 <- !isTRUE( sum(abs(theta - theta.new)) <
-                        eps * sum(abs(theta) + tau) )
+    # alpha was already divided
+    conv2 <- !all( (alpha*divi) * abs(theta) >
+                        eps * (abs(theta.old) + tau), na.rm = TRUE )
 
     # this is what Stata documents what they do for nl. include alpha?
     # conv2 <- all( alpha * abs(theta.new) <= eps * (abs(theta) + tau) )
