@@ -16,4 +16,3 @@ calc_ssr(r, s, w)
 \description{
 calc_ssr
 }
-

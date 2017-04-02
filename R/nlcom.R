@@ -1,10 +1,29 @@
+# Copyright (c) 2017 Jan Marvin Garbuszus
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+# THE SOFTWARE.
 
 #' Estimate nonlinear combinations of nlsur estimates
 #'
 #' @param object of class nlsur
 #' @param form formula e.g. "be/bk". May contain names(coef(object)) or prior
 #' nlcom estimations.
-#' @param alpha value for conf. interval
+#' @param alpha value for conf. interval default is 0.05
 #' @param rname optional rowname for result
 #' @importFrom car deltaMethod
 #' @importFrom stats coef formula pt qnorm
@@ -30,7 +49,7 @@
 #' }
 #'
 #' @export
-nlcom <- function(object, form, alpha, rname) {
+nlcom <- function(object, form, alpha = 0.05, rname) {
 
   # store original form
   oform <- form
@@ -45,40 +64,37 @@ nlcom <- function(object, form, alpha, rname) {
     for (i in vars){
       tmp <- get0(x = i)
 
-      if(!(class(tmp) == "nlcom"))
-        stop(paste(i, "is not of class nlcom."))
+      if(class(tmp) == "nlcom") {
+        fname <- paste("(", attr(tmp, "form"), ")")
 
-      fname <- paste("(", attr(tmp, "form"), ")")
-
-      form <- gsub(pattern = i, replacement = fname, x = form, fixed = TRUE)
-
+        form <- gsub(pattern = i, replacement = fname, x = form, fixed = TRUE)
       }
+    }
   }
 
-  z <- deltaMethod(object, form)
+  alevel <- 1 - alpha
 
+  z <- deltaMethod(object, form, level = alevel)
+
+  # separate the convinterval from the z output
+  cinterv <- z[-c(1:2)]
+
+  # only keep est and se
+  z <- z[c("Estimate", "SE")]
+
+  # calculate t-value
   tval <- z$Estimate / z$SE
 
-  nE <- sum(object$n)
-  kE <- sum(object$k)
-
+  # calculate prob
+  nE <- sum(object$n); kE <- sum(object$k)
   prob <- 2 * (1 - pt(abs(tval), (nE * kE )))
 
+  # create output
   z   <- cbind(z, tval, prob)
-
   colnames(z) <- c("Estimate", "Std. Error", "z value", "Pr(>|z|)" )
 
   lk <- length(coef(object))
   neqs <- length(object$n)
-
-  if (missing (alpha))
-    alpha <- 0.05
-
-  alphaz <- c( alpha/2, 1-alpha/2)
-
-  # add conficence intervals
-  cinterv <- z$Estimate  + qnorm(alphaz) * ( z$`Std. Error`/ sqrt (lk) * neqs )
-  names(cinterv) <- as.character(alphaz)
 
   if(missing(rname))
     attr(z, "rname")   <- oform

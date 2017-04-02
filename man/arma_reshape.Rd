@@ -14,4 +14,3 @@ arma_reshape(mm, sizetheta)
 \description{
 arma_reshape
 }
-

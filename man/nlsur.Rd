@@ -6,7 +6,7 @@
 \usage{
 nlsur(eqns, data, startvalues, type = NULL, S = NULL, trace = FALSE,
   robust = FALSE, stata = TRUE, qrsolve = FALSE, weights, MASS = FALSE,
-  maxiter = 1000, val = 0, tol = .Machine$double.eps, eps = 1e-05,
+  maxiter = 1000, val = 0, tol = 1e-07, eps = 1e-05,
   ifgnlseps = 1e-10, tau = 0.001, initial = FALSE, multicores)
 }
 \arguments{
@@ -148,4 +148,3 @@ Gallant, A. Ronald (1987): Nonlinear Statistical Models.
 \seealso{
 \link{nls}
 }
-

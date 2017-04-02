@@ -4,7 +4,7 @@
 \alias{nlcom}
 \title{Estimate nonlinear combinations of nlsur estimates}
 \usage{
-nlcom(object, form, alpha, rname)
+nlcom(object, form, alpha = 0.05, rname)
 }
 \arguments{
 \item{object}{of class nlsur}
@@ -12,7 +12,7 @@ nlcom(object, form, alpha, rname)
 \item{form}{formula e.g. "be/bk". May contain names(coef(object)) or prior
 nlcom estimations.}
 
-\item{alpha}{value for conf. interval}
+\item{alpha}{value for conf. interval default is 0.05}
 
 \item{rname}{optional rowname for result}
 }
@@ -43,4 +43,3 @@ dmm
 \seealso{
 \link{deltaMethod}
 }
-
