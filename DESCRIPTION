@@ -5,13 +5,14 @@ Date: 2017-02-28
 Title: Estimating Nonlinear Least Squares
 Author: Jan Marvin Garbuszus
 Maintainer: Jan Marvin Garbuszus <jan.garbuszus@ruhr-uni-bochum.de>
-Depends:
-    car,
-    Matrix,
-    stats
+Depends: R (>= 3.0.1)
 Suggests:
     testthat
 Imports:
+    car,
+    Matrix,
+    methods,
+    stats,
     Rcpp
 Description: "Estimation of Nonlinear Least Squares (NLS), Feasibe Generalized
     NLS (FGNLS) and Iterative FGNLS (IFGNLS) for Systems of Equations."

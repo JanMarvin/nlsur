@@ -1074,6 +1074,7 @@ predict.nlsur <- function(object, newdata, ...) {
 #' @param tol tolerance for qr
 #' @param covb if true covb is calculated else theta
 #' @importFrom Matrix crossprod kronecker Diagonal
+#' @importFrom methods as
 #' @export
 lm_gls <- function(X, Y, W, neqs, tol = 1e-7, covb = FALSE) {
 
@@ -1091,6 +1092,8 @@ lm_gls <- function(X, Y, W, neqs, tol = 1e-7, covb = FALSE) {
 
   A <- Matrix::kronecker(X = A,
                          Y = Matrix::Diagonal(n))
+
+  X <- as(X, "sparseMatrix"); Y <- as(Y, "sparseMatrix")
 
   if (covb)
     fit <- Matrix::crossprod(A %*% X)
