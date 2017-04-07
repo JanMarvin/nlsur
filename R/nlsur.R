@@ -882,8 +882,8 @@ summary.nlsur <- function(object, noconst = TRUE, multicores, ...) {
     # if lhs is a constant eg 0, size of lhs_i and w differs
     lhs_i <- lhs[[i]]
 
-    if (lhs_i < nrow(data))
-      lhs_i <- rep(lhs_i, nrow(data))
+    if (length(lhs_i) < NROW(data))
+      lhs_i <- rep(lhs_i, NROW(data))
 
     ssr[i]   <- sum( r[,i]^2 * w) * scale[i]
 
