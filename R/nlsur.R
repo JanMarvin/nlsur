@@ -874,19 +874,28 @@ summary.nlsur <- function(object, noconst = TRUE, multicores, ...) {
   scale <- n/sum(w)
   div   <- n -1
 
+
+
   # Evaluate everything required for summary printing
   for (i in 1:neqs) {
+
+    # if lhs is a constant eg 0, size of lhs_i and w differs
+    lhs_i <- lhs[[i]]
+
+    if (lhs_i < nrow(data))
+      lhs_i <- rep(lhs_i, nrow(data))
 
     ssr[i]   <- sum( r[,i]^2 * w) * scale[i]
 
     # No constant found
     if (!noconst[i]) {
       wi       <- w/sum(w) * n[i]
-      lhs_wm   <- wt_mean(x = lhs[[i]], w = wi)
-      wvar     <- (1/(n[i] - 1)) * sum( wi * (lhs[[i]] - lhs_wm)^2)
+
+      lhs_wm   <- wt_mean(x = lhs_i, w = wi)
+      wvar     <- (1/(n[i] - 1)) * sum( wi * (lhs_i - lhs_wm)^2)
       mss[i]   <- wvar * div[i] - ssr[i]
     } else{
-      mss[i]   <- sum(lhs[[i]]^2) * scale[i] - ssr[i]
+      mss[i]   <- sum(lhs_i^2) * scale[i] - ssr[i]
     }
 
     mse[i]   <- ssr[i] / n[i]
