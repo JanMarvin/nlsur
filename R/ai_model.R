@@ -164,9 +164,9 @@ ai.model <- function(w, p, exp, alph0 = 10, logp = TRUE, logexp = TRUE,
   translog <- paste("(", alpha0, "+", alogp, "+ 0.5 * (",
                     paste0(translogmatrix, collapse = " + "), ")", ")")
 
-  P <- translog
+  # Stone price index
   if (priceindex == "S") {
-    P <- paste("(", paste(w, "*", logp, collapse = " + ") ,")" )
+    translog <- paste("(", paste(w, "*", logp, collapse = " + ") ,")" )
   }
 
   #### cobb douglas price aggregator ####
