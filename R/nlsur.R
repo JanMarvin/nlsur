@@ -216,7 +216,7 @@
         # Use MASS::lm.gls inspired function for the weighted regression, this
         # will call eigen() to pre-weight r and x which then can be solved with
         # qr. This will be slower than blockwise wls but is numerically stable
-        theta.new <- lm_gls(X = x, Y = r, W = S, neqs = neqs, tol = tol)
+        theta.new <- lm_gls(X = x, Y = r, W = S, wts = wts, neqs = neqs, tol = tol)
 
       } else {
 
@@ -307,7 +307,7 @@
 
     # alpha was already divided
     conv2 <- !all( (alpha*divi) * abs(theta) >
-                        eps * (abs(theta.old) + tau), na.rm = TRUE )
+                     eps * (abs(theta.old) + tau), na.rm = TRUE )
 
     # this is what Stata documents what they do for nl. include alpha?
     # conv2 <- all( alpha * abs(theta.new) <= eps * (abs(theta) + tau) )
@@ -368,7 +368,7 @@
   z$n            <- n
   z$deviance     <- as.numeric(ssr)
 
-  z$weights      <- wts
+  z$wts          <- wts
   z$cov          <- covb
 
   class(z) <- "nlsur"
@@ -783,7 +783,7 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
 
   # if call did not contain weights: drop them
   if (is.null(wts))
-    z$weights <- NULL
+    z$wts <- NULL
 
 
   options("mc.cores" = mc )
@@ -1116,8 +1116,16 @@ predict.nlsur <- function(object, newdata, ...) {
 #' @importFrom Matrix crossprod kronecker Diagonal
 #' @importFrom methods as
 #' @export
-lm_gls <- function(X, Y, W, neqs, tol = 1e-7, covb = FALSE) {
+lm_gls <- function(X, Y, W, wts, neqs, tol = 1e-7, covb = FALSE) {
 
+  if (missing(wts)) {
+    wts <- rep.int(x = 1, times = nrow(X))
+  } else {
+    if(!all(wts == 1)){
+      X <- X * wts
+      Y <- Y * wts
+    }
+  }
 
   eW <- eigen(W, TRUE)
   d <- eW$values
