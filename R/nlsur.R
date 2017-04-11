@@ -368,7 +368,7 @@
   z$n            <- n
   z$deviance     <- as.numeric(ssr)
 
-  z$wts          <- wts
+  z$weights      <- wts
   z$cov          <- covb
 
   class(z) <- "nlsur"
@@ -783,7 +783,7 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
 
   # if call did not contain weights: drop them
   if (is.null(wts))
-    z$wts <- NULL
+    z$weights <- NULL
 
 
   options("mc.cores" = mc )
@@ -892,10 +892,10 @@ summary.nlsur <- function(object, noconst = TRUE, multicores, ...) {
       wi       <- w/sum(w) * n[i]
 
       lhs_wm   <- wt_mean(x = lhs_i, w = wi)
-      wvar     <- (1/(n[i] - 1)) * sum( wi * (lhs_i - lhs_wm)^2)
+      wvar     <- (1/div[i]) * sum( wi * (lhs_i - lhs_wm)^2)
       mss[i]   <- wvar * div[i] - ssr[i]
     } else{
-      mss[i]   <- sum(lhs_i^2) * scale[i] - ssr[i]
+      mss[i]   <- sum(w * lhs_i^2) * scale[i] - ssr[i]
     }
 
     mse[i]   <- ssr[i] / n[i]
