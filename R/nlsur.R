@@ -866,10 +866,10 @@ summary.nlsur <- function(object, noconst = TRUE, ...) {
       wi       <- w/sum(w) * n[i]
 
       lhs_wm   <- wt_mean(x = lhs_i, w = wi)
-      wvar     <- (1/(n[i] - 1)) * sum( wi * (lhs_i - lhs_wm)^2)
+      wvar     <- (1/div[i]) * sum( wi * (lhs_i - lhs_wm)^2)
       mss[i]   <- wvar * div[i] - ssr[i]
     } else{
-      mss[i]   <- sum(lhs_i^2) * scale[i] - ssr[i]
+      mss[i]   <- sum(w * lhs_i^2) * scale[i] - ssr[i]
     }
 
     mse[i]   <- ssr[i] / n[i]
