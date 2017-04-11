@@ -832,7 +832,7 @@ summary.nlsur <- function(object, noconst = TRUE, multicores, ...) {
   nlsonly <- z$nlsonly
   est     <- z$coefficients
 
-  noconst <- sapply(eqconst, identical, character(0))
+  hasconst <- sapply(eqconst, is.character)
 
   # check weights
   if (is.null(w)) {
@@ -888,7 +888,7 @@ summary.nlsur <- function(object, noconst = TRUE, multicores, ...) {
     ssr[i]   <- sum( r[,i]^2 * w) * scale[i]
 
     # No constant found
-    if (!noconst[i]) {
+    if (hasconst[i]) {
       wi       <- w/sum(w) * n[i]
 
       lhs_wm   <- wt_mean(x = lhs_i, w = wi)
@@ -953,7 +953,7 @@ summary.nlsur <- function(object, noconst = TRUE, multicores, ...) {
   }
 
   # add constant variables to summary
-  if (any(!noconst)){
+  if (any(hasconst)){
     eqconst <- do.call(rbind, eqconst)
     neqconst <- ncol(eqconst)
 
@@ -965,7 +965,7 @@ summary.nlsur <- function(object, noconst = TRUE, multicores, ...) {
   cnst <- character(0)
   # if a equation contians more than one const only add it once and fill the
   # rest with blanks
-  if (any(!noconst)) {
+  if (any(hasconst)) {
     cnst <- c("Const")
     if (neqconst>1){
       cnst <- c(cnst, rep(x = "", (neqconst-1)))
