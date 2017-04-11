@@ -216,7 +216,7 @@
         # Use MASS::lm.gls inspired function for the weighted regression, this
         # will call eigen() to pre-weight r and x which then can be solved with
         # qr. This will be slower than blockwise wls but is numerically stable
-        theta.new <- lm_gls(X = x, Y = r, W = S, wts = wts, neqs = neqs, tol = tol)
+        theta.new <- lm_gls(X = x, Y = r, W = S, neqs = neqs, tol = tol)
 
       } else {
 
@@ -1116,16 +1116,7 @@ predict.nlsur <- function(object, newdata, ...) {
 #' @importFrom Matrix crossprod kronecker Diagonal
 #' @importFrom methods as
 #' @export
-lm_gls <- function(X, Y, W, wts, neqs, tol = 1e-7, covb = FALSE) {
-
-  if (missing(wts)) {
-    wts <- rep.int(x = 1, times = nrow(X))
-  } else {
-    if(!all(wts == 1)){
-      X <- X * wts
-      Y <- Y * wts
-    }
-  }
+lm_gls <- function(X, Y, W, neqs, tol = 1e-7, covb = FALSE) {
 
   eW <- eigen(W, TRUE)
   d <- eW$values
