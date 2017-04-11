@@ -1134,11 +1134,11 @@ lm_gls <- function(X, Y, W, neqs, tol = 1e-7, covb = FALSE) {
 
   X <- as(X, "sparseMatrix"); Y <- as(Y, "sparseMatrix")
 
-  if (covb)
+  if (covb) {
     fit <- Matrix::crossprod(A %*% X)
-
-  if (!covb)
+  } else {
     fit <- qr.coef(qr(A %*% X, tol = tol), A %*% Y)
+  }
 
   fit
 }
