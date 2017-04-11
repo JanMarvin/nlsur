@@ -367,7 +367,7 @@
   z$n            <- n
   z$deviance     <- as.numeric(ssr)
 
-  z$wts          <- wts
+  z$weights      <- wts
   z$cov          <- covb
 
   class(z) <- "nlsur"
@@ -771,7 +771,7 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
 
   # if call did not contain weights: drop them
   if (is.null(wts))
-    z$wts <- NULL
+    z$weights <- NULL
 
   z
 }
