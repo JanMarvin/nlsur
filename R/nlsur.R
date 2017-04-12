@@ -282,6 +282,9 @@
       # Reevaluation of ssr
       ssr <- calc_ssr(r, s, wts)
 
+      if (is.nan(ssr))
+        ssr <- Inf
+
       # divide stepsizeparameter
       alpha <- alpha/divi
 
