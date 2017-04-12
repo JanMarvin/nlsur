@@ -524,6 +524,18 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
 
     eqns <- list()
     eqns[[1]] <- gl
+  } else {
+    # check if formula is given as string if true make it a formula
+    ischar <- any(sapply(X = eqns, FUN = is.character))
+
+    if (ischar)
+      eqns <- lapply(X = eqns, FUN = as.formula)
+
+    haseqns <- all(sapply(X = eqns, FUN = is.formula))
+
+    if (!haseqns) {
+      stop("eqns was not of type formula. Stopping")
+    }
   }
 
   # Check if original call contains weights
