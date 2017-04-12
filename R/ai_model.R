@@ -281,8 +281,7 @@ ai <- function(w, p, x, z, a0 = 0, data, scale = FALSE,
                       logp = logp, logexp = logexp)
   }
 
-  res <- nlsur(eqns = model, data = data, type = 3,
-               trace = TRUE, ...)
+  res <- nlsur(eqns = model, data = data, type = 3, ...)
 
   res
 }
@@ -333,8 +332,7 @@ qai <- function(w, p, x, z, a0 = 0, data, scale = FALSE,
                       logp = logp, logexp = logexp)
   }
 
-  res <- nlsur(eqns = model, data = data, type = 3,
-               trace = TRUE, ...)
+  res <- nlsur(eqns = model, data = data, type = 3, ...)
 
   res
 }
