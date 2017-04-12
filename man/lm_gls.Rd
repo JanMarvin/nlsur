@@ -4,7 +4,7 @@
 \alias{lm_gls}
 \title{Calculate WLS using sparse matrix and qr}
 \usage{
-lm_gls(X, Y, W, wts, neqs, tol = 1e-07, covb = FALSE)
+lm_gls(X, Y, W, neqs, tol = 1e-07, covb = FALSE)
 }
 \arguments{
 \item{X}{n x m X matrix}
@@ -12,8 +12,6 @@ lm_gls(X, Y, W, wts, neqs, tol = 1e-07, covb = FALSE)
 \item{Y}{n x k matrix}
 
 \item{W}{n x n}
-
-\item{wts}{vector with weights}
 
 \item{neqs}{k}
 

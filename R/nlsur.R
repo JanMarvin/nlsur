@@ -216,7 +216,7 @@
         # Use MASS::lm.gls inspired function for the weighted regression, this
         # will call eigen() to pre-weight r and x which then can be solved with
         # qr. This will be slower than blockwise wls but is numerically stable
-        theta.new <- lm_gls(X = x, Y = r, W = S, wts = wts, neqs = neqs, tol = tol)
+        theta.new <- lm_gls(X = x, Y = r, W = S, neqs = neqs, tol = tol)
 
       } else {
 
@@ -333,7 +333,7 @@
     r <- do.call(cbind, ri)
     r <- matrix(r, ncol = 1)
 
-    covb <- lm_gls(X = x, Y = r, W = S, wts = wts, neqs = neqs, tol = tol, covb = TRUE)
+    covb <- lm_gls(X = x, Y = r, W = S, neqs = neqs, tol = tol, covb = TRUE)
   } else {
     # get xdx from calc_reg
     covb <- calc_reg(x, r, qS, wts, length(theta), 0, tol)
@@ -566,7 +566,7 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
   }
 
   # lm.gls does not allow weights
-  if ((isTRUE(qrsolve)) & !is.null(wts))
+  if ((isTRUE(qrsolve) | isTRUE(MASS)) & !is.null(wts))
     stop("With qrsolve and MASS you can not use weights.")
 
 
@@ -1122,20 +1122,13 @@ predict.nlsur <- function(object, newdata, ...) {
 #' @param X n x m X matrix
 #' @param Y n x k matrix
 #' @param W n x n
-#' @param wts vector with weights
 #' @param neqs k
 #' @param tol tolerance for qr
 #' @param covb if true covb is calculated else theta
 #' @importFrom Matrix crossprod kronecker Diagonal
 #' @importFrom methods as
 #' @export
-lm_gls <- function(X, Y, W, wts, neqs, tol = 1e-7, covb = FALSE) {
-
-  # if (!missing(wts) & !all(wts == 1)) {
-  #   X <- wts * X
-  #   Y <- wts * Y
-  # }
-
+lm_gls <- function(X, Y, W, neqs, tol = 1e-7, covb = FALSE) {
 
   eW <- eigen(W, TRUE)
   d <- eW$values
@@ -1156,7 +1149,7 @@ lm_gls <- function(X, Y, W, wts, neqs, tol = 1e-7, covb = FALSE) {
   if (covb) {
     fit <- Matrix::crossprod(A %*% X)
   } else {
-    fit <- qr.coef(qr(wts * (A %*% X), tol = tol), wts * (A %*% Y) )
+    fit <- qr.coef(qr(A %*% X, tol = tol), A %*% Y)
   }
 
   fit
