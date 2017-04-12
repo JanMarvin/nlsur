@@ -248,6 +248,7 @@ ai.model <- function(w, p, exp, alph0 = 10, logp = TRUE, logexp = TRUE,
 #' @param scale logical if TRUE Rays (1983) scaling is used.
 #' @param logp logical if prices are log prices.
 #' @param logexp logical if expenditure is log expenditure.
+#' @param ... additional options passed to nlsur
 #'
 #' @references Deaton, Angus S., Muellbauer, John: An Almost Ideal Demand
 #'  System, The American Economic Review 70(3), American Economic Association,
@@ -259,7 +260,7 @@ ai.model <- function(w, p, exp, alph0 = 10, logp = TRUE, logexp = TRUE,
 #'
 #' @export
 ai <- function(w, p, x, z, a0 = 0, data, scale = FALSE,
-               logp = TRUE, logexp = TRUE) {
+               logp = TRUE, logexp = TRUE, ...) {
 
   if (missing(z))
     z <- character(0)
@@ -280,8 +281,8 @@ ai <- function(w, p, x, z, a0 = 0, data, scale = FALSE,
                       logp = logp, logexp = logexp)
   }
 
-  res <- nlsur(eqns = model, data = data, type = 3, qrsolve = TRUE,
-               trace = TRUE)
+  res <- nlsur(eqns = model, data = data, type = 3,
+               trace = TRUE, ...)
 
   res
 }
@@ -299,6 +300,7 @@ ai <- function(w, p, x, z, a0 = 0, data, scale = FALSE,
 #' @param scale logical if TRUE Rays (1983) scaling is used.
 #' @param logp logical if prices are log prices.
 #' @param logexp logical if expenditure is log expenditure.
+#' @param ... additional options passed to nlsur
 #'
 #' @references Banks, James, Blundell, Richard, Lewbel, Arthur: Quadratic Engel
 #'  Curves and Consumer Demand, The Review of Economics and Statistics 79(4),
@@ -310,7 +312,7 @@ ai <- function(w, p, x, z, a0 = 0, data, scale = FALSE,
 #'
 #' @export
 qai <- function(w, p, x, z, a0 = 0, data, scale = FALSE,
-                logp = TRUE, logexp = TRUE) {
+                logp = TRUE, logexp = TRUE, ...) {
 
   if (missing(z))
     z <- character(0)
@@ -331,8 +333,8 @@ qai <- function(w, p, x, z, a0 = 0, data, scale = FALSE,
                       logp = logp, logexp = logexp)
   }
 
-  res <- nlsur(eqns = model, data = data, type = 3, qrsolve = TRUE,
-               trace = TRUE)
+  res <- nlsur(eqns = model, data = data, type = 3,
+               trace = TRUE, ...)
 
   res
 }

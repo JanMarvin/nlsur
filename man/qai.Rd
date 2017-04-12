@@ -4,7 +4,8 @@
 \alias{qai}
 \title{Estimation of an Quadratic Almost-Ideal Demand System}
 \usage{
-qai(w, p, x, z, a0 = 0, data, scale = FALSE, logp = TRUE, logexp = TRUE)
+qai(w, p, x, z, a0 = 0, data, scale = FALSE, logp = TRUE, logexp = TRUE,
+  ...)
 }
 \arguments{
 \item{w}{character vector of m budgetshares used for estimation.}
@@ -24,6 +25,8 @@ qai(w, p, x, z, a0 = 0, data, scale = FALSE, logp = TRUE, logexp = TRUE)
 \item{logp}{logical if prices are log prices.}
 
 \item{logexp}{logical if expenditure is log expenditure.}
+
+\item{...}{additional options passed to nlsur}
 }
 \description{
 Estimation of an Quadratic Almost-Ideal Demand System using nlsur().
