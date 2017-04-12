@@ -4,7 +4,8 @@
 \alias{ai}
 \title{Estimation of an Almost-Ideal Demand System}
 \usage{
-ai(w, p, x, z, a0 = 0, data, scale = FALSE, logp = TRUE, logexp = TRUE)
+ai(w, p, x, z, a0 = 0, data, scale = FALSE, logp = TRUE, logexp = TRUE,
+  ...)
 }
 \arguments{
 \item{w}{character vector of m budgetshares used for estimation.}
@@ -24,6 +25,8 @@ ai(w, p, x, z, a0 = 0, data, scale = FALSE, logp = TRUE, logexp = TRUE)
 \item{logp}{logical if prices are log prices.}
 
 \item{logexp}{logical if expenditure is log expenditure.}
+
+\item{...}{additional options passed to nlsur}
 }
 \description{
 Estimation of an Almost-Ideal Demand System using nlsur().
