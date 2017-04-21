@@ -12,12 +12,11 @@ Imports:
     car,
     Matrix,
     methods,
-    parallel,
-    stats,
-    Rcpp
+    stats
 Description: "Estimation of Nonlinear Least Squares (NLS), Feasibe Generalized
     NLS (FGNLS) and Iterative FGNLS (IFGNLS) for Systems of Equations."
 License: MIT + file LICENSE
-LinkingTo: Rcpp, RcppArmadillo
+LinkingTo: Rcpp,
+           RcppArmadillo
 ByteCompile: yes
 RoxygenNote: 6.0.1
