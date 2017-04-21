@@ -4,7 +4,7 @@
 \alias{summary.nlsur}
 \title{Summary of nlsur objects}
 \usage{
-\method{summary}{nlsur}(object, noconst = TRUE, ...)
+summary.nlsur(object, noconst = TRUE, ...)
 }
 \arguments{
 \item{object}{object of class nlsur.}
