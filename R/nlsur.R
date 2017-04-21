@@ -798,11 +798,7 @@ print.nlsur <- function(x, ...) {
   print(x$coefficients, ...)
 }
 
-#' Summary of nlsur objects
-#'
-#' @param object object of class nlsur.
-#' @param noconst logical value determining if model uses a constant or not.
-#' @param ... additional parameters (currently not used)
+#' @method summary nlsur
 #' @importFrom stats as.formula pt residuals weights
 #' @export
 summary.nlsur <- function(object, noconst = TRUE, ...) {
