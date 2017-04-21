@@ -806,6 +806,9 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
   z
 }
 
+#' Print nlsur estimates
+#'
+#' @param x of class nlsur
 #' @export
 print.nlsur <- function(x, ...) {
   # ... is to please check()
@@ -1024,6 +1027,9 @@ summary.nlsur <- function(object, noconst = TRUE, multicores, ...) {
   ans
 }
 
+#' Print nlsur summary
+#'
+#' @param x summary object of class nlsur
 #' @importFrom stats printCoefmat weights
 #' @export
 print.summary.nlsur <- function(x, digits, ...) {
