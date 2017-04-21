@@ -109,9 +109,7 @@ nlcom <- function(object, form, alpha = 0.05, rname) {
   z
 }
 
-#' Print nlcom results
-#'
-#' @param x nlcom object
+#' @method print nlcom
 #' @export
 print.nlcom <- function(x, ...) {
 
