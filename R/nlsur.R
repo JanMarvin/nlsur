@@ -260,7 +260,9 @@
       lhs <- rhs <- ri <- xi <- list()
       r <- x <- NULL
 
-      # begin equation loop: for (i in 1:neqs) {}
+      # begin equation loop: for (i in 1:neqs) {}. Everything is embeded in
+      # suppressWarnings() since eval of log(x) for x <= 0 will result in NaNs
+      # which must not result in a total estimation failure.
       lhs <- suppressWarnings(
         lapply(X = eqns_lhs, FUN = eval, envir = data, enclos = nlsur_coef)
       )
