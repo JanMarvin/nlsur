@@ -48,6 +48,9 @@ SEXP calc_ssr (arma::Mat<double> r, arma::Mat<double> s, arma::Col<double> w) {
     for (int i = 0; i < n; ++i){
       ssr += w(i) * pow( r.row(i) * s.col(j), 2);
     }
+
+    Rcpp::checkUserInterrupt();
+
   }
 
   return wrap(ssr * scale);
@@ -99,6 +102,8 @@ SEXP calc_reg (arma::Mat<double> x, arma::Mat<double> r, arma::Mat<double> qS,
       arma::Mat<double> YI = r.row(i).t();
       XDy += w(i) * XI.t() * qS * YI;
     }
+
+    Rcpp::checkUserInterrupt();
 
   }
 
