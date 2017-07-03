@@ -619,17 +619,15 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
 
   # define what will be done
   if (!is.null(type)) {
-    if(type == "NLS" | type == 1) {
+    if (type == "NLS" | type == 1) {
       nls <- TRUE
-    } else {
-      if (type == "FGNLS" | type == 2) {
-        fgnls <- TRUE
-      } else {
-        if (type == "IFGNLS" | type == 3) {
-          fgnls  <- TRUE
-          ifgnls <- TRUE
-        }
-      }
+    }
+    else if (type == "FGNLS" | type == 2) {
+      fgnls <- TRUE
+    }
+    else if (type == "IFGNLS" | type == 3) {
+      fgnls  <- TRUE
+      ifgnls <- TRUE
     }
   }
 
