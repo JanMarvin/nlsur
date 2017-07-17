@@ -8,7 +8,7 @@ using namespace Rcpp;
 
 // calc_ssr
 SEXP calc_ssr(arma::Mat<double> r, arma::Mat<double> s, arma::Col<double> w);
-RcppExport SEXP nlsur_calc_ssr(SEXP rSEXP, SEXP sSEXP, SEXP wSEXP) {
+RcppExport SEXP _nlsur_calc_ssr(SEXP rSEXP, SEXP sSEXP, SEXP wSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -21,7 +21,7 @@ END_RCPP
 }
 // arma_reshape
 arma::Mat<double> arma_reshape(arma::Mat<double> mm, int sizetheta);
-RcppExport SEXP nlsur_arma_reshape(SEXP mmSEXP, SEXP sizethetaSEXP) {
+RcppExport SEXP _nlsur_arma_reshape(SEXP mmSEXP, SEXP sizethetaSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -33,7 +33,7 @@ END_RCPP
 }
 // calc_reg
 SEXP calc_reg(arma::Mat<double> x, arma::Mat<double> r, arma::Mat<double> qS, arma::Col<double> w, int sizetheta, bool fullreg, double tol);
-RcppExport SEXP nlsur_calc_reg(SEXP xSEXP, SEXP rSEXP, SEXP qSSEXP, SEXP wSEXP, SEXP sizethetaSEXP, SEXP fullregSEXP, SEXP tolSEXP) {
+RcppExport SEXP _nlsur_calc_reg(SEXP xSEXP, SEXP rSEXP, SEXP qSSEXP, SEXP wSEXP, SEXP sizethetaSEXP, SEXP fullregSEXP, SEXP tolSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -50,7 +50,7 @@ END_RCPP
 }
 // wt_mean
 SEXP wt_mean(arma::Col<double>& x, arma::Col<double>& w);
-RcppExport SEXP nlsur_wt_mean(SEXP xSEXP, SEXP wSEXP) {
+RcppExport SEXP _nlsur_wt_mean(SEXP xSEXP, SEXP wSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -62,7 +62,7 @@ END_RCPP
 }
 // calc_robust
 SEXP calc_robust(arma::Mat<double> x, arma::Mat<double> u, arma::Mat<double> qS, arma::Col<double> w, int sizetheta);
-RcppExport SEXP nlsur_calc_robust(SEXP xSEXP, SEXP uSEXP, SEXP qSSEXP, SEXP wSEXP, SEXP sizethetaSEXP) {
+RcppExport SEXP _nlsur_calc_robust(SEXP xSEXP, SEXP uSEXP, SEXP qSSEXP, SEXP wSEXP, SEXP sizethetaSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -74,4 +74,18 @@ BEGIN_RCPP
     rcpp_result_gen = Rcpp::wrap(calc_robust(x, u, qS, w, sizetheta));
     return rcpp_result_gen;
 END_RCPP
+}
+
+static const R_CallMethodDef CallEntries[] = {
+    {"_nlsur_calc_ssr", (DL_FUNC) &_nlsur_calc_ssr, 3},
+    {"_nlsur_arma_reshape", (DL_FUNC) &_nlsur_arma_reshape, 2},
+    {"_nlsur_calc_reg", (DL_FUNC) &_nlsur_calc_reg, 7},
+    {"_nlsur_wt_mean", (DL_FUNC) &_nlsur_wt_mean, 2},
+    {"_nlsur_calc_robust", (DL_FUNC) &_nlsur_calc_robust, 5},
+    {NULL, NULL, 0}
+};
+
+RcppExport void R_init_nlsur(DllInfo *dll) {
+    R_registerRoutines(dll, NULL, CallEntries, NULL, NULL);
+    R_useDynamicSymbols(dll, FALSE);
 }
