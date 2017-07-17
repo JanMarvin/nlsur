@@ -7,15 +7,11 @@
 #' @param w w
 #' @export
 calc_ssr <- function(r, s, w) {
-    .Call(nlsur_calc_ssr, r, s, w)
+    .Call(`_nlsur_calc_ssr`, r, s, w)
 }
 
-#' arma_reshape
-#' @param mm mm
-#' @param sizetheta sizetheta
-#' @export
 arma_reshape <- function(mm, sizetheta) {
-    .Call(nlsur_arma_reshape, mm, sizetheta)
+    .Call(`_nlsur_arma_reshape`, mm, sizetheta)
 }
 
 #' calc_reg
@@ -28,7 +24,7 @@ arma_reshape <- function(mm, sizetheta) {
 #' @param tol tol
 #' @export
 calc_reg <- function(x, r, qS, w, sizetheta, fullreg, tol) {
-    .Call(nlsur_calc_reg, x, r, qS, w, sizetheta, fullreg, tol)
+    .Call(`_nlsur_calc_reg`, x, r, qS, w, sizetheta, fullreg, tol)
 }
 
 #' wt_mean
@@ -36,7 +32,7 @@ calc_reg <- function(x, r, qS, w, sizetheta, fullreg, tol) {
 #' @param w w
 #' @export
 wt_mean <- function(x, w) {
-    .Call(nlsur_wt_mean, x, w)
+    .Call(`_nlsur_wt_mean`, x, w)
 }
 
 #' calc_robust
@@ -47,6 +43,6 @@ wt_mean <- function(x, w) {
 #' @param sizetheta sizetheta
 #' @export
 calc_robust <- function(x, u, qS, w, sizetheta) {
-    .Call(nlsur_calc_robust, x, u, qS, w, sizetheta)
+    .Call(`_nlsur_calc_robust`, x, u, qS, w, sizetheta)
 }
 

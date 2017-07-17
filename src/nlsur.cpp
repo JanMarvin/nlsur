@@ -56,10 +56,10 @@ SEXP calc_ssr (arma::Mat<double> r, arma::Mat<double> s, arma::Col<double> w) {
   return wrap(ssr * scale);
 }
 
-//' arma_reshape
-//' @param mm mm
-//' @param sizetheta sizetheta
-//' @export
+// ' arma_reshape
+// ' @param mm mm
+// ' @param sizetheta sizetheta
+// ' @export
 // [[Rcpp::export]]
 arma::Mat<double> arma_reshape(arma::Mat<double> mm, int sizetheta) {
 
