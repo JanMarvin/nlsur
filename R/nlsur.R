@@ -126,16 +126,22 @@
   #### Initial evaluation ------------------------------------------------------
 
   # begin equation loop: for (i in 1:neqs) {}
-  lhs <- lapply(X = eqns_lhs, FUN = eval, envir = data, enclos = nlsur_coef)
-  rhs <- lapply(X = eqns_rhs, FUN = eval, envir = data, enclos = nlsur_coef)
+  lhs <- suppressWarnings(
+    lapply(X = eqns_lhs, FUN = eval, envir = data, enclos = nlsur_coef)
+  )
+  rhs <- suppressWarnings(
+    lapply(X = eqns_rhs, FUN = eval, envir = data, enclos = nlsur_coef)
+  )
   ri  <- mapply("-", lhs, rhs, SIMPLIFY = FALSE)
 
   rm(lhs, rhs)
 
-  x <- lapply(X = eqns, FUN = function(x) {
-    attr(eval(deriv(x, names(theta)),
-              envir = data, enclos = nlsur_coef), "gradient")
-  })
+  x <- suppressWarnings(
+    lapply(X = eqns, FUN = function(x) {
+      attr(eval(deriv(x, names(theta)),
+                envir = data, enclos = nlsur_coef), "gradient")
+    })
+  )
   # end equation loop
 
   n <- as.integer(lapply(X = x, FUN = nrow))
@@ -254,17 +260,25 @@
       lhs <- rhs <- ri <- xi <- list()
       r <- x <- NULL
 
-      # begin equation loop: for (i in 1:neqs) {}
-      lhs <- lapply(X = eqns_lhs, FUN = eval, envir = data, enclos = nlsur_coef)
-      rhs <- lapply(X = eqns_rhs, FUN = eval, envir = data, enclos = nlsur_coef)
+      # begin equation loop: for (i in 1:neqs) {}. Everything is embeded in
+      # suppressWarnings() since eval of log(x) for x <= 0 will result in NaNs
+      # which must not result in a total estimation failure.
+      lhs <- suppressWarnings(
+        lapply(X = eqns_lhs, FUN = eval, envir = data, enclos = nlsur_coef)
+      )
+      rhs <- suppressWarnings(
+        lapply(X = eqns_rhs, FUN = eval, envir = data, enclos = nlsur_coef)
+      )
       ri  <- mapply("-", lhs, rhs, SIMPLIFY = FALSE)
 
       rm(lhs, rhs)
 
-      x <- lapply(X = eqns, FUN = function(x) {
-        attr(eval(deriv(x, names(theta)),
-                  envir = data, enclos = nlsur_coef), "gradient")
-      })
+      x <- suppressWarnings(
+        lapply(X = eqns, FUN = function(x) {
+          attr(eval(deriv(x, names(theta)),
+                    envir = data, enclos = nlsur_coef), "gradient")
+        })
+      )
       # end equation loop
 
       r <- do.call(cbind, ri)
@@ -282,8 +296,9 @@
       # Reevaluation of ssr
       ssr <- calc_ssr(r, s, wts)
 
-      if (is.nan(ssr))
+      if (is.nan(ssr)){
         ssr <- Inf
+      }
 
       # divide stepsizeparameter
       alpha <- alpha/divi
