@@ -14,9 +14,9 @@ b <- coef(nls("Y ~ a + b * X", data = dat, start = c(a=0, b=0)))
 c <- coef(nls(model[[1]], data = dat, start = c(a=0, b=0)))
 
 
-A <- coef(nlsur(Y ~ a + b * X, data = dat))
-B <- coef(nlsur("Y ~ a + b * X", data = dat))
-C <- coef(nlsur(model, data = dat, startvalues = c(a = 0, b=0)))
+A <- coef(nlsur(Y ~ a + b * X, data = dat, multicores = 1))
+B <- coef(nlsur("Y ~ a + b * X", data = dat, multicores = 1))
+C <- coef(nlsur(model, data = dat, startvalues = c(a = 0, b=0), multicores = 1))
 
 
 # weighted nls
@@ -28,11 +28,11 @@ cw <- coef(nls(model[[1]], data = dat, start = c(a=0, b=0),
                weights = W))
 
 Aw <- coef(nlsur(Y ~ a + b * X, data = dat,
-                 weights = W))
+                 weights = W, multicores = 1))
 Bw <- coef(nlsur("Y ~ a + b * X", data = dat,
-                 weights = W))
+                 weights = W, multicores = 1))
 Cw <- coef(nlsur(model, data = dat, startvalues = c(a = 0, b=0),
-                 weights = W))
+                 weights = W, multicores = 1))
 
 #### nls ####
 test_that("nls", {

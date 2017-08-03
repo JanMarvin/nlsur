@@ -41,18 +41,18 @@ model <- list(
 )
 
 e1   <- nlsur(eqns = model, data = dat, type = "NLS", stata = FALSE,
-              qrsolve = FALSE)
+              qrsolve = FALSE, multicores = 1)
 e2   <- nlsur(eqns = model, data = dat, type = "NLS", stata = FALSE,
-              qrsolve = TRUE)
+              qrsolve = TRUE, multicores = 1)
 
 
 E1   <- nlsur(eqns = model, data = dat, type = "IFGNLS",
-              MASS = FALSE)
+              MASS = FALSE, multicores = 1)
 E2   <- nlsur(eqns = model, data = dat, type = "IFGNLS",
-              MASS = TRUE)
+              MASS = TRUE, multicores = 1)
 
 
-erg2 <- nlsur(eqns = model, data = dat, type = "FGNLS")
+erg2 <- nlsur(eqns = model, data = dat, type = "FGNLS", multicores = 1)
 erg2
 
 # indirect estimation of translog parameters
@@ -74,7 +74,7 @@ dmm <- nlcom(object = erg2,
              form = "-(-dkk -dkl -dke) -(-dkl -dll -dle) -(-dke -dle -dee)")
 # dmm
 
-est <- summary(erg2)$coefficients
+est <- summary(erg2, multicores = 1)$coefficients
 ind <- rbind(bm, dkm, dlm, dem, dmm)
 
 res <- rbind(est, ind)
