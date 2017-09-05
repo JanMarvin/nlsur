@@ -25,6 +25,7 @@
 #' nlcom estimations.
 #' @param alpha value for conf. interval default is 0.05
 #' @param rname optional rowname for result
+#' @param envir optional name of environment to search for additional parameters
 #' @importFrom car deltaMethod
 #' @importFrom stats coef formula pt qnorm
 #' @seealso \link{deltaMethod}
@@ -49,7 +50,7 @@
 #' }
 #'
 #' @export
-nlcom <- function(object, form, alpha = 0.05, rname) {
+nlcom <- function(object, form, alpha = 0.05, rname, envir) {
 
   # store original form
   oform <- form
@@ -58,11 +59,14 @@ nlcom <- function(object, form, alpha = 0.05, rname) {
   vars <- all.vars(formula(paste(form, "~ 0")))
   vars <- vars[!(vars %in% names(coef(object)))]
 
+  if (missing(envir))
+    envir <- environment()
+
   # if form contains other nlcom estimates, fetch their formula and update
   # the current form with the older formula.
   if( !identical(vars, character(0)) ){
     for (i in vars){
-      tmp <- get0(x = i)
+      tmp <- get0(x = i, envir = envir)
 
       if(class(tmp) == "nlcom") {
         fname <- paste("(", attr(tmp, "form"), ")")
