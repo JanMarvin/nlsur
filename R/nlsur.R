@@ -733,6 +733,11 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
 
         conv <- all(conv1, conv2)
 
+        # override if theta.old and theta are already equal values so that
+        # theta.old - theta == 0
+        if(isTRUE(all.equal(theta.old, theta)))
+          conv <- TRUE
+
         # Iteration output
         if (trace)
           cat("Iteration", iter, ": SSR", rss, "\n")

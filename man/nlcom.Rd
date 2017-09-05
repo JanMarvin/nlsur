@@ -4,7 +4,7 @@
 \alias{nlcom}
 \title{Estimate nonlinear combinations of nlsur estimates}
 \usage{
-nlcom(object, form, alpha = 0.05, rname)
+nlcom(object, form, alpha = 0.05, rname, envir)
 }
 \arguments{
 \item{object}{of class nlsur}
@@ -15,6 +15,8 @@ nlcom estimations.}
 \item{alpha}{value for conf. interval default is 0.05}
 
 \item{rname}{optional rowname for result}
+
+\item{envir}{optional name of environment to search for additional parameters}
 }
 \description{
 Estimate nonlinear combinations of nlsur estimates
