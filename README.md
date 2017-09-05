@@ -12,7 +12,7 @@ The packages supports a variety of functions like `print()`, `coef()`, `summary(
 devtools::install_github("JanMarvin/nlsur")
 ```
 
-# Application
+## Application
 
 With `nlsur()` it is rather straight forward to estimate nonlinear demand systems. As example the following Translog demand system can be estimated.
 
@@ -54,6 +54,6 @@ dmm <- nlcom(object = erg2, form = "-dkm -dlm -dem", rname = "dmm")
 ```
 
 
-# Status
+## Status
 
 [![Build Status](https://travis-ci.org/JanMarvin/nlsur.svg?branch=master)](https://travis-ci.org/JanMarvin/nlsur)
