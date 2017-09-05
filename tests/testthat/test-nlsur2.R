@@ -1,3 +1,7 @@
+
+# set enviroment
+env <- new.env()
+
 # compare greene with nlsur
 greene <- read.table(header = TRUE, sep  = ",", text = "
 name,Coef,SE
@@ -69,9 +73,9 @@ dem <- nlcom(object = erg2, form = "-dke -dle -dee", rname = "dem")
 # dem
 
 # # testthat does not like my get.
-# dmm <- nlcom(object = erg2, form = "-dkm -dlm -dem", rname = "dmm")
-dmm <- nlcom(object = erg2,
-             form = "-(-dkk -dkl -dke) -(-dkl -dll -dle) -(-dke -dle -dee)")
+dmm <- nlcom(object = erg2, form = "-dkm -dlm -dem", rname = "dmm", envir = env)
+# dmm <- nlcom(object = erg2,
+#              form = "-(-dkk -dkl -dke) -(-dkl -dll -dle) -(-dke -dle -dee)")
 # dmm
 
 est <- summary(erg2, multicores = 1)$coefficients
