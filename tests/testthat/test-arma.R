@@ -56,7 +56,7 @@ mm_m <- matrix(t(mm), nrow = 2, byrow =T )
 
 # wls
 BB <- t(qr.coef(qr(XDX), XDY))
-Bb <- coef(lm.gls(R ~ 0 + X, W = W))
+# Bb <- coef(lm.gls(R ~ 0 + X, W = W)) # requies MASS
 bb <- calc_reg(x = x, r = r, qS = qS,
                w = w, sizetheta = length(theta),
                fullreg = 1, tol = .Machine$double.eps)
@@ -68,7 +68,7 @@ XDX_a <- calc_reg(x = x, r = r, qS = qS,
 dimnames(XDX_a) <- list(theta, theta)
 
 BB <- as.vector(BB)
-Bb <- as.vector(Bb)
+# Bb <- as.vector(Bb)
 bb <- as.vector(bb)
 
 # wt_mean
@@ -108,7 +108,7 @@ test_that("arma_reshape", {
 #### calc_reg ####
 test_that("calc_reg", {
   expect_equal(bb, BB)
-  expect_equal(bb, Bb)
+  # expect_equal(bb, Bb)
   expect_equal(XDX_a, XDX)
 })
 
