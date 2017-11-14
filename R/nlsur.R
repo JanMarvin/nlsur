@@ -316,16 +316,16 @@
 
     # ssr: |ssr.old - ssr| < eps | ssr.old + tau|
 
-    conv1 <- !isTRUE(abs(ssr.old - ssr) >
-                       eps * (ssr.old + tau))
+    conv1 <- as.logical(abs(ssr.old - ssr) <=
+                          eps * (ssr.old + tau))
 
     # theta: ||theta - theta.new|| < eps (||theta|| + tau)
     # conv2 <- !isTRUE(norm(as.matrix(theta - theta.new)) <
     #                    eps * (norm(as.matrix(theta)) + tau))
 
     # alpha was already divided
-    conv2 <- !all( (alpha*divi) * abs(theta) >
-                     eps * (abs(theta.old) + tau), na.rm = TRUE )
+    conv2 <- all( (alpha*divi) * abs(theta) <=
+                    eps * (abs(theta.old) + tau), na.rm = TRUE )
 
     # this is what Stata documents what they do for nl. include alpha?
     # conv2 <- all( alpha * abs(theta.new) <= eps * (abs(theta) + tau) )
