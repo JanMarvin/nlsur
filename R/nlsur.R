@@ -747,7 +747,7 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
 
         # override if theta.old and theta are already equal values so that
         # theta.old - theta == 0
-        if(isTRUE(all.equal(theta.old, theta)))
+        if (isTRUE(all.equal(theta.old, theta)))
           conv <- TRUE
 
         # Iteration output
@@ -765,7 +765,7 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
   }
 
   # initial is true so collect final k and df
-  if(initial) {
+  if (initial) {
     n <- z$n; k <- z$k; df <- z$df
   }
 
@@ -1052,7 +1052,7 @@ print.summary.nlsur <- function(x, digits, ...) {
   }
 
   # digits to be presented
-  if(missing(digits))
+  if (missing(digits))
     digits <- 4
 
   print(x$zi, digits = digits)

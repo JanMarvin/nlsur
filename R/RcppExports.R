@@ -10,6 +10,10 @@ calc_ssr <- function(r, s, w) {
     .Call(`_nlsur_calc_ssr`, r, s, w)
 }
 
+#' arma_reshape
+#' @param mm mm
+#' @param sizetheta sizetheta
+#' @export
 arma_reshape <- function(mm, sizetheta) {
     .Call(`_nlsur_arma_reshape`, mm, sizetheta)
 }
