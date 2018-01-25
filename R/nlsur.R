@@ -329,7 +329,7 @@
     # this is what Stata documents what they do for nl. include alpha?
     # conv2 <- all( alpha * abs(theta.new) <= eps * (abs(theta) + tau) )
 
-    # both convergence criteria should be TRUE Himmelblau (1972) according to
+    # both convergence criteria should be TRUE [Himmelblau (1972)] according to
     # Bates and Watts (1988) p.49
     conv <- all(conv1, conv2)
 
@@ -607,7 +607,7 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
 
   # define what will be done
   if (!is.null(type)) {
-    if(type == "NLS" | type == 1) {
+    if (type == "NLS" | type == 1) {
       nls <- TRUE
     }
     else if (type == "FGNLS" | type == 2) {
@@ -735,7 +735,7 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
 
         # override if theta.old and theta are already equal values so that
         # theta.old - theta == 0
-        if(isTRUE(all.equal(theta.old, theta)))
+        if (isTRUE(all.equal(theta.old, theta)))
           conv <- TRUE
 
         # Iteration output
@@ -753,7 +753,7 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
   }
 
   # initial is true so collect final k and df
-  if(initial) {
+  if (initial) {
     n <- z$n; k <- z$k; df <- z$df
   }
 
@@ -1024,7 +1024,7 @@ print.summary.nlsur <- function(x, digits, ...) {
   }
 
   # digits to be presented
-  if(missing(digits))
+  if (missing(digits))
     digits <- 4
 
   print(x$zi, digits = digits)
@@ -1118,7 +1118,6 @@ predict.nlsur <- function(object, newdata, ...) {
 #' @importFrom methods as
 #' @export
 lm_gls <- function(X, Y, W, neqs, tol = 1e-7, covb = FALSE) {
-
 
   eW <- eigen(W, TRUE)
   d <- eW$values
