@@ -13,7 +13,7 @@ Imports:
     Matrix,
     methods,
     stats
-Description: "Estimation of Nonlinear Least Squares (NLS), Feasibe Generalized
+Description: "Estimation of Nonlinear Least Squares (NLS), Feasible Generalized
     NLS (FGNLS) and Iterative FGNLS (IFGNLS) for Systems of Equations."
 License: MIT + file LICENSE
 LinkingTo: Rcpp,
