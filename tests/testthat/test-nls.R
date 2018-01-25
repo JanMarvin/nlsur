@@ -19,9 +19,9 @@ b <- coef(m2)
 c <- coef(m3)
 
 
-M1 <- nlsur(Y ~ a + b * X, data = dat)
-M2 <- nlsur("Y ~ a + b * X", data = dat)
-M3 <- nlsur(model, data = dat, startvalues = c(a = 0, b = 0))
+M1 <- nlsur(Y ~ a + b * X, data = dat, multicores = 1)
+M2 <- nlsur("Y ~ a + b * X", data = dat, multicores = 1)
+M3 <- nlsur(model, data = dat, startvalues = c(a = 0, b = 0), multicores = 1)
 
 A <- coef(M1)
 B <- coef(M2)
@@ -37,11 +37,11 @@ cw <- coef(nls(model[[1]], data = dat, start = c(a = 0, b = 0),
                weights = W))
 
 Aw <- coef(nlsur(Y ~ a + b * X, data = dat,
-                 weights = W))
+                 weights = W, multicores = 1))
 Bw <- coef(nlsur("Y ~ a + b * X", data = dat,
-                 weights = W))
+                 weights = W, multicores = 1))
 Cw <- coef(nlsur(model, data = dat, startvalues = c(a = 0, b = 0),
-                 weights = W))
+                 weights = W, multicores = 1))
 
 # newly added nls test
 fml <- "y ~ b0 + pmax(x, pi)"
@@ -53,7 +53,8 @@ res_nls <- nls(fml, dat, start = list(b0 = 0))
 # nlsur model with options to calculate it numerically stable
 # and comparable to nls
 res_nlsur <- nlsur(eqns = fml, data = dat, startvalues = c(b0 = 0),
-                   stata = FALSE, type = "NLS", qrsolve = TRUE, MASS = TRUE)
+                   stata = FALSE, type = "NLS", qrsolve = TRUE, MASS = TRUE,
+                   multicores = 1)
 
 # predict
 pm1 <- predict(m1)

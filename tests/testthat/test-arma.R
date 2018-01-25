@@ -87,9 +87,10 @@ sandwich_se <- c(355.081244412386,
 
 eqs <- "Cost ~ b0 + b1 * Sk  + b2 * Sl  + b3 * Se"
 nes <- nlsur(eqns = eqs, data = costs,
-             type = "NLS", stata = TRUE, robust = TRUE)
+             type = "NLS", stata = TRUE, robust = TRUE,
+             multicores = 1)
 
-nlsur_se <- summary(nes)$coefficients[, 2]
+nlsur_se <- summary(nes, multicores = 1)$coefficients[, 2]
 names(nlsur_se) <- NULL
 
 #### calc_ssr ####

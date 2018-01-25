@@ -22,7 +22,8 @@ nlsur(
   eps = 1e-05,
   ifgnlseps = 1e-10,
   tau = 0.001,
-  initial = FALSE
+  initial = FALSE,
+  multicores
 )
 }
 \arguments{
@@ -74,6 +75,9 @@ Default is 0.}
 
 \item{initial}{logical value to define if rankMatrix is calculated every
 iteration of nlsur.}
+
+\item{multicores}{number of cores used for parallel mcl-/mcmapply if no value
+is set this defaults to n-1.}
 }
 \value{
 The function returns a list object of class nlsur. The list includes:

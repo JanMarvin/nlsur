@@ -16,7 +16,7 @@ model <- "y ~ b * x"
 # res
 res_a <- summary(lm("y~0+x", data = dd))
 res_1 <- summary(nls(formula = model, data = dd, start = c(b = 0)))
-res_2 <- summary(nlsur(eqns = model, data = dd))
+res_2 <- summary(nlsur(eqns = model, data = dd, multicores = 1), multicores = 1)
 
 x1.1 <- res_a$r.squared
 x1.2 <- res_2$zi["R-squared"]
@@ -24,7 +24,7 @@ x1.2 <- res_2$zi["R-squared"]
 # res weighted
 res_a <- summary(lm("y~0+x", data = dd, weights = w))
 res_1 <- summary(nls(formula = model, data = dd, weights = w, start = c(b = 0)))
-res_2 <- summary(nlsur(eqns = model, data = dd, weights = w, type = 1, stata = FALSE))
+res_2 <- summary(nlsur(eqns = model, data = dd, weights = w, type = 1, stata = FALSE, multicores = 1), multicores = 1)
 
 x1.3 <- res_a$r.squared
 x1.4 <- res_2$zi["R-squared"]
@@ -37,7 +37,7 @@ model <- "y ~ a + b * x"
 # res
 res_a <- summary(lm("y~x", data = dd))
 res_1 <- summary(nls(formula = model, data = dd, start = c(a = 0, b = 0)))
-res_2 <- summary(nlsur(eqns = model, data = dd))
+res_2 <- summary(nlsur(eqns = model, data = dd, multicores = 1), multicores = 1)
 
 x2.1 <- res_a$r.squared
 x2.2 <- res_2$zi["R-squared"]
@@ -45,7 +45,7 @@ x2.2 <- res_2$zi["R-squared"]
 # res weighted
 res_a <- summary(lm("y~x", data = dd, weights = w))
 res_1 <- summary(nls(formula = model, data = dd, weights = w, start = c(a = 0, b = 0)))
-res_2 <- summary(nlsur(eqns = model, data = dd, weights = w, type = 1, stata = FALSE))
+res_2 <- summary(nlsur(eqns = model, data = dd, weights = w, type = 1, stata = FALSE, multicores = 1), multicores = 1)
 
 x2.3 <- res_a$r.squared
 x2.4 <- res_2$zi["R-squared"]
