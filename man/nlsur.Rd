@@ -7,7 +7,7 @@
 nlsur(eqns, data, startvalues, type = NULL, S = NULL, trace = FALSE,
   robust = FALSE, stata = TRUE, qrsolve = FALSE, weights, MASS = FALSE,
   maxiter = 1000, val = 0, tol = 1e-07, eps = 1e-05,
-  ifgnlseps = 1e-10, tau = 0.001, initial = FALSE)
+  ifgnlseps = 1e-10, tau = 0.001, initial = FALSE, multicores)
 }
 \arguments{
 \item{eqns}{is a list object containing the model as formula. This list can
@@ -58,6 +58,9 @@ Default is 0.}
 
 \item{initial}{logical value to define if rankMatrix is calculated every
 iteration of nlsur.}
+
+\item{multicores}{number of cores used for parallel mcl-/mcmapply if no value
+is set this defaults to n-1.}
 }
 \value{
 The function returns a list object of class nlsur. The list includes:
