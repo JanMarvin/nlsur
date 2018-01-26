@@ -2,7 +2,7 @@
 % Please edit documentation in R/RcppExports.R
 \name{wls_est}
 \alias{wls_est}
-\title{wls_est}
+\title{Blockwise WLS estimation}
 \usage{
 wls_est(x, r, qS, w, sizetheta, fullreg, tol)
 }
@@ -22,6 +22,14 @@ wls_est(x, r, qS, w, sizetheta, fullreg, tol)
 \item{tol}{tolerance used for qr()}
 }
 \description{
+Blockwise WLS estimation. Usually for \eqn{(X'X)^{-1} W^{-1} X'Y} X and Y
+X, W and Y are of similar dimensions. In nlsur W is a cov-matrix of size
+\eqn{k \times k} and usually way smaller than X. To avoid blowing all
+matrices up for the estimation, a blockwise approach is used. X is shrunken
+to match size k. W is D'D so XDX is calculated. XDy is only calculated if
+wanted for a full WLS. For the cov-matrix only XDX is required.
+}
+\details{
 as reference see:
 http://www.navipedia.net/index.php/Block-Wise_Weighted_Least_Square
 }

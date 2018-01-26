@@ -5,7 +5,7 @@
 using namespace Rcpp;
 using namespace arma;
 
-//' ssr_est
+//' Estimate residual sum of squares
 //' @description calculate SSR where
 //' \eqn{SSR(\beta) = u'D'Du.}
 //' @param r residuals
@@ -33,10 +33,10 @@ SEXP ssr_est(arma::Mat<double> r, arma::Mat<double> s, arma::Col<double> w) {
   return wrap(ssr * scale);
 }
 
-//' arma_reshape
+//' Reshape matrix for blockwise WLS estimation
 //' @param mm a matrix
 //' @param sizetheta integer of length(theta) to shrink mm into
-//' @description reshape mm for blockwise multiplication
+//' @description reshape mm for blockwise multiplication in wls_est
 //' @examples
 //' mm <- matrix(c(11,21,31,41,
 //'  12,22,32,42,
@@ -59,7 +59,14 @@ arma::Mat<double> arma_reshape(arma::Mat<double> mm, int sizetheta) {
   return mm.t();
 }
 
-//' wls_est
+//' Blockwise WLS estimation
+//' @description
+//' Blockwise WLS estimation. Usually for \eqn{(X'X)^{-1} W^{-1} X'Y} X and Y
+//' X, W and Y are of similar dimensions. In nlsur W is a cov-matrix of size
+//' \eqn{k \times k} and usually way smaller than X. To avoid blowing all
+//' matrices up for the estimation, a blockwise approach is used. X is shrunken
+//' to match size k. W is D'D so XDX is calculated. XDy is only calculated if
+//' wanted for a full WLS. For the cov-matrix only XDX is required.
 //' @param x matrix of derivatives
 //' @param r residual matrix
 //' @param qS weighting matrix of sizetheta x sizetheta
@@ -67,7 +74,7 @@ arma::Mat<double> arma_reshape(arma::Mat<double> mm, int sizetheta) {
 //' @param sizetheta integer defining the amount of coefficients
 //' @param fullreg bool defining if WLS or Cov is calculated
 //' @param tol tolerance used for qr()
-//' @description as reference see:
+//' @details as reference see:
 //' http://www.navipedia.net/index.php/Block-Wise_Weighted_Least_Square
 //' @export
 // [[Rcpp::export]]
@@ -104,7 +111,7 @@ SEXP wls_est(arma::Mat<double> x, arma::Mat<double> r, arma::Mat<double> qS,
     return wrap(XDX);
 }
 
-//' wt_mean
+//' Calculate a weighted mean
 //' @param x matrix of derivatives
 //' @param w vector of weights
 //' @export
@@ -115,7 +122,7 @@ SEXP wt_mean(arma::Col<double>& x, arma::Col<double>& w) {
 
 }
 
-//' cov_robust
+//' Calculate a robust covariance matrix
 //'
 //' @param x matrix of derivatives
 //' @param u u

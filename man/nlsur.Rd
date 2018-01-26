@@ -39,9 +39,9 @@ of the I matrix with the coefficients.}
 
 \item{weights}{Additional weight vector.}
 
-\item{MASS}{is a logical wheather the MASS::lm.gls() function should be used
-for weighted Regression. This can cause sever RAM usage as the weight matrix
-tend to be huge (n-equations * n-rows).}
+\item{MASS}{is a logical wheather an R function similar to the MASS::lm.gls()
+function should be used for weighted Regression. This can cause sever RAM
+usage as the weight matrix tend to be huge (n-equations * n-rows).}
 
 \item{maxiter}{Maximum number of iterations.}
 

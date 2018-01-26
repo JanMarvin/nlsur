@@ -14,7 +14,7 @@ Imports:
     methods,
     stats
 Description: "Estimation of Nonlinear Least Squares (NLS), Feasible Generalized
-    NLS (FGNLS) and Iterative FGNLS (IFGNLS) for Systems of Equations."
+    NLS (FGNLS) and Iterative FGNLS (IFGNLS) for Equation Systems."
 License: MIT + file LICENCE
 LinkingTo: Rcpp,
            RcppArmadillo

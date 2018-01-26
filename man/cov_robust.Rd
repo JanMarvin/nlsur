@@ -2,7 +2,7 @@
 % Please edit documentation in R/RcppExports.R
 \name{cov_robust}
 \alias{cov_robust}
-\title{cov_robust}
+\title{Calculate a robust covariance matrix}
 \usage{
 cov_robust(x, u, qS, w, sizetheta)
 }

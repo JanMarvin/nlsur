@@ -2,7 +2,7 @@
 % Please edit documentation in R/RcppExports.R
 \name{ssr_est}
 \alias{ssr_est}
-\title{ssr_est}
+\title{Estimate residual sum of squares}
 \usage{
 ssr_est(r, s, w)
 }

@@ -56,12 +56,12 @@ mm_m <- matrix(t(mm), nrow = 2, byrow =T )
 BB <- t(qr.coef(qr(XDX), XDY))
 # Bb <- coef(lm.gls(R ~ 0 + X, W = W)) # requies MASS
 bb <- wls_est(x = x, r = r, qS = qS,
-               w = w, sizetheta = length(theta),
-               fullreg = 1, tol = .Machine$double.eps)
+              w = w, sizetheta = length(theta),
+              fullreg = 1, tol = .Machine$double.eps)
 
 XDX_a <- wls_est(x = x, r = r, qS = qS,
-                  w = w, sizetheta = length(theta),
-                  fullreg = 0, tol = .Machine$double.eps)
+                 w = w, sizetheta = length(theta),
+                 fullreg = 0, tol = .Machine$double.eps)
 
 dimnames(XDX_a) <- list(theta, theta)
 
