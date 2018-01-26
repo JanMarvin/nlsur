@@ -38,7 +38,7 @@ XDX <- t(X) %*% W %*% X
 XDY <- t(X) %*% W %*% R
 
 # calc_ssr
-rss_a <- calc_ssr(r = r, s = s, w = w)
+rss_a <- ssr_est(r = r, s = s, w = w)
 
 rss_m <- crossprod( S %*% R)
 
@@ -57,11 +57,11 @@ mm_m <- matrix(t(mm), nrow = 2, byrow =T )
 # wls
 BB <- t(qr.coef(qr(XDX), XDY))
 # Bb <- coef(lm.gls(R ~ 0 + X, W = W)) # requies MASS
-bb <- calc_reg(x = x, r = r, qS = qS,
+bb <- wls_est(x = x, r = r, qS = qS,
                w = w, sizetheta = length(theta),
                fullreg = 1, tol = .Machine$double.eps)
 
-XDX_a <- calc_reg(x = x, r = r, qS = qS,
+XDX_a <- wls_est(x = x, r = r, qS = qS,
                   w = w, sizetheta = length(theta),
                   fullreg = 0, tol = .Machine$double.eps)
 
@@ -95,7 +95,7 @@ nlsur_se <- summary(nes)$coefficients[,2]
 names(nlsur_se) <- NULL
 
 #### calc_ssr ####
-test_that("calc_ssr", {
+test_that("ssr_est", {
   expect_equal(rss_a, rss_m)
 })
 
@@ -105,7 +105,7 @@ test_that("arma_reshape", {
 })
 
 #### calc_reg ####
-test_that("calc_reg", {
+test_that("wls_est", {
   expect_equal(bb, BB)
   # expect_equal(bb, Bb)
   expect_equal(XDX_a, XDX)
@@ -117,6 +117,6 @@ test_that("wt_mean", {
 })
 
 #### calc_robust ####
-test_that("calc_robust", {
+test_that("cov_robust", {
   expect_equal(sandwich_se, nlsur_se)
 })

@@ -149,7 +149,7 @@
 
 
   # Evaluate initial ssr
-  ssr.old <- calc_ssr(r, s, wts)
+  ssr.old <- ssr_est(r, s, wts)
 
   # Print initial ssr
   if (trace)
@@ -206,7 +206,7 @@
       } else {
 
         # Weighted regression of residuals on derivs ---
-        theta.new <- calc_reg(x, r, qS, wts, length(theta), 1, tol)
+        theta.new <- wls_est(x, r, qS, wts, length(theta), 1, tol)
 
       }
 
@@ -274,7 +274,7 @@
       # x[,colnames(x) %in% theta_na] <- NA
 
       # Reevaluation of ssr
-      ssr <- calc_ssr(r, s, wts)
+      ssr <- ssr_est(r, s, wts)
 
       if (is.nan(ssr)){
         ssr <- Inf
@@ -332,8 +332,8 @@
 
     covb <- lm_gls(X = x, Y = r, W = S, neqs = neqs, tol = tol, covb = TRUE)
   } else {
-    # get xdx from calc_reg
-    covb <- calc_reg(x, r, qS, wts, length(theta), 0, tol)
+    # get xdx from wls
+    covb <- wls_est(x, r, qS, wts, length(theta), 0, tol)
   }
 
   # # if singularities are detected covb will contain cols and rows with NA
@@ -342,8 +342,8 @@
 
   # calculate robust standard errors
   if (robust) {
-    # get xdu from calc_robust
-    xdu <- calc_robust(x, r, qS, wts, length(theta))
+    # get xdu from cov_robust
+    xdu <- cov_robust(x, r, qS, wts, length(theta))
 
     # only good rows
     xdu <- xdu[!is.na(theta), !is.na(theta)]
@@ -692,7 +692,7 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
         theta <- coef(z)
 
         s   <- chol(qr.solve(S, tol = tol))
-        rss <- calc_ssr(r, s, data$w)
+        rss <- ssr_est(r, s, data$w)
 
         iter <- iter +1
 

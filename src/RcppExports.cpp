@@ -6,16 +6,16 @@
 
 using namespace Rcpp;
 
-// calc_ssr
-SEXP calc_ssr(arma::Mat<double> r, arma::Mat<double> s, arma::Col<double> w);
-RcppExport SEXP _nlsur_calc_ssr(SEXP rSEXP, SEXP sSEXP, SEXP wSEXP) {
+// ssr_est
+SEXP ssr_est(arma::Mat<double> r, arma::Mat<double> s, arma::Col<double> w);
+RcppExport SEXP _nlsur_ssr_est(SEXP rSEXP, SEXP sSEXP, SEXP wSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< arma::Mat<double> >::type r(rSEXP);
     Rcpp::traits::input_parameter< arma::Mat<double> >::type s(sSEXP);
     Rcpp::traits::input_parameter< arma::Col<double> >::type w(wSEXP);
-    rcpp_result_gen = Rcpp::wrap(calc_ssr(r, s, w));
+    rcpp_result_gen = Rcpp::wrap(ssr_est(r, s, w));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -31,9 +31,9 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// calc_reg
-SEXP calc_reg(arma::Mat<double> x, arma::Mat<double> r, arma::Mat<double> qS, arma::Col<double> w, int sizetheta, bool fullreg, double tol);
-RcppExport SEXP _nlsur_calc_reg(SEXP xSEXP, SEXP rSEXP, SEXP qSSEXP, SEXP wSEXP, SEXP sizethetaSEXP, SEXP fullregSEXP, SEXP tolSEXP) {
+// wls_est
+SEXP wls_est(arma::Mat<double> x, arma::Mat<double> r, arma::Mat<double> qS, arma::Col<double> w, int sizetheta, bool fullreg, double tol);
+RcppExport SEXP _nlsur_wls_est(SEXP xSEXP, SEXP rSEXP, SEXP qSSEXP, SEXP wSEXP, SEXP sizethetaSEXP, SEXP fullregSEXP, SEXP tolSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -44,7 +44,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< int >::type sizetheta(sizethetaSEXP);
     Rcpp::traits::input_parameter< bool >::type fullreg(fullregSEXP);
     Rcpp::traits::input_parameter< double >::type tol(tolSEXP);
-    rcpp_result_gen = Rcpp::wrap(calc_reg(x, r, qS, w, sizetheta, fullreg, tol));
+    rcpp_result_gen = Rcpp::wrap(wls_est(x, r, qS, w, sizetheta, fullreg, tol));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -60,9 +60,9 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// calc_robust
-SEXP calc_robust(arma::Mat<double> x, arma::Mat<double> u, arma::Mat<double> qS, arma::Col<double> w, int sizetheta);
-RcppExport SEXP _nlsur_calc_robust(SEXP xSEXP, SEXP uSEXP, SEXP qSSEXP, SEXP wSEXP, SEXP sizethetaSEXP) {
+// cov_robust
+SEXP cov_robust(arma::Mat<double> x, arma::Mat<double> u, arma::Mat<double> qS, arma::Col<double> w, int sizetheta);
+RcppExport SEXP _nlsur_cov_robust(SEXP xSEXP, SEXP uSEXP, SEXP qSSEXP, SEXP wSEXP, SEXP sizethetaSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -71,17 +71,17 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< arma::Mat<double> >::type qS(qSSEXP);
     Rcpp::traits::input_parameter< arma::Col<double> >::type w(wSEXP);
     Rcpp::traits::input_parameter< int >::type sizetheta(sizethetaSEXP);
-    rcpp_result_gen = Rcpp::wrap(calc_robust(x, u, qS, w, sizetheta));
+    rcpp_result_gen = Rcpp::wrap(cov_robust(x, u, qS, w, sizetheta));
     return rcpp_result_gen;
 END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_nlsur_calc_ssr", (DL_FUNC) &_nlsur_calc_ssr, 3},
+    {"_nlsur_ssr_est", (DL_FUNC) &_nlsur_ssr_est, 3},
     {"_nlsur_arma_reshape", (DL_FUNC) &_nlsur_arma_reshape, 2},
-    {"_nlsur_calc_reg", (DL_FUNC) &_nlsur_calc_reg, 7},
+    {"_nlsur_wls_est", (DL_FUNC) &_nlsur_wls_est, 7},
     {"_nlsur_wt_mean", (DL_FUNC) &_nlsur_wt_mean, 2},
-    {"_nlsur_calc_robust", (DL_FUNC) &_nlsur_calc_robust, 5},
+    {"_nlsur_cov_robust", (DL_FUNC) &_nlsur_cov_robust, 5},
     {NULL, NULL, 0}
 };
 
