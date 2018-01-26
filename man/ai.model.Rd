@@ -25,7 +25,7 @@ index.}
 
 \item{modeltype}{character either "AI" or "QAI" for AI or QAI model.}
 
-\item{ray}{logical if Ray (1983) scaling should be inclued. If TRUE requires
+\item{ray}{logical if Ray (1983) scaling should be included. If TRUE requires
 demographic vector.}
 
 \item{demogr}{character vector of k demographic variables.}

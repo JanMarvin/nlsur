@@ -13,7 +13,7 @@
 #' @param priceindex character either "translog" or "S" for the stone price
 #'  index.
 #' @param modeltype character either "AI" or "QAI" for AI or QAI model.
-#' @param ray logical if Ray (1983) scaling should be inclued. If TRUE requires
+#' @param ray logical if Ray (1983) scaling should be included. If TRUE requires
 #' demographic vector.
 #' @param demogr character vector of k demographic variables.
 #'

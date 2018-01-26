@@ -3,12 +3,12 @@
 #' \code{.nlsur()} is a function for estimation of a non-linear seemingly
 #'  unrelated regression model in R.
 #'
-#' @param eqns is can be a single equation or a quation system. If eqns is a
-#' single equation it will internaly be converted to a list. Estimation of a
+#' @param eqns is can be a single equation or a equation system. If eqns is a
+#' single equation it will internally be converted to a list. Estimation of a
 #' single equation might as well be done using \code{nls()}.
 #' @param data is the data set on which the equation is applied. This can be of
 #' every type \code{eval()} can handle.
-#' @param startvalues is a vector of intial start values. For
+#' @param startvalues is a vector of initial start values. For
 #' @param S is a weighing matrix used for estimation in Feasible Generalized
 #' Non-Linear Least Squares (FGNLS) and Iterative FGNLS. For \code{nlsur()}
 #' this is assumed to be the identity matrix. Hence, it is not included. If
@@ -20,13 +20,13 @@
 #' @param ifgnls is a logical and must be set, if estimation is done for ifgnls.
 #' This is called in a function called \code{nlsur()} and should not be set by
 #' the user.
-#' @param qrsolve is a logica, if TRUE \code{qr.coef(qr(x), r)} is called which
+#' @param qrsolve is a logical, if TRUE \code{qr.coef(qr(x), r)} is called which
 #' should be the most robust way for estimation of nls. For this all equations
 #' will be rbinded, which might lead to memory bottlenecks.
 #' @param MASS is a logical, if TRUE \code{lm_gls()} is called for estimation of
 #' a linear regression with a weighting matrix.
 #' @param trace is a logical. If TRUE the current iterations SSR is called.
-#' @param eps the epislon used for convergence in nlsur(). Default is 1e-5.
+#' @param eps the epsilon used for convergence in nlsur(). Default is 1e-5.
 #' @param tau is another convergence variable. Default is 1e-3.
 #' @param tol qr.solves tolerance for detecting linear dependencies.
 #'
@@ -236,7 +236,7 @@
       lhs <- rhs <- ri <- xi <- list()
       r <- x <- NULL
 
-      # begin equation loop: for (i in 1:neqs) {}. Everything is embeded in
+      # begin equation loop: for (i in 1:neqs) {}. Everything is embedded in
       # suppressWarnings() since eval of log(x) for x <= 0 will result in NaNs
       # which must not result in a total estimation failure.
       lhs <- suppressWarnings(
@@ -377,27 +377,27 @@
 #'
 #' @param eqns is a list object containing the model as formula. This list can
 #' handle contain only a single equations (although in this case nls() might be
-#' a better coice) or a system of equations.
+#' a better choice) or a system of equations.
 #' @param startvalues initial values for the parameters to be estimated.
 #' @param data an (optional) data frame containing the variables that will be
 #' evaluated in the formula.
-#' @param type can be 1 Nonlinear Least Squares (NLS), 2 Feasible Generalised
-#' NLS (FGNLS) or 3 Iterative FGNLS (IFGNLS) or the respective abbrevations in
+#' @param type can be 1 Nonlinear Least Squares (NLS), 2 Feasible Generalized
+#' NLS (FGNLS) or 3 Iterative FGNLS (IFGNLS) or the respective abbreviations in
 #' character form.
 #' @param tol qr.solves tolerance for detecting linear dependencies.
-#' @param eps the epislon used for convergence in nlsur(). Default is 1e-5.
+#' @param eps the epsilon used for convergence in nlsur(). Default is 1e-5.
 #' @param tau is another convergence variable. Default is 1e-3.
-#' @param ifgnlseps is epislon for ifgnls(). Default is 1e-10.
+#' @param ifgnlseps is epsilon for ifgnls(). Default is 1e-10.
 #' @param stata is a logical. If TRUE for nls a second evaluation will be run.
 #' Stata does this by default. For this second run Stata replaces the diagonal
 #' of the I matrix with the coefficients.
-#' @param trace logical wheather or not SSR information should be printed.
+#' @param trace logical whether or not SSR information should be printed.
 #' Default is FALSE.
 #' @param robust logical if true robust standard errors are estimated.
 #' @param S is a weight matrix used for evaluation. If no weight matrix is
 #' provided the identity matrix I will be used.
 #' @param qrsolve logical
-#' @param MASS is a logical wheather an R function similar to the MASS::lm.gls()
+#' @param MASS is a logical whether an R function similar to the MASS::lm.gls()
 #' function should be used for weighted Regression. This can cause sever RAM
 #' usage as the weight matrix tend to be huge (n-equations * n-rows).
 #' @param weights Additional weight vector.
@@ -407,7 +407,7 @@
 #' @param initial logical value to define if rankMatrix is calculated every
 #' iteration of nlsur.
 #'
-#' @details nlsur() is a wrapper around .nlsur(). The function was initialy
+#' @details nlsur() is a wrapper around .nlsur(). The function was initially
 #' inspired by the Stata Corp Function nlsur.
 #' Nlsur estimates a nonlinear least squares demand system. With nls, fgnls or
 #' ifgnls which is equivalent to Maximum Likelihood estimation.
@@ -418,11 +418,11 @@
 #' swap the diagonal with the estimated results.
 #'
 #' Most robust regression estimates shall be returned with both qrsolve and MASS
-#' TRUE, but memory consumtion is largest this way. If MASS is FALSE a memory
-#' efficent RcppArmadillo solution is used for fgnls and ifgnls. If qrsolve is
+#' TRUE, but memory consumption is largest this way. If MASS is FALSE a memory
+#' efficient RcppArmadillo solution is used for fgnls and ifgnls. If qrsolve is
 #' FALSE as well, only the Armadillo function is used.
 #'
-#' If \code{robust} is selected Whites HC0 is used to caclulate
+#' If \code{robust} is selected Whites HC0 is used to calculate
 #' Heteroscedasticity Robust Standard Errors.
 #'
 #' If \code{initial} is TRUE rankMatrix will be calculated every iteration of
@@ -446,10 +446,10 @@
 #'   \item{nlsur:}{model type. "NLS", "FGNLS" or "IFGNLS"}
 #'   \item{se:}{standard errors}
 #'   \item{t:}{t values}
-#'   \item{covb:}{asymptotic covarince matrix}
+#'   \item{covb:}{asymptotic covariance matrix}
 #'   \item{zi:}{equation wise estimation results of SSR, MSE, RMSE, MAE, R2 and
 #' Adj-R2. As well as n, k and df.}
-#'   \item{model:}{equvation or system of equations as list containing
+#'   \item{model:}{equation or system of equations as list containing
 #' formulas}
 #' }
 #'
@@ -461,12 +461,14 @@
 #' url <- "http://www.stern.nyu.edu/~wgreene/Text/Edition7/TableF10-2.txt"
 #' dd <- read.table(url, header = T)
 #'
-#' names(dd) <- c("Year", "Cost", "Sk", "Sl", "Se", "Sm", "Pk", "Pl", "Pe", "Pm")
+#' names(dd) <-
+#'  c("Year", "Cost", "Sk", "Sl", "Se", "Sm", "Pk", "Pl", "Pe", "Pm")
 #'
 #'
-#' eqns <- list( Sk ~ bk + dkk * log(Pk/Pm) + dkl * log(Pl/Pm) + dke * log(Pe/Pm),
-#'               Sl ~ bl + dkl * log(Pk/Pm) + dll * log(Pl/Pm) + dle * log(Pe/Pm),
-#'               Se ~ be + dke * log(Pk/Pm) + dle * log(Pl/Pm) + dee * log(Pe/Pm))
+#' eqns <-
+#'  list( Sk ~ bk + dkk * log(Pk/Pm) + dkl * log(Pl/Pm) + dke * log(Pe/Pm),
+#'        Sl ~ bl + dkl * log(Pk/Pm) + dll * log(Pl/Pm) + dle * log(Pe/Pm),
+#'        Se ~ be + dke * log(Pk/Pm) + dle * log(Pl/Pm) + dee * log(Pe/Pm))
 #'
 #' strtvls <- c(be = 0, bk = 0, bl = 0,
 #'              dkk = 0, dkl = 0, dke = 0,
@@ -547,7 +549,7 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
     return(0)
   }
 
-  # lm.gls does not allow weights
+  # lm_gls does not allow weights
   if ((isTRUE(qrsolve) | isTRUE(MASS)) & !is.null(wts))
     stop("With qrsolve and MASS you can not use weights.")
 
@@ -606,7 +608,7 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
                MASS = MASS, eps = eps, tau = tau, maxiter = maxiter,
                tol = tol, initial = TRUE)
 
-  # evaluatated at initial stage
+  # evaluated at initial stage
   n <- z$n; k <- z$k; df <- z$df
 
   # To update standard errors in nls case Stata estimates a second nls with
@@ -621,7 +623,7 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
                  MASS = MASS, eps = eps, tau = tau, maxiter = maxiter,
                  tol = tol, initial = initial)
 
-    # Stata uses the orignal sigma for covb
+    # Stata uses the original sigma for covb
     z$sigma <- diag(diag(S), nrow = n, ncol = n)
 
   }
@@ -643,7 +645,7 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
                 MASS = MASS, eps = eps, tau = tau, maxiter = maxiter,
                 tol = tol, initial = initial)
 
-    # Stata uses the orignal sigma for covb
+    # Stata uses the original sigma for covb
     if (!ifgnls)
       z$sigma <- S
 
@@ -943,7 +945,7 @@ summary.nlsur <- function(object, noconst = TRUE, ...) {
   zi <- data.frame(as.character(z$eqnames),zi)
 
   cnst <- character(0)
-  # if a equation contians more than one const only add it once and fill the
+  # if a equation contains more than one const only add it once and fill the
   # rest with blanks
   if (any(hasconst)) {
     cnst <- c("Const")

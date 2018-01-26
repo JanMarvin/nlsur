@@ -12,21 +12,21 @@ nlsur(eqns, data, startvalues, type = NULL, S = NULL, trace = FALSE,
 \arguments{
 \item{eqns}{is a list object containing the model as formula. This list can
 handle contain only a single equations (although in this case nls() might be
-a better coice) or a system of equations.}
+a better choice) or a system of equations.}
 
 \item{data}{an (optional) data frame containing the variables that will be
 evaluated in the formula.}
 
 \item{startvalues}{initial values for the parameters to be estimated.}
 
-\item{type}{can be 1 Nonlinear Least Squares (NLS), 2 Feasible Generalised
-NLS (FGNLS) or 3 Iterative FGNLS (IFGNLS) or the respective abbrevations in
+\item{type}{can be 1 Nonlinear Least Squares (NLS), 2 Feasible Generalized
+NLS (FGNLS) or 3 Iterative FGNLS (IFGNLS) or the respective abbreviations in
 character form.}
 
 \item{S}{is a weight matrix used for evaluation. If no weight matrix is
 provided the identity matrix I will be used.}
 
-\item{trace}{logical wheather or not SSR information should be printed.
+\item{trace}{logical whether or not SSR information should be printed.
 Default is FALSE.}
 
 \item{robust}{logical if true robust standard errors are estimated.}
@@ -39,7 +39,7 @@ of the I matrix with the coefficients.}
 
 \item{weights}{Additional weight vector.}
 
-\item{MASS}{is a logical wheather an R function similar to the MASS::lm.gls()
+\item{MASS}{is a logical whether an R function similar to the MASS::lm.gls()
 function should be used for weighted Regression. This can cause sever RAM
 usage as the weight matrix tend to be huge (n-equations * n-rows).}
 
@@ -50,9 +50,9 @@ Default is 0.}
 
 \item{tol}{qr.solves tolerance for detecting linear dependencies.}
 
-\item{eps}{the epislon used for convergence in nlsur(). Default is 1e-5.}
+\item{eps}{the epsilon used for convergence in nlsur(). Default is 1e-5.}
 
-\item{ifgnlseps}{is epislon for ifgnls(). Default is 1e-10.}
+\item{ifgnlseps}{is epsilon for ifgnls(). Default is 1e-10.}
 
 \item{tau}{is another convergence variable. Default is 1e-3.}
 
@@ -73,10 +73,10 @@ The function returns a list object of class nlsur. The list includes:
   \item{nlsur:}{model type. "NLS", "FGNLS" or "IFGNLS"}
   \item{se:}{standard errors}
   \item{t:}{t values}
-  \item{covb:}{asymptotic covarince matrix}
+  \item{covb:}{asymptotic covariance matrix}
   \item{zi:}{equation wise estimation results of SSR, MSE, RMSE, MAE, R2 and
 Adj-R2. As well as n, k and df.}
-  \item{model:}{equvation or system of equations as list containing
+  \item{model:}{equation or system of equations as list containing
 formulas}
 }
 }
@@ -85,7 +85,7 @@ formulas}
 feasible and iterative feasible variants.
 }
 \details{
-nlsur() is a wrapper around .nlsur(). The function was initialy
+nlsur() is a wrapper around .nlsur(). The function was initially
 inspired by the Stata Corp Function nlsur.
 Nlsur estimates a nonlinear least squares demand system. With nls, fgnls or
 ifgnls which is equivalent to Maximum Likelihood estimation.
@@ -96,11 +96,11 @@ the matrix for an initial estimation, once the estimation is done, it will
 swap the diagonal with the estimated results.
 
 Most robust regression estimates shall be returned with both qrsolve and MASS
-TRUE, but memory consumtion is largest this way. If MASS is FALSE a memory
-efficent RcppArmadillo solution is used for fgnls and ifgnls. If qrsolve is
+TRUE, but memory consumption is largest this way. If MASS is FALSE a memory
+efficient RcppArmadillo solution is used for fgnls and ifgnls. If qrsolve is
 FALSE as well, only the Armadillo function is used.
 
-If \code{robust} is selected Whites HC0 is used to caclulate
+If \code{robust} is selected Whites HC0 is used to calculate
 Heteroscedasticity Robust Standard Errors.
 
 If \code{initial} is TRUE rankMatrix will be calculated every iteration of
@@ -120,12 +120,14 @@ library(nlsur)
 url <- "http://www.stern.nyu.edu/~wgreene/Text/Edition7/TableF10-2.txt"
 dd <- read.table(url, header = T)
 
-names(dd) <- c("Year", "Cost", "Sk", "Sl", "Se", "Sm", "Pk", "Pl", "Pe", "Pm")
+names(dd) <-
+ c("Year", "Cost", "Sk", "Sl", "Se", "Sm", "Pk", "Pl", "Pe", "Pm")
 
 
-eqns <- list( Sk ~ bk + dkk * log(Pk/Pm) + dkl * log(Pl/Pm) + dke * log(Pe/Pm),
-              Sl ~ bl + dkl * log(Pk/Pm) + dll * log(Pl/Pm) + dle * log(Pe/Pm),
-              Se ~ be + dke * log(Pk/Pm) + dle * log(Pl/Pm) + dee * log(Pe/Pm))
+eqns <-
+ list( Sk ~ bk + dkk * log(Pk/Pm) + dkl * log(Pl/Pm) + dke * log(Pe/Pm),
+       Sl ~ bl + dkl * log(Pk/Pm) + dll * log(Pl/Pm) + dle * log(Pe/Pm),
+       Se ~ be + dke * log(Pk/Pm) + dle * log(Pl/Pm) + dee * log(Pe/Pm))
 
 strtvls <- c(be = 0, bk = 0, bl = 0,
              dkk = 0, dkl = 0, dke = 0,
