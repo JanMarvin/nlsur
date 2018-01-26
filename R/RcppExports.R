@@ -25,7 +25,7 @@ ssr_est <- function(r, s, w) {
 #'
 #' mm_a <- arma_reshape(mm, 2)
 #'
-#' mm_m <- matrix(t(mm), nrow = 2, byrow =T )
+#' mm_m <- matrix(t(mm), nrow = 2, byrow = TRUE)
 #' @export
 arma_reshape <- function(mm, sizetheta) {
     .Call(`_nlsur_arma_reshape`, mm, sizetheta)

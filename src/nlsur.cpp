@@ -46,7 +46,7 @@ SEXP ssr_est(arma::Mat<double> r, arma::Mat<double> s, arma::Col<double> w) {
 //'
 //' mm_a <- arma_reshape(mm, 2)
 //'
-//' mm_m <- matrix(t(mm), nrow = 2, byrow =T )
+//' mm_m <- matrix(t(mm), nrow = 2, byrow = TRUE)
 //' @export
 // [[Rcpp::export]]
 arma::Mat<double> arma_reshape(arma::Mat<double> mm, int sizetheta) {
