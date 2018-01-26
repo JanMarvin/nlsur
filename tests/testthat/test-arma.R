@@ -1,5 +1,3 @@
-library("MASS")
-
 # Test data set
 set.seed(123)
 
