@@ -7,9 +7,9 @@
 wt_mean(x, w)
 }
 \arguments{
-\item{x}{x}
+\item{x}{matrix of derivatives}
 
-\item{w}{w}
+\item{w}{vector of weights}
 }
 \description{
 wt_mean

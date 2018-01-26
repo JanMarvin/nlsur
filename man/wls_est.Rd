@@ -2,24 +2,24 @@
 % Please edit documentation in R/RcppExports.R
 \name{wls_est}
 \alias{wls_est}
-\title{calc_reg}
+\title{wls_est}
 \usage{
 wls_est(x, r, qS, w, sizetheta, fullreg, tol)
 }
 \arguments{
-\item{x}{x}
+\item{x}{matrix of derivatives}
 
-\item{r}{r}
+\item{r}{residual matrix}
 
-\item{qS}{qS}
+\item{qS}{weighting matrix of sizetheta x sizetheta}
 
-\item{w}{w}
+\item{w}{vector of weights}
 
-\item{sizetheta}{sizetheta}
+\item{sizetheta}{integer defining the amount of coefficients}
 
-\item{fullreg}{fullreg}
+\item{fullreg}{bool defining if WLS or Cov is calculated}
 
-\item{tol}{tol}
+\item{tol}{tolerance used for qr()}
 }
 \description{
 as reference see:

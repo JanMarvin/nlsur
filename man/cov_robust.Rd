@@ -2,22 +2,21 @@
 % Please edit documentation in R/RcppExports.R
 \name{cov_robust}
 \alias{cov_robust}
-\title{calc_robust}
+\title{cov_robust}
 \usage{
 cov_robust(x, u, qS, w, sizetheta)
 }
 \arguments{
-\item{x}{x}
+\item{x}{matrix of derivatives}
 
 \item{u}{u}
 
-\item{qS}{qS}
+\item{qS}{weighting matrix}
 
-\item{w}{w}
+\item{w}{vector of weights}
 
 \item{sizetheta}{sizetheta}
 }
 \description{
-as reference see:
-http://www.navipedia.net/index.php/Block-Wise_Weighted_Least_Square
+As discussed in Wooldridge (2002, 160)
 }

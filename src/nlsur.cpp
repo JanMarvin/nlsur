@@ -5,10 +5,12 @@
 using namespace Rcpp;
 using namespace arma;
 
-//' ssr
-//' @param r r
-//' @param s s
-//' @param w w
+//' ssr_est
+//' @description calculate SSR where
+//' \eqn{SSR(\beta) = u'D'Du.}
+//' @param r residuals
+//' @param s weighting matrix
+//' @param w vector of weights
 //' @export
 // [[Rcpp::export]]
 SEXP ssr_est(arma::Mat<double> r, arma::Mat<double> s, arma::Col<double> w) {
@@ -19,24 +21,32 @@ SEXP ssr_est(arma::Mat<double> r, arma::Mat<double> s, arma::Col<double> w) {
   // n / sum(w) : only w contains information about the size of n
   double scale = w.n_elem / sum(w);
 
-  // transpose to avoid incompatible matrix dimensions n for loop below
-  s = s.t();
-
+  // s is transposed to avoid incompatible matrix dimensions
   for (int j = 0; j < k; ++j) {
-    for (int i = 0; i < n; ++i){
-      ssr += w(i) * pow( r.row(i) * s.col(j), 2);
+    for (int i = 0; i < n; ++i) {
+      ssr += w(i) * pow( r.row(i) * s.row(j).t(), 2);
     }
 
     Rcpp::checkUserInterrupt();
-
   }
 
   return wrap(ssr * scale);
 }
 
 //' arma_reshape
-//' @param mm mm
-//' @param sizetheta sizetheta
+//' @param mm a matrix
+//' @param sizetheta integer of length(theta) to shrink mm into
+//' @description reshape mm for blockwise multiplication
+//' @examples
+//' mm <- matrix(c(11,21,31,41,
+//'  12,22,32,42,
+//'  13,23,33,43,
+//'  14,24,34,44),
+//'  ncol = 4)
+//'
+//' mm_a <- arma_reshape(mm, 2)
+//'
+//' mm_m <- matrix(t(mm), nrow = 2, byrow =T )
 //' @export
 // [[Rcpp::export]]
 arma::Mat<double> arma_reshape(arma::Mat<double> mm, int sizetheta) {
@@ -50,19 +60,19 @@ arma::Mat<double> arma_reshape(arma::Mat<double> mm, int sizetheta) {
 }
 
 //' wls_est
-//' @param x x
-//' @param r r
-//' @param qS qS
-//' @param w w
-//' @param sizetheta sizetheta
-//' @param fullreg fullreg
-//' @param tol tol
+//' @param x matrix of derivatives
+//' @param r residual matrix
+//' @param qS weighting matrix of sizetheta x sizetheta
+//' @param w vector of weights
+//' @param sizetheta integer defining the amount of coefficients
+//' @param fullreg bool defining if WLS or Cov is calculated
+//' @param tol tolerance used for qr()
 //' @description as reference see:
 //' http://www.navipedia.net/index.php/Block-Wise_Weighted_Least_Square
 //' @export
 // [[Rcpp::export]]
 SEXP wls_est(arma::Mat<double> x, arma::Mat<double> r, arma::Mat<double> qS,
-         arma::Col<double> w, int sizetheta, bool fullreg, double tol) {
+             arma::Col<double> w, int sizetheta, bool fullreg, double tol) {
 
   arma::Mat<double> XDX(sizetheta, sizetheta, fill::zeros);
   arma::Mat<double> XDy(sizetheta, 1, fill::zeros);
@@ -83,10 +93,9 @@ SEXP wls_est(arma::Mat<double> x, arma::Mat<double> r, arma::Mat<double> qS,
     }
 
     Rcpp::checkUserInterrupt();
-
   }
 
-  // force symetry on the matrix is symetric
+  // force symetry on the matrix
   XDX = 0.5 * (XDX + XDX.t());
 
   if (fullreg) /* weighted regression */
@@ -95,10 +104,9 @@ SEXP wls_est(arma::Mat<double> x, arma::Mat<double> r, arma::Mat<double> qS,
     return wrap(XDX);
 }
 
-
 //' wt_mean
-//' @param x x
-//' @param w w
+//' @param x matrix of derivatives
+//' @param w vector of weights
 //' @export
 // [[Rcpp::export]]
 SEXP wt_mean(arma::Col<double>& x, arma::Col<double>& w) {
@@ -107,19 +115,18 @@ SEXP wt_mean(arma::Col<double>& x, arma::Col<double>& w) {
 
 }
 
-
 //' cov_robust
-//' @param x x
+//'
+//' @param x matrix of derivatives
 //' @param u u
-//' @param qS qS
-//' @param w w
+//' @param qS weighting matrix
+//' @param w vector of weights
 //' @param sizetheta sizetheta
-//' @description as reference see:
-//' http://www.navipedia.net/index.php/Block-Wise_Weighted_Least_Square
+//' @description As discussed in Wooldridge (2002, 160)
 //' @export
 // [[Rcpp::export]]
 SEXP cov_robust(arma::Mat<double> x, arma::Mat<double> u, arma::Mat<double> qS,
-                 arma::Col<double> w, int sizetheta) {
+                arma::Col<double> w, int sizetheta) {
 
   arma::Mat<double> XDuuDX(sizetheta, sizetheta, fill::zeros);
 
@@ -134,9 +141,8 @@ SEXP cov_robust(arma::Mat<double> x, arma::Mat<double> u, arma::Mat<double> qS,
     XDuuDX += w(i) * XI.t() * qS * UI * UI.t() * qS * XI;
   }
 
-  // force symetry on the matrix is symetric
+  // force symetry on the matrix
   XDuuDX = 0.5 * ( XDuuDX + XDuuDX.t() );
-
 
   return wrap(XDuuDX);
 }
