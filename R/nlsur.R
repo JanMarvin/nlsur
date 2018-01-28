@@ -1092,6 +1092,8 @@ predict.nlsur <- function(object, newdata, ...) {
 #' @param neqs k
 #' @param tol tolerance for qr
 #' @param covb if true covb is calculated else theta
+#' @description calculate WLS using eigen similar to the approach in
+#' MASS::lm.gls
 #' @importFrom Matrix crossprod kronecker Diagonal
 #' @importFrom methods as
 #' @export

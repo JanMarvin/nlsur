@@ -20,5 +20,6 @@ lm_gls(X, Y, W, neqs, tol = 1e-07, covb = FALSE)
 \item{covb}{if true covb is calculated else theta}
 }
 \description{
-Calculate WLS using sparse matrix and qr
+calculate WLS using eigen similar to the approach in
+MASS::lm.gls
 }
