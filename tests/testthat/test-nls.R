@@ -35,15 +35,15 @@ Cw <- coef(nlsur(model, data = dat, startvalues = c(a = 0, b=0),
                  weights = W))
 
 #### nls ####
-assert("nls", {
-  all.equal(a, A)
-  all.equal(b, B)
-  all.equal(c, C)
+test_that("nls", {
+  expect_equal(a, A)
+  expect_equal(b, B)
+  expect_equal(c, C)
 })
 
 #### weighted nls ####
-assert("weighted nls", {
-  all.equal(aw, Aw)
-  all.equal(bw, Bw)
-  all.equal(cw, Cw)
+test_that("weighted nls", {
+  expect_equal(aw, Aw)
+  expect_equal(bw, Bw)
+  expect_equal(cw, Cw)
 })

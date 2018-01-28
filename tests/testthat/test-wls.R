@@ -26,8 +26,8 @@ erg.2 <- wls_est(x = X, r = Y, qS = qW, w = w,
                  sizetheta = 3, fullreg = 1, tol = 1e-10)
 
 #### wls_est 1 ####
-assert("wls_est 1", {
-  all.equal(as.numeric(erg.1), as.numeric(erg.2))
+test_that("wls_est 1", {
+  expect_equal(as.numeric(erg.1), as.numeric(erg.2))
 })
 
 
@@ -58,8 +58,8 @@ erg.2 <- wls_est(x = X, r = Y, qS = qW, w = w,
                  sizetheta = 3, fullreg = 1, tol = 1e-10)
 
 #### calc_robust ####
-assert("wls_est 2", {
-  all.equal(as.numeric(erg.1), as.numeric(erg.2))
+test_that("wls_est 2", {
+  expect_equal(as.numeric(erg.1), as.numeric(erg.2))
 })
 
 
@@ -90,6 +90,6 @@ erg.2 <- wls_est(x = X, r = Y, qS = qW, w = w,
                  sizetheta = 3, fullreg = 0, tol = 1e-10)
 
 #### cov test 1 ####
-assert("cov_est 1", {
-  all.equal(as.numeric(erg.1), as.numeric(erg.2))
+test_that("cov_est 1", {
+  expect_equal(as.numeric(erg.1), as.numeric(erg.2))
 })
