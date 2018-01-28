@@ -54,9 +54,9 @@ x2.4 <- res_2$zi["R-squared"]
 
 #### run test ####
 
-test_that("rsquared", {
-  expect_equal(as.numeric(x1.1), as.numeric(x1.2))
-  expect_equal(as.numeric(x1.3), as.numeric(x1.4))
-  expect_equal(as.numeric(x2.1), as.numeric(x2.2))
-  expect_equal(as.numeric(x2.3), as.numeric(x2.4))
+assert("rsquared", {
+  all.equal(as.numeric(x1.1), as.numeric(x1.2))
+  all.equal(as.numeric(x1.3), as.numeric(x1.4))
+  all.equal(as.numeric(x2.1), as.numeric(x2.2))
+  all.equal(as.numeric(x2.3), as.numeric(x2.4))
 })

@@ -91,11 +91,11 @@ res_g <- round(greene$Coef, digits = 5)
 names(res_g) <- rownames(greene)
 
 
-test_that("Compare nlsur options", {
-  expect_equal(coef(e1), coef(e2))
-  expect_equal(coef(E1), coef(E2))
+assert("Compare nlsur options", {
+  all.equal(coef(e1), coef(e2))
+  all.equal(coef(E1), coef(E2))
 })
 
-test_that("Compare Greene to nlsur", {
-  expect_equal(res_n, res_g)
+assert("Compare Greene to nlsur", {
+  all.equal(res_n, res_g)
 })

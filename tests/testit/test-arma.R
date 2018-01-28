@@ -93,28 +93,28 @@ nlsur_se <- summary(nes)$coefficients[,2]
 names(nlsur_se) <- NULL
 
 #### calc_ssr ####
-test_that("ssr_est", {
-  expect_equal(rss_a, rss_m)
+assert("ssr_est", {
+  all.equal(rss_a, rss_m)
 })
 
 #### arma_reshape ####
-test_that("arma_reshape", {
-  expect_equal(mm_a, mm_m)
+assert("arma_reshape", {
+  all.equal(mm_a, mm_m)
 })
 
 #### calc_reg ####
-test_that("wls_est", {
-  expect_equal(bb, BB)
-  # expect_equal(bb, Bb)
-  expect_equal(XDX_a, XDX)
+assert("wls_est", {
+  all.equal(bb, BB)
+  # all.equal(bb, Bb)
+  all.equal(XDX_a, XDX)
 })
 
 #### wt_mean ####
-test_that("wt_mean", {
-  expect_equal(wtm_r, wtm_a)
+assert("wt_mean", {
+  all.equal(wtm_r, wtm_a)
 })
 
 #### calc_robust ####
-test_that("cov_robust", {
-  expect_equal(sandwich_se, nlsur_se)
+assert("cov_robust", {
+  all.equal(sandwich_se, nlsur_se)
 })
