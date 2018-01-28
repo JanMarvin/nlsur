@@ -9,6 +9,10 @@ r:
 sudo: false
 cache: packages
 
+# https://github.com/philipp-baumann/simplerspec/commit/c9a20f8181fd91bcff86338c4e7cfd0b0b645fc6
+before_install:
+ - sudo apt-get install libnlopt-dev
+
 notifications:
 email:
 on_success: change
