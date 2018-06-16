@@ -56,4 +56,4 @@ dmm <- nlcom(object = erg2, form = "-dkm -dlm -dem", rname = "dmm")
 
 ## Status
 
-[![Build Status](https://travis-ci.org/JanMarvin/nlsur.svg?branch=master)](https://travis-ci.org/JanMarvin/nlsur)
+[![Build Status](https://travis-ci.org/JanMarvin/nlsur.svg?branch=master)](https://travis-ci.org/JanMarvin/nlsur) [![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/github/JanMarvin/nlsur?branch=master&svg=true)](https://ci.appveyor.com/project/JanMarvin/nlsur)
