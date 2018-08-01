@@ -60,7 +60,7 @@
   n    <- vector("integer", length=neqs)
   k    <- vector("integer", length=neqs)
 
-  wts  <- data$w
+  wts  <- data$nlsur_created_weights
 
   nlsur_coef <- new.env(hash = TRUE)
 
@@ -563,23 +563,24 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
 
   # Check for wts
   if ( is.null(wts) ) {
-    data$w <- 1
+    data$nlsur_created_weights <- 1
   } else {
     wts <- as.name(wts)
 
-    data$w <- eval(substitute(wts), data)
+    data$nlsur_created_weights <- eval(substitute(wts), data)
   }
 
   # include weights to assure the correct length
   # of weights if missings are excluded.
-  data <- na.omit(data[unique(c(parms,"w"))])
+  data <- na.omit(data[unique(c(parms,"nlsur_created_weights"))])
 
   nls  <- fgnls <- ifgnls <- FALSE
   n    <- nrow(data)
   z    <- NULL
 
   # normwts
-  data$w <- data$w/sum(data$w) * n
+  data$nlsur_created_weights <- data$nlsur_created_weights /
+    sum(data$nlsur_created_weights) * n
 
   cl <- match.call()
 
@@ -690,7 +691,7 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
         theta <- coef(z)
 
         s   <- chol(qr.solve(S, tol = tol))
-        rss <- ssr_est(r, s, data$w)
+        rss <- ssr_est(r, s, data$nlsur_created_weights)
 
         iter <- iter +1
 
@@ -740,10 +741,11 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
   N <- unique(n)
   M <- nrow(S)
 
-  LL <- ( sum(log(data$w)) -(M*N) * (log(2 * pi) +
-                                       1 - log(N) +
-                                       log(det(S)) / M  +
-                                       log(sum(data$w))) )/2
+  LL <- ( sum(log(data$nlsur_created_weights)) -
+            (M*N) * (log(2 * pi) +
+                       1 - log(N) +
+                       log(det(S)) / M  +
+                       log(sum(data$nlsur_created_weights))) )/2
 
 
   # Fitted values ##############################################################
