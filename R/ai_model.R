@@ -1,6 +1,6 @@
 #' Q/AI model function
 #'
-#' Modelfunction to create Deatons and Muellbauers (1980) famouse
+#' Modelfunction to create Deatons and Muellbauers (1980) famous
 #' Almost-Ideal Demand System or the Quadratic Almost-Ideal Demand System by
 #' Banks et al. (1997).
 #'

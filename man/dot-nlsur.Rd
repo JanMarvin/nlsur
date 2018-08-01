@@ -24,6 +24,8 @@ Non-Linear Least Squares (FGNLS) and Iterative FGNLS. For \code{nlsur()}
 this is assumed to be the identity matrix. Hence, it is not included. If
 included S is expected to be a matrix.}
 
+\item{robust}{should a robust standard error be calculated}
+
 \item{nls}{is a logical and default if estimation is done for NLSUR or NLS.}
 
 \item{fgnls}{is a logical and must be set, if estimation is done for FGNLS.
@@ -47,7 +49,12 @@ a linear regression with a weighting matrix.}
 
 \item{tau}{is another convergence variable. Default is 1e-3.}
 
+\item{maxiter}{maximum number of iterations}
+
 \item{tol}{qr.solves tolerance for detecting linear dependencies.}
+
+\item{initial}{logical if initial calculation set. used to avoid calculation
+of svd numerous times}
 }
 \description{
 \code{.nlsur()} is a function for estimation of a non-linear seemingly

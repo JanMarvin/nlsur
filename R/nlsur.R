@@ -13,6 +13,7 @@
 #' Non-Linear Least Squares (FGNLS) and Iterative FGNLS. For \code{nlsur()}
 #' this is assumed to be the identity matrix. Hence, it is not included. If
 #' included S is expected to be a matrix.
+#' @param robust should a robust standard error be calculated
 #' @param nls is a logical and default if estimation is done for NLSUR or NLS.
 #' @param fgnls is a logical and must be set, if estimation is done for FGNLS.
 #' This is called in a function called \code{fgnls()} and should not be set by
@@ -28,7 +29,10 @@
 #' @param trace is a logical. If TRUE the current iterations SSR is called.
 #' @param eps the epsilon used for convergence in nlsur(). Default is 1e-5.
 #' @param tau is another convergence variable. Default is 1e-3.
+#' @param maxiter maximum number of iterations
 #' @param tol qr.solves tolerance for detecting linear dependencies.
+#' @param initial logical if initial calculation set. used to avoid calculation
+#' of svd numerous times
 #'
 #' @details nlsur is a function for estimation of a non-linear least squares
 #' (NLS). In addition to \code{nls()} it is capable of estimation of system of
