@@ -4,8 +4,8 @@
 \alias{qai}
 \title{Estimation of an Quadratic Almost-Ideal Demand System}
 \usage{
-qai(w, p, x, z, a0 = 0, data, scale = FALSE, logp = TRUE, logexp = TRUE,
-  ...)
+qai(w, p, x, z, a0 = 0, data, scale = FALSE, logp = TRUE,
+  logexp = TRUE, ...)
 }
 \arguments{
 \item{w}{character vector of m budgetshares used for estimation.}

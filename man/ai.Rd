@@ -4,8 +4,8 @@
 \alias{ai}
 \title{Estimation of an Almost-Ideal Demand System}
 \usage{
-ai(w, p, x, z, a0 = 0, data, scale = FALSE, logp = TRUE, logexp = TRUE,
-  ...)
+ai(w, p, x, z, a0 = 0, data, scale = FALSE, logp = TRUE,
+  logexp = TRUE, ...)
 }
 \arguments{
 \item{w}{character vector of m budgetshares used for estimation.}
