@@ -4,12 +4,14 @@
 \alias{predict.nlsur}
 \title{Predict for Non-Linear Seemingly Unrelated Regression Models}
 \usage{
-\method{predict}{nlsur}(object, newdata, ...)
+\method{predict}{nlsur}(object, newdata, multicores, ...)
 }
 \arguments{
 \item{object}{is an nlsur estimation result.}
 
 \item{newdata}{an optional data frame for which the prediction is evaluated.}
+
+\item{multicores}{number of cores used for parallel}
 
 \item{...}{further arguments for predict. At present no optional arguments
 are used.}

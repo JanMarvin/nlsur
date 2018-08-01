@@ -58,7 +58,7 @@ res_nlsur <- nlsur(eqns = fml, data = dat, startvalues = c(b0 = 0),
 
 # predict
 pm1 <- predict(m1)
-pM1 <- predict(M1)
+pM1 <- predict(M1, multicores = 1)
 
 #### nls ####
 test_that("nls", {
