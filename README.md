@@ -8,7 +8,14 @@ The packages supports a variety of functions like `print()`, `coef()`, `summary(
 
 ## Installation
 
-```{r}
+With `drat`:
+```R
+drat::addRepo("JanMarvin")
+install.packages("readspss")
+```
+
+With `devtools`:
+```R
 devtools::install_github("JanMarvin/nlsur")
 ```
 
