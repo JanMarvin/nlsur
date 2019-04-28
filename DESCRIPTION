@@ -17,4 +17,4 @@ License: MIT + file LICENCE
 LinkingTo: Rcpp,
            RcppArmadillo
 ByteCompile: yes
-RoxygenNote: 6.1.0
+RoxygenNote: 6.1.1
