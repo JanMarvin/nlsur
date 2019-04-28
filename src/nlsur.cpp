@@ -76,7 +76,6 @@ arma::Mat<double> arma_reshape(arma::Mat<double> mm, int sizetheta) {
 //' @param tol tolerance used for qr()
 //' @details as reference see:
 //' http://www.navipedia.net/index.php/Block-Wise_Weighted_Least_Square
-//' @importFrom Rcpp evalCpp
 //' @export
 // [[Rcpp::export]]
 SEXP wls_est(arma::Mat<double> x, arma::Mat<double> r, arma::Mat<double> qS,
