@@ -6,9 +6,8 @@
 #' @param alpha value for conf. interval default is 0.05
 #' @param rname optional rowname for result
 #' @param envir optional name of environment to search for additional parameters
-#' @importFrom car deltaMethod
 #' @importFrom stats coef formula pt qnorm
-#' @seealso \link{deltaMethod}
+#' @seealso \link[car]{deltaMethod}
 #' @examples
 #' \dontrun{
 #' dkm <- nlcom(object = erg, form = "-dkk -dkl -dke", rname = "dkm")
@@ -31,6 +30,10 @@
 #'
 #' @export
 nlcom <- function(object, form, alpha = 0.05, rname, envir) {
+
+
+  if (!inherits(object, "nlsur"))
+    stop("no nlsur object")
 
   # store original form
   oform <- form
@@ -58,16 +61,16 @@ nlcom <- function(object, form, alpha = 0.05, rname, envir) {
 
   alevel <- 1 - alpha
 
-  z <- deltaMethod(object, form, level = alevel)
+  z <- dm(object, form, level = alevel)
 
   # separate the convinterval from the z output
-  cinterv <- z[-c(1:2)]
+  cinterv <- z[c("lwr", "upr")]
 
   # only keep est and se
-  z <- z[c("Estimate", "SE")]
+  z <- z[c("est", "se")]
 
   # calculate t-value
-  tval <- z$Estimate / z$SE
+  tval <- z$est / z$se
 
   # calculate prob
   nE <- sum(object$n); kE <- sum(object$k)
@@ -108,4 +111,34 @@ print.nlcom <- function(x, ...) {
   if (attr(x, "oform") != attr(x, "form"))
     cat("\nnlcom object estimated with prior nlcom estimate.\n")
 
+}
+
+#' dm simple delta method implementation
+#'
+#' @param object of class nlsur
+#' @param form formula e.g. "be/bk".
+#' @param level value for conf. interval default is 0.05
+dm <- function (object, form, level=0.05) {
+
+  df   <- as.data.frame(t(coef(object)))
+  nams <- names(df)
+  fml  <- parse(text = form)
+  cvs  <- seq_along(df)
+
+  est <- eval(fml, envir = df)
+  der <- sapply(cvs, FUN = function(x) eval(D(fml, nams[x]), envir = df))
+
+  se <- as.vector(sqrt(
+    t(der) %*% vcov(object) %*% der
+  ))
+
+  p <- (1 - level)/2
+  z <- - qnorm(p)
+
+  lwr <- est - z * se
+  upr <- est + z * se
+
+  z <- data.frame(est, se, lwr, upr, row.names = form)
+
+  z
 }
