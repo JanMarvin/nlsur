@@ -48,6 +48,7 @@ arma_reshape <- function(mm, sizetheta) {
 #' @param tol tolerance used for qr()
 #' @details as reference see:
 #' http://www.navipedia.net/index.php/Block-Wise_Weighted_Least_Square
+#' @importFrom Rcpp evalCpp
 #' @export
 wls_est <- function(x, r, qS, w, sizetheta, fullreg, tol) {
     .Call(`_nlsur_wls_est`, x, r, qS, w, sizetheta, fullreg, tol)
