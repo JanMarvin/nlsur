@@ -8,7 +8,14 @@ The packages supports a variety of functions like `print()`, `coef()`, `summary(
 
 ## Installation
 
-```{r}
+With `drat`:
+```R
+drat::addRepo("JanMarvin")
+install.packages("readspss")
+```
+
+With `devtools`:
+```R
 devtools::install_github("JanMarvin/nlsur")
 ```
 
@@ -37,7 +44,7 @@ erg <- nlsur(eqns = model, data = dat, type = "FGNLS")
 erg
 ```
 
-Additional parameters may be obtained using `nlcom()` a wrapper around `car::deltaMethod()`
+Additional parameters may be obtained using `nlcom()` a wrapper for the delta method.
 
 ```{r}
 # indirect estimation of translog parameters

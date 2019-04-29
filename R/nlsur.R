@@ -493,6 +493,7 @@
 #' @importFrom parallel mclapply detectCores
 #' @importFrom stats as.formula coef na.omit
 #' @importFrom utils capture.output
+#' @importFrom Rcpp evalCpp
 #' @useDynLib nlsur
 #'
 #' @export

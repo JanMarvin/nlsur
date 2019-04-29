@@ -43,5 +43,5 @@ dmm
 
 }
 \seealso{
-\link{deltaMethod}
+\link[car]{deltaMethod}
 }
