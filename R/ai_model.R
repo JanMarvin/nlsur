@@ -223,6 +223,18 @@ ai.model <- function(w, p, exp, alph0 = 10, logp = TRUE, logexp = TRUE,
     }
   }
 
+  if (modeltype == "eQAI" & !ray) {
+
+    mue <- paste0("mue", 1:neqs)
+
+    for (i in 1:neqs) {
+
+      eqs[i] <- paste(mue[i], "~", 1, "+ 1 /", w[i], "*",
+                      "(", beta[i], " +  2 *", lambda[i], "* ((",
+                      logexp, "-", translog, ") /",
+                      "(", cobbdoug, ")", " ))")
+    }
+  }
 
   if (modeltype == "eQAI" & ray) {
 
@@ -244,7 +256,7 @@ ai.model <- function(w, p, exp, alph0 = 10, logp = TRUE, logexp = TRUE,
 
   model <- list()
 
-  if (!(modeltype == "eQAI" & ray)) {
+  if (!(modeltype == "eQAI" )) {
 
     # drop one equation
     for (i in 1:(neqs-1))
