@@ -377,6 +377,7 @@ qai <- function(w, p, x, z, a0 = 0, data, scale = FALSE,
   attr(res, "z") <- z
   attr(res, "logp")   <- logp
   attr(res, "logexp") <- logexp
+  attr(res, "scale")  <- scale
 
   res
 }
@@ -387,8 +388,7 @@ qai <- function(w, p, x, z, a0 = 0, data, scale = FALSE,
 #'
 #' @param object qai result
 #' @param data data vector used for estimation
-#' @param ... additional options passed to function
-#' @param evaluate at mean
+#' @param usemean evaluate at mean
 #'
 #' @references Poi, Brian P.: Easy demand-system estimation with quaids, The
 #'  Stata Journal 12(3), 433-446, 2012
@@ -396,7 +396,7 @@ qai <- function(w, p, x, z, a0 = 0, data, scale = FALSE,
 #' @seealso ai and ai.model
 #'
 #' @export
-eQAI <- function(object, data, scale = FALSE, usemean = FALSE, ...) {
+eQAI <- function(object, data, usemean = FALSE) {
 
   # extract var names
   w <- attr(object, "w")
@@ -405,7 +405,7 @@ eQAI <- function(object, data, scale = FALSE, usemean = FALSE, ...) {
   z <- attr(object, "z")
   logp   <- attr(object, "logp")
   logexp <- attr(object, "logexp")
-
+  scale  <- attr(object, "scale")
 
   if(!scale) {
     eqs <- ai.model(w = w, p = p, exp = x, modeltype = "eQAI",
@@ -434,36 +434,31 @@ eQAI <- function(object, data, scale = FALSE, usemean = FALSE, ...) {
     names(fit) <- vnam
 
   } else {
-    fits <- NULL
+
+    fit <- NULL
+
+    # log means are required
+    logmean <- function(x) exp ( mean( log( x ) ) )
+
+    # calculate means
+    wm <- sapply(w, FUN=function(x) mean(data[[x]], use.na = FALSE))
+    pm <- sapply(p, FUN=function(x) mean(data[[x]], use.na = FALSE))
+    xm <- sapply(x, FUN=function(x) mean(data[[x]], use.na = FALSE))
+
+    if (!logp) pm <- sapply(p, FUN=function(x) logmean(data[[x]]))
+    if (!logexp) xm <- sapply(x, FUN=function(x) logmean(data[[x]]))
+
+    ms <- data.frame(t(c(wm, pm, xm)))
+
+    if(scale) {
+      zm <- sapply(z, FUN=function(x) mean(data[[x]], use.na = FALSE))
+      ms <- data.frame(t(c(wm, pm, xm, zm)))
+    }
 
     for (eq in eqs) {
 
       vars <- all.vars(eq[[3]])
       vars <- vars[!(vars %in% names(coef(object)))]
-
-      dset <- data
-      # ignore empty shares
-      # wsel <- w[which(w %in% vars)]
-      # keep <- data[[wsel]] > 0
-      # dset <- subset(data, keep == TRUE)
-
-      # dset <- lapply(data[w], FUN = function(x) replace(x, x == 0, NA))
-      # keep <- complete.cases(dset)
-      # dset <- subset(data, keep == TRUE)
-      # print(dim(dset))
-
-      # calculate means
-      wm <- sapply(w, FUN=function(x) mean(dset[[x]], use.na = FALSE))
-      pm <- sapply(p, FUN=function(x) mean(dset[[x]], use.na = FALSE))
-      xm <- sapply(x, FUN=function(x) mean(dset[[x]], use.na = FALSE))
-      ms <- data.frame(t(c(wm, pm, xm)))
-
-      if(scale) {
-        zm <- sapply(z, FUN=function(x) mean(dset[[x]], use.na = FALSE))
-        ms <- data.frame(t(c(wm, pm, xm, zm)))
-      }
-
-      # print(ms)
 
       # replace values in equation with fixed estimates
       for (i in vars) {
@@ -472,16 +467,11 @@ eQAI <- function(object, data, scale = FALSE, usemean = FALSE, ...) {
                    replacement = ms[names(ms) == i],
                    x = eq, perl = TRUE)
       }
-      # print(eq)
 
-      # run nlcom
-      fit <- nlcom(object = object, form = eq[3])
-
-      # combine results
-      fits <- rbind(fits, fit)
+      fits <- nlcom(object = object, form = eq[3])
+      fit <- rbind(fit, fits)
     }
 
-    fit <- fits
     rownames(fit) <- sapply(eqs, FUN = function(x) x[[2]])
 
   }
