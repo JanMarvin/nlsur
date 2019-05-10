@@ -223,14 +223,38 @@ ai.model <- function(w, p, exp, alph0 = 10, logp = TRUE, logexp = TRUE,
     }
   }
 
+
+  if (modeltype == "eQAI" & ray) {
+
+    mue <- paste0("mue", 1:neqs)
+    translog_star <- paste("(", m0, "+", translog, ")")
+
+    for (i in 1:neqs) {
+
+      eqs[i] <- paste(mue[i], "~", 1, "+ 1 /", w[i], "*",
+                      "(", beta_star[i], " +  2 *", lambda[i], "* ((",
+                      logexp, "-", translog_star, ") /",
+                      "(", cobbdoug, "*", cpz, ")", " ))")
+    }
+  }
+
+
+
   eqs <- unlist(eqs)
 
   model <- list()
 
-  # drop one equation
-  for (i in 1:(neqs-1))
-    # for (i in 1:(neqs))
-    model[[i]] <- as.formula(eqs[i])
+  if (!(modeltype == "eQAI" & ray)) {
+
+    # drop one equation
+    for (i in 1:(neqs-1))
+      model[[i]] <- as.formula(eqs[i])
+
+  } else {
+
+    for (i in 1:(neqs))
+      model[[i]] <- as.formula(eqs[i])
+  }
 
   return(model)
 }
@@ -335,4 +359,42 @@ qai <- function(w, p, x, z, a0 = 0, data, scale = FALSE,
   res <- nlsur(eqns = model, data = data, type = 3, ...)
 
   res
+}
+
+#' Estimation of elasticies of the Quadratic Almost-Ideal Demand System
+#'
+#' Estimates the expenditure elasticity for goods
+#'
+#' @param object qai result
+#' @param data data vector used for estimation
+#' @param ... additional options passed to function
+#'
+#' @references Poi, Brian P.: Easy demand-system estimation with quaids, The
+#'  Stata Journal 12(3), 433-446, 2012
+#'
+#' @seealso ai and ai.model
+#'
+#' @export
+eQAI <- function(object, data, ...) {
+
+
+  eqs <- ai.model(w, p, exp = x, alph0 = 10, logp = F, logexp = F,
+                  modeltyp = "eQAI", ray = TRUE, demogr = z)
+
+  eqns_lhs <- lapply(X = eqs, FUN = function(x)x[[2L]])
+  eqns_rhs <- lapply(X = eqs, FUN = function(x)x[[3L]])
+  vnam     <- sapply(X = eqns_lhs, FUN = as.character)
+
+  data2 <- data.frame(data, as.list(coef(object)))
+
+  # create fit: predict result
+  fit <- lapply(X = eqns_rhs, FUN = eval, envir = data2)
+
+  # replace is.infinite() with NA
+  fit <- lapply(X = fit, FUN = function(x) replace(x, is.infinite(x), NA) )
+
+  fit <- data.frame(fit)
+  names(fit) <- vnam
+
+  fit
 }
