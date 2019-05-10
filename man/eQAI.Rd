@@ -4,14 +4,14 @@
 \alias{eQAI}
 \title{Estimation of elasticies of the Quadratic Almost-Ideal Demand System}
 \usage{
-eQAI(object, data, ...)
+eQAI(object, data, usemean = FALSE)
 }
 \arguments{
 \item{object}{qai result}
 
 \item{data}{data vector used for estimation}
 
-\item{...}{additional options passed to function}
+\item{usemean}{evaluate at mean}
 }
 \description{
 Estimates the expenditure elasticity for goods
