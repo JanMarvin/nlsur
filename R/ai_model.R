@@ -303,7 +303,7 @@ ai.model <- function(w, p, exp, alph0 = 10, logp = TRUE, logexp = TRUE,
 
   if (modeltype == "eQAI" & ray) {
 
-    mue <- paste0("mu_", 1:neqs)
+    mu <- paste0("mu_", 1:neqs)
     translog_star <- paste("(", m0, "+", translog, ")")
 
     for (i in 1:neqs) {
@@ -350,8 +350,8 @@ ai.model <- function(w, p, exp, alph0 = 10, logp = TRUE, logexp = TRUE,
 
   if (modeltype == "ceQAI" & ray) {
 
-    ue <- sort(rep(paste0("ue_", 1:neqs), neqs))
-    ue <- paste0(ue, "_", 1:neqs)
+    ce <- sort(rep(paste0("ce_", 1:neqs), neqs))
+    ce <- paste0(ce, "_", 1:neqs)
 
 
     translog_star <- paste("(", m0, "+", translog, ")")
@@ -367,7 +367,7 @@ ai.model <- function(w, p, exp, alph0 = 10, logp = TRUE, logexp = TRUE,
 
         delta <- 0; if (i == j) delta <- -1
 
-        eqs[count] <- paste(ue[count], "~ (", delta,
+        eqs[count] <- paste(ce[count], "~ (", delta,
                             "+ 1 /", w[i], "* (", gamma[i,j], "- (",
                             beta_star[i], "+ 2 *", lambda[i], "* ((",
                             logexp, "-", translog_star, ") /",
