@@ -1,6 +1,6 @@
 Package: nlsur
 Type: Package
-Version: 0.6.5
+Version: 0.7
 Title: Estimating Nonlinear Least Squares for Equation Systems
 Author: Jan Marvin Garbuszus
 Maintainer: Jan Marvin Garbuszus <jan.garbuszus@ruhr-uni-bochum.de>
