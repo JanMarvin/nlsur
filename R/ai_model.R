@@ -186,6 +186,69 @@ ai.model <- function(w, p, exp, alph0 = 10, logp = TRUE, logexp = TRUE,
     }
   }
 
+  if (modeltype == "eAI" & !ray) {
+
+    mu <- paste0("mu_", 1:neqs)
+
+    for (i in 1:neqs) {
+
+      # FixMe: this is what Stata indicates. Is it correct?
+      eqs[i] <- paste(mu[i], "~", 1, "+ 1 /", w[i], "*",
+                      "(", beta[i], ")")
+    }
+  }
+
+  if (modeltype == "uceAI" & !ray) {
+
+    ue <- sort(rep(paste0("ue_", 1:neqs), neqs))
+    ue <- paste0(ue, "_", 1:neqs)
+
+    count <- 0
+
+    for (i in 1:neqs) {
+      for (j in 1:neqs) {
+
+        count <- count + 1
+
+        glogp <- paste(paste0(gamma[j, ], "*", logp), collapse=" + ")
+
+        delta <- 0; if (i == j) delta <- -1
+
+        eqs[count] <- paste(ue[count], "~", delta,
+                            "+ 1 /", w[i], "* (", gamma[i,j], "-",
+                            beta[i],
+                            "* (", alpha[j], "+", glogp, "))")
+
+      }
+    }
+  }
+
+  if (modeltype == "ceAI" & !ray) {
+
+    ce <- sort(rep(paste0("ce_", 1:neqs), neqs))
+    ce <- paste0(ce, "_", 1:neqs)
+
+    count <- 0
+
+    for (i in 1:neqs) {
+      for (j in 1:neqs) {
+
+        count <- count + 1
+
+        glogp <- paste(paste0(gamma[j, ], "*", logp), collapse=" + ")
+
+        delta <- 0; if (i == j) delta <- -1
+
+        eqs[count] <- paste(ce[count], "~ (", delta,
+                            "+ 1 /", w[i], "* (", gamma[i,j], "-",
+                            beta[i],
+                            "* (", alpha[j], "+", glogp, "))) + ((",
+                            1, "+ 1 /", w[i], "*", beta[i], ") *", w[j], ")")
+
+      }
+    }
+  }
+
   if (modeltype == "QAI" & !ray) {
 
     #### eqs ####
@@ -194,6 +257,83 @@ ai.model <- function(w, p, exp, alph0 = 10, logp = TRUE, logexp = TRUE,
       eqs[i] <- paste(w[i], "~", alpha[i], "+", glogp, "+", beta[i], "*",
                       "(", logexp, "-", translog, ") +", lambda[i], "* ((",
                       logexp, "-", translog, ")^2 /", cobbdoug,")")
+    }
+  }
+
+  if (modeltype == "eQAI" & !ray) {
+
+    mu <- paste0("mu_", 1:neqs)
+
+    for (i in 1:neqs) {
+
+      eqs[i] <- paste(mu[i], "~", 1, "+ 1 /", w[i], "*",
+                      "(", beta[i], " +  2 *", lambda[i], "* ((",
+                      logexp, "-", translog, ") /",
+                      "(", cobbdoug, ")", " ))")
+    }
+  }
+
+  if (modeltype == "uceQAI" & !ray) {
+
+    ue <- sort(rep(paste0("ue_", 1:neqs), neqs))
+    ue <- paste0(ue, "_", 1:neqs)
+
+    count <- 0
+
+    for (i in 1:neqs) {
+      for (j in 1:neqs) {
+
+        count <- count + 1
+
+        glogp <- paste(paste0(gamma[j, ], "*", logp), collapse=" + ")
+
+        delta <- 0; if (i == j) delta <- -1
+
+        eqs[count] <- paste(ue[count], "~", delta,
+                            "+ 1 /", w[i], "* (", gamma[i,j], "- (",
+                            beta[i], "+ 2 *", lambda[i], "* ((",
+                            logexp, "-", translog, ") /",
+                            "(", cobbdoug, ")", " ))",
+                            "* (", alpha[j], "+", glogp, ")",
+                            "- (", beta[j], "* ", lambda[i],
+                            "* ((", logexp, "-", translog, ")^2 /",
+                            "(", cobbdoug, ")", " )))")
+
+      }
+    }
+  }
+
+  if (modeltype == "ceQAI" & !ray) {
+
+    ce <- sort(rep(paste0("ce_", 1:neqs), neqs))
+    ce <- paste0(ce, "_", 1:neqs)
+
+    count <- 0
+
+    for (i in 1:neqs) {
+      for (j in 1:neqs) {
+
+        count <- count + 1
+
+        glogp <- paste(paste0(gamma[j, ], "*", logp), collapse=" + ")
+
+        delta <- 0; if (i == j) delta <- -1
+
+        eqs[count] <- paste(ce[count], "~ (", delta,
+                            "+ 1 /", w[i], "* (", gamma[i,j], "- (",
+                            beta[i], "+ 2 *", lambda[i], "* ((",
+                            logexp, "-", translog, ") /",
+                            "(", cobbdoug, ")", " ))",
+                            "* (", alpha[j], "+", glogp, ")",
+                            "- (", beta[j], "* ", lambda[i],
+                            "* ((", logexp, "-", translog, ")^2 /",
+                            "(", cobbdoug, ")", " )))) + ((",
+                            1, "+ 1 /", w[i], "*",
+                            "(", beta[i], " +  2 *", lambda[i], "* ((",
+                            logexp, "-", translog, ") /",
+                            "(", cobbdoug, ")", " ))) *", w[j], ")")
+
+      }
     }
   }
 
@@ -209,6 +349,71 @@ ai.model <- function(w, p, exp, alph0 = 10, logp = TRUE, logexp = TRUE,
     }
   }
 
+  if (modeltype == "eAI" & ray) {
+
+    mu <- paste0("mu_", 1:neqs)
+
+    for (i in 1:neqs) {
+
+      # FixMe: this is what Stata indicates. Is it correct?
+      eqs[i] <- paste(mu[i], "~", 1, "+ 1 /", w[i], "*",
+                      "(", beta_star[i], ")")
+    }
+  }
+
+  if (modeltype == "uceAI" & ray) {
+
+    ue <- sort(rep(paste0("ue_", 1:neqs), neqs))
+    ue <- paste0(ue, "_", 1:neqs)
+
+    count <- 0
+
+    for (i in 1:neqs) {
+      for (j in 1:neqs) {
+
+        count <- count + 1
+
+        glogp <- paste(paste0(gamma[j, ], "*", logp), collapse=" + ")
+
+        delta <- 0; if (i == j) delta <- -1
+
+        eqs[count] <- paste(ue[count], "~", delta,
+                            "+ 1 /", w[i], "* (", gamma[i,j], "-",
+                            beta_star[i],
+                            "* (", alpha[j], "+", glogp, "))")
+
+      }
+    }
+  }
+
+  if (modeltype == "ceAI" & ray) {
+
+    ce <- sort(rep(paste0("ce_", 1:neqs), neqs))
+    ce <- paste0(ce, "_", 1:neqs)
+
+    count <- 0
+
+    for (i in 1:neqs) {
+      for (j in 1:neqs) {
+
+        count <- count + 1
+
+        glogp <- paste(paste0(gamma[j, ], "*", logp), collapse=" + ")
+
+        delta <- 0; if (i == j) delta <- -1
+
+        eqs[count] <- paste(ce[count], "~ (", delta,
+                            "+ 1 /", w[i], "* (", gamma[i,j], "-",
+                            beta_star[i],
+                            "* (", alpha[j], "+", glogp, "))) + ((",
+                            1, "+ 1 /", w[i], "*", beta_star[i],
+                            ") *", w[j], ")")
+
+      }
+    }
+  }
+
+
   if (modeltype == "QAI" & ray) {
 
     translog_star <- paste("(", m0, "+", translog, ")")
@@ -223,14 +428,109 @@ ai.model <- function(w, p, exp, alph0 = 10, logp = TRUE, logexp = TRUE,
     }
   }
 
+  if (modeltype == "eQAI" & ray) {
+
+    mu <- paste0("mu_", 1:neqs)
+    translog_star <- paste("(", m0, "+", translog, ")")
+
+    for (i in 1:neqs) {
+
+      eqs[i] <- paste(mu[i], "~", 1, "+ 1 /", w[i], "*",
+                      "(", beta_star[i], " +  2 *", lambda[i], "* ((",
+                      logexp, "-", translog_star, ") /",
+                      "(", cobbdoug, "*", cpz, ")", " ))")
+    }
+  }
+
+  if (modeltype == "uceQAI" & ray) {
+
+    ue <- sort(rep(paste0("ue_", 1:neqs), neqs))
+    ue <- paste0(ue, "_", 1:neqs)
+
+
+    translog_star <- paste("(", m0, "+", translog, ")")
+
+    count <- 0
+
+    for (i in 1:neqs) {
+      for (j in 1:neqs) {
+
+        count <- count + 1
+
+        glogp <- paste(paste0(gamma[j, ], "*", logp), collapse=" + ")
+
+        delta <- 0; if (i == j) delta <- -1
+
+        eqs[count] <- paste(ue[count], "~", delta,
+                            "+ 1 /", w[i], "* (", gamma[i,j], "- (",
+                            beta_star[i], "+ 2 *", lambda[i], "* ((",
+                            logexp, "-", translog_star, ") /",
+                            "(", cobbdoug, "*", cpz, ")", " ))",
+                            "* (", alpha[j], "+", glogp, ")",
+                            "- (", beta_star[j], "* ", lambda[i],
+                            "* ((", logexp, "-", translog_star, ")^2 /",
+                            "(", cobbdoug, "*", cpz, ")", " )))")
+
+      }
+    }
+  }
+
+  if (modeltype == "ceQAI" & ray) {
+
+    ce <- sort(rep(paste0("ce_", 1:neqs), neqs))
+    ce <- paste0(ce, "_", 1:neqs)
+
+
+    translog_star <- paste("(", m0, "+", translog, ")")
+
+    count <- 0
+
+    for (i in 1:neqs) {
+      for (j in 1:neqs) {
+
+        count <- count + 1
+
+        glogp <- paste(paste0(gamma[j, ], "*", logp), collapse=" + ")
+
+        delta <- 0; if (i == j) delta <- -1
+
+        eqs[count] <- paste(ce[count], "~ (", delta,
+                            "+ 1 /", w[i], "* (", gamma[i,j], "- (",
+                            beta_star[i], "+ 2 *", lambda[i], "* ((",
+                            logexp, "-", translog_star, ") /",
+                            "(", cobbdoug, "*", cpz, ")", " ))",
+                            "* (", alpha[j], "+", glogp, ")",
+                            "- (", beta_star[j], "* ", lambda[i],
+                            "* ((", logexp, "-", translog_star, ")^2 /",
+                            "(", cobbdoug, "*", cpz, ")", " )))) + (",
+                            1, "+ 1 /", w[i], "*",
+                            "(", beta_star[i], " +  2 *", lambda[i], "* ((",
+                            logexp, "-", translog_star, ") /",
+                            "(", cobbdoug, "*", cpz, ")", " ))) * ", w[j]
+        )
+
+      }
+    }
+  }
+
+
+
   eqs <- unlist(eqs)
 
   model <- list()
 
-  # drop one equation
-  for (i in 1:(neqs-1))
-    # for (i in 1:(neqs))
-    model[[i]] <- as.formula(eqs[i])
+  if (!(modeltype == "eAI" | modeltype == "uceAI" | modeltype == "ceAI")
+    & !(modeltype == "eQAI" | modeltype == "uceQAI" | modeltype == "ceQAI")) {
+
+    # drop one equation
+    for (i in 1:(neqs-1))
+      model[[i]] <- as.formula(eqs[i])
+
+  } else {
+
+    for (i in seq_along(eqs))
+      model[[i]] <- as.formula(eqs[i])
+  }
 
   return(model)
 }
@@ -283,6 +583,17 @@ ai <- function(w, p, x, z, a0 = 0, data, scale = FALSE,
 
   res <- nlsur(eqns = model, data = data, type = 3, ...)
 
+  # required for eQAI
+  attr(res, "w") <- w
+  attr(res, "p") <- p
+  attr(res, "x") <- x
+  attr(res, "z") <- z
+  attr(res, "a0")     <- a0
+  attr(res, "logp")   <- logp
+  attr(res, "logexp") <- logexp
+  attr(res, "scale")  <- scale
+  attr(res, "modeltyp") <- "AI"
+
   res
 }
 
@@ -334,5 +645,188 @@ qai <- function(w, p, x, z, a0 = 0, data, scale = FALSE,
 
   res <- nlsur(eqns = model, data = data, type = 3, ...)
 
+  # required for eQAI
+  attr(res, "w") <- w
+  attr(res, "p") <- p
+  attr(res, "x") <- x
+  attr(res, "z") <- z
+  attr(res, "a0")     <- a0
+  attr(res, "logp")   <- logp
+  attr(res, "logexp") <- logexp
+  attr(res, "scale")  <- scale
+  attr(res, "modeltyp") <- "QAI"
+
   res
+}
+
+#' Estimation of elasticies of the (Quadratic) Almost-Ideal Demand System
+#'
+#' Estimates the income/expeditute elasticity, the uncompensated price
+#'  elasticity and the compensated price elasticity
+#'
+#' @param object qai result
+#' @param data data vector used for estimation
+#' @param type 1 = expenditure; 2 = uncompensated; 3 = compensated
+#' @param usemean evaluate at mean
+#'
+#' @details Formula for the expenditure (income) elasticity
+#'
+#' \deqn{
+#' \mu_i = 1 + \frac{1}{w_i} \left[ \beta_i + \frac{2\lambda_i}{b(\mathbf{p})} *
+#'  ln \left\{\frac{m}{a(\mathbf{p})} \right\}\right]
+#' }
+#'
+#' Formula for the uncompensated price elasticity
+#'
+#' \deqn{
+#' \epsilon_{ij} = \delta_{ij} + \frac{1}{w_i} \left( \gamma_{ij} - \beta_i +
+#'  \frac{2\lambda_i}{b(\mathbf{p})} \right) \left[\ln \left\{
+#'  \frac{m}{a(\mathbf{p})}\right\} \right] \times \\
+#'  \left(\alpha_j + \sum_k \gamma_{jk} \ln p_k \right) -
+#'  \frac{\beta_j \lambda_i}{b(\mathbf{p})} \left[
+#'   \ln \left\{ \frac{m}{a(\mathbf{p})} \right\}\right]
+#' }
+#'
+#' Compensated price elasticitys (Slutsky equation)
+#' \deqn{
+#'  \epsilon_{ij}^{C} = \epsilon_{ij} + \mu_i w_j
+#' }
+#'
+#' @examples
+#' \dontrun{
+#' library(nlsur)
+#' library(readstata13)
+#'
+#' dd <- read.dta13("http://www.stata-press.com/data/r15/food.dta")
+#'
+#' w <- paste0("w", 1:4); p <- paste0("p", 1:4); x <- "expfd"
+#'
+#' est <- ai(w = w, p = p, x = x, data = dd, a0 = 10, scale = FALSE,
+#'           logp = F, logexp = F)
+#'
+#' mu <- elasticities(est, data = dd, type = 1, usemean = FALSE)
+#'
+#' ue <- elasticities(est, data = dd, type = 2, usemean = FALSE)
+#'
+#' ce <- elasticities(est, data = dd, type = 3, usemean = FALSE)}
+#'
+#' @references Banks, James, Blundell, Richard, Lewbel, Arthur: Quadratic Engel
+#'  Curves and Consumer Demand, The Review of Economics and Statistics 79(4),
+#'  The MIT Press, 527-539, 1997
+#' @references Poi, Brian P.: Easy demand-system estimation with quaids, The
+#'  Stata Journal 12(3), 433-446, 2012
+#'
+#' @seealso ai and qai
+#'
+#' @export
+elasticities <- function(object, data, type = 1, usemean = FALSE) {
+
+
+  modeltyp  <- attr(object, "modeltyp")
+
+  if (modeltyp == "AI") {
+    if (type == 1)
+      mtyp <- "eAI"
+
+    if (type == 2)
+      mtyp <- "uceAI"
+
+    if (type == 3)
+      mtyp <- "ceAI"
+  }
+
+  if (modeltyp == "QAI") {
+    if (type == 1)
+      mtyp <- "eQAI"
+
+    if (type == 2)
+      mtyp <- "uceQAI"
+
+    if (type == 3)
+      mtyp <- "ceQAI"
+  }
+
+
+  # extract var names
+  w <- attr(object, "w")
+  p <- attr(object, "p")
+  x <- attr(object, "x")
+  z <- attr(object, "z")
+  a0 <- attr(object, "a0")
+  logp   <- attr(object, "logp")
+  logexp <- attr(object, "logexp")
+  scale  <- attr(object, "scale")
+
+  if(!scale) {
+    eqs <- ai.model(w = w, p = p, exp = x, modeltype = mtyp,
+                    logp = logp, logexp = logexp, alph0 = a0)
+  } else {
+    eqs <- ai.model(w = w, p = p, exp = x, demogr = z,
+                    ray = TRUE, modeltype = mtyp,
+                    logp = logp, logexp = logexp, alph0 = a0)
+  }
+
+  if (!usemean) {
+
+    eqns_lhs <- lapply(X = eqs, FUN = function(x)x[[2L]])
+    eqns_rhs <- lapply(X = eqs, FUN = function(x)x[[3L]])
+    vnam     <- sapply(X = eqns_lhs, FUN = as.character)
+    # print(vnam)
+
+    data2 <- data.frame(data, as.list(coef(object)))
+
+    # create fit: predict result
+    fit <- lapply(X = eqns_rhs, FUN = eval, envir = data2)
+
+    # replace is.infinite() with NA
+    fit <- lapply(X = fit, FUN = function(x) replace(x, is.infinite(x), NA) )
+
+    fit <- data.frame(fit)
+    names(fit) <- vnam
+
+  } else {
+
+    fit <- NULL
+
+    # log means are required
+    logmean <- function(x) exp ( mean( log( x ) ) )
+
+    # calculate means
+    wm <- sapply(w, FUN=function(x) mean(data[[x]], use.na = FALSE))
+    pm <- sapply(p, FUN=function(x) mean(data[[x]], use.na = FALSE))
+    xm <- sapply(x, FUN=function(x) mean(data[[x]], use.na = FALSE))
+
+    if (!logp) pm <- sapply(p, FUN=function(x) logmean(data[[x]]))
+    if (!logexp) xm <- sapply(x, FUN=function(x) logmean(data[[x]]))
+
+    ms <- data.frame(t(c(wm, pm, xm)))
+
+    if(scale) {
+      zm <- sapply(z, FUN=function(x) mean(data[[x]], use.na = FALSE))
+      ms <- data.frame(t(c(wm, pm, xm, zm)))
+    }
+
+    for (eq in eqs) {
+
+      vars <- all.vars(eq[[3]])
+      vars <- vars[!(vars %in% names(coef(object)))]
+
+      # replace values in equation with fixed estimates
+      for (i in vars) {
+        # no underscore ahead and behind i
+        eq <- gsub(pattern = paste0("(?<!_)", i, "(?!_)"),
+                   replacement = ms[names(ms) == i],
+                   x = eq, perl = TRUE)
+      }
+
+      fits <- nlcom(object = object, form = eq[3])
+      fit <- rbind(fit, fits)
+    }
+
+    rownames(fit) <- sapply(eqs, FUN = function(x) x[[2]])
+
+    fit <- as.data.frame(fit)
+  }
+
+  fit
 }
