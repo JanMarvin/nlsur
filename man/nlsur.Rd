@@ -4,10 +4,26 @@
 \alias{nlsur}
 \title{Fitting Iterative Feasible Non-Linear Seemingly Unrelated Regression Model}
 \usage{
-nlsur(eqns, data, startvalues, type = NULL, S = NULL, trace = FALSE,
-  robust = FALSE, stata = TRUE, qrsolve = FALSE, weights,
-  MASS = FALSE, maxiter = 1000, val = 0, tol = 1e-07,
-  eps = 1e-05, ifgnlseps = 1e-10, tau = 0.001, initial = FALSE)
+nlsur(
+  eqns,
+  data,
+  startvalues,
+  type = NULL,
+  S = NULL,
+  trace = FALSE,
+  robust = FALSE,
+  stata = TRUE,
+  qrsolve = FALSE,
+  weights,
+  MASS = FALSE,
+  maxiter = 1000,
+  val = 0,
+  tol = 1e-07,
+  eps = 1e-05,
+  ifgnlseps = 1e-10,
+  tau = 0.001,
+  initial = FALSE
+)
 }
 \arguments{
 \item{eqns}{is a list object containing the model as formula. This list can
