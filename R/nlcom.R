@@ -55,6 +55,9 @@ nlcom <- function(object, form, alpha = 0.05, rname, envir) {
         fname <- paste("(", attr(tmp, "form"), ")")
 
         form <- gsub(pattern = i, replacement = fname, x = form, fixed = TRUE)
+      } else {
+        if (class(tmp) == "numeric" || class(tmp) == "integer")
+          form <- gsub(pattern = i, replacement = tmp, x = form, fixed = TRUE)
       }
     }
   }
