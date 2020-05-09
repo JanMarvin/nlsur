@@ -4,8 +4,18 @@
 \alias{ai.model}
 \title{Q/AI model function}
 \usage{
-ai.model(w, p, exp, alph0 = 10, logp = TRUE, logexp = TRUE,
-  priceindex = "translog", modeltype = "AI", ray = FALSE, demogr)
+ai.model(
+  w,
+  p,
+  exp,
+  alph0 = 10,
+  logp = TRUE,
+  logexp = TRUE,
+  priceindex = "translog",
+  modeltype = "AI",
+  ray = FALSE,
+  demogr
+)
 }
 \arguments{
 \item{w}{character vector of m budgetshares used for estimation.}

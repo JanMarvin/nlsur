@@ -4,10 +4,24 @@
 \alias{.nlsur}
 \title{Non-Linear Seemingly Unrelated Regression}
 \usage{
-.nlsur(eqns, data, startvalues, S = NULL, robust = robust,
-  nls = FALSE, fgnls = FALSE, ifgnls = FALSE, qrsolve = FALSE,
-  MASS = FALSE, trace = FALSE, eps = eps, tau = tau,
-  maxiter = maxiter, tol = tol, initial = initial)
+.nlsur(
+  eqns,
+  data,
+  startvalues,
+  S = NULL,
+  robust = robust,
+  nls = FALSE,
+  fgnls = FALSE,
+  ifgnls = FALSE,
+  qrsolve = FALSE,
+  MASS = FALSE,
+  trace = FALSE,
+  eps = eps,
+  tau = tau,
+  maxiter = maxiter,
+  tol = tol,
+  initial = initial
+)
 }
 \arguments{
 \item{eqns}{is can be a single equation or a equation system. If eqns is a

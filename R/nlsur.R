@@ -787,7 +787,6 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
   # create output
   z$n           <- n
   z$k           <- k
-  z$df          <- df
   z$df.residual <- df
   z$LL          <- LL
   z$model       <- eqns
@@ -840,7 +839,7 @@ summary.nlsur <- function(object, noconst = TRUE, multicores, ...) {
   w       <- weights(z)
   n       <- z$n
   k       <- z$k
-  df      <- z$df
+  df      <- z$df.residual
   r       <- residuals(z)
   eqconst <- z$const
   nlsonly <- z$nlsonly
