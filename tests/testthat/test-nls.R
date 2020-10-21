@@ -46,7 +46,7 @@ Cw <- coef(nlsur(model, data = dat, startvalues = c(a = 0, b=0),
 
 # predict
 pm1 <- predict(m1)
-pM1 <- predict(M1)
+pM1 <- predict(M1, multicores = 1)
 
 #### nls ####
 test_that("nls", {
