@@ -1,6 +1,5 @@
-^\.travis\.yml$
 ^.*\.Rproj$
 ^\.Rproj\.user$
 data-raw/
+.github/
 LICENSE
-^appveyor\.yml$
