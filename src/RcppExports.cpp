@@ -7,14 +7,14 @@
 using namespace Rcpp;
 
 // ssr_est
-SEXP ssr_est(arma::Mat<double> r, arma::Mat<double> s, arma::Col<double> w);
+SEXP ssr_est(arma::Mat<double> r, arma::Mat<double> s, arma::Mat<double> w);
 RcppExport SEXP _nlsur_ssr_est(SEXP rSEXP, SEXP sSEXP, SEXP wSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< arma::Mat<double> >::type r(rSEXP);
     Rcpp::traits::input_parameter< arma::Mat<double> >::type s(sSEXP);
-    Rcpp::traits::input_parameter< arma::Col<double> >::type w(wSEXP);
+    Rcpp::traits::input_parameter< arma::Mat<double> >::type w(wSEXP);
     rcpp_result_gen = Rcpp::wrap(ssr_est(r, s, w));
     return rcpp_result_gen;
 END_RCPP
@@ -32,7 +32,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // wls_est
-SEXP wls_est(arma::Mat<double> x, arma::Mat<double> r, arma::Mat<double> qS, arma::Col<double> w, int sizetheta, bool fullreg, double tol);
+SEXP wls_est(arma::Mat<double> x, arma::Mat<double> r, arma::Mat<double> qS, arma::Mat<double> w, int sizetheta, bool fullreg, double tol);
 RcppExport SEXP _nlsur_wls_est(SEXP xSEXP, SEXP rSEXP, SEXP qSSEXP, SEXP wSEXP, SEXP sizethetaSEXP, SEXP fullregSEXP, SEXP tolSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -40,7 +40,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< arma::Mat<double> >::type x(xSEXP);
     Rcpp::traits::input_parameter< arma::Mat<double> >::type r(rSEXP);
     Rcpp::traits::input_parameter< arma::Mat<double> >::type qS(qSSEXP);
-    Rcpp::traits::input_parameter< arma::Col<double> >::type w(wSEXP);
+    Rcpp::traits::input_parameter< arma::Mat<double> >::type w(wSEXP);
     Rcpp::traits::input_parameter< int >::type sizetheta(sizethetaSEXP);
     Rcpp::traits::input_parameter< bool >::type fullreg(fullregSEXP);
     Rcpp::traits::input_parameter< double >::type tol(tolSEXP);

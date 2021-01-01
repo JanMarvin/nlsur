@@ -64,7 +64,8 @@
   n    <- vector("integer", length=neqs)
   k    <- vector("integer", length=neqs)
 
-  wts  <- data$nlsur_created_weights
+  wts_pos <- which(grepl("^nlsur_crt_wts", names(data)))
+  wts  <- as.matrix(data[wts_pos], ncol = length(wts_pos))
 
   nlsur_coef <- new.env(hash = TRUE)
 
@@ -148,6 +149,15 @@
     stop("NA/NaN/Inf in derivation found. Most likely due to artificial data.")
   }
 
+  # r <<- r
+  # s <<- s
+  # wts <<- wts
+
+  if (ncol(wts) < ncol(r)) {
+    wts <- matrix(rep(wts, ncol(r)), ncol = ncol(r))
+  }
+
+  wts <- wts / sum(wts) * nrow(wts)
 
   # Evaluate initial ssr
   ssr.old <- ssr_est(r, s, wts)
@@ -204,6 +214,13 @@
         theta.new <- lm_gls(X = x, Y = r, W = S, neqs = neqs, tol = tol)
 
       } else {
+
+        # xx <<- x
+        # rr <<- r
+        # qqS <<- qS
+        # wtswts <<- wts
+        # theta <<- theta
+        # tol <<- tol
 
         # Weighted regression of residuals on derivs ---
         theta.new <- wls_est(x, r, qS, wts, length(theta), 1, tol)
@@ -332,6 +349,10 @@
 
     covb <- lm_gls(X = x, Y = r, W = S, neqs = neqs, tol = tol, covb = TRUE)
   } else {
+    r <- do.call(cbind, ri)
+    # print(r)
+    # print(wts)
+
     # get xdx from wls
     covb <- wls_est(x, r, qS, wts, length(theta), 0, tol)
   }
@@ -527,11 +548,15 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
     }
   }
 
+  wts <- NULL
   # Check if original call contains weights
-  if (missing(weights))
-    wts <- NULL
-  else
-    wts <- as.character(substitute(weights))
+  if (!missing(weights)) {
+    for (weight in weights) {
+      tmp <- as.character(substitute(weight))
+      wts <- c(wts, tmp)
+    }
+  }
+
 
   # If no startvalues supplied, create them.
   if (missing (startvalues)) {
@@ -544,7 +569,7 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
   # Check if all variables that are not startvalues exist in data.
   vars <- unlist(lapply(eqns, all.vars))
   vars <- vars[which(!vars %in% names(startvalues))]
-  ok   <- all(vars%in%names(data))
+  ok   <- all(vars %in% names(data))
 
   # if not ok bail out
   if (!ok) {
@@ -568,24 +593,43 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
 
   # Check for wts
   if ( is.null(wts) ) {
-    data$nlsur_created_weights <- 1
+    data$nlsur_crt_wts1 <- 1
   } else {
-    wts <- as.name(wts)
+    # print(wts)
+    # wts <- sapply(wts, as.name)
+    # print(wts)
+    # print(data)
 
-    data$nlsur_created_weights <- eval(substitute(wts), data)
+    nlsur_created_weights <- vector(mode = "list", length = length(wts))
+    names(nlsur_created_weights) <- wts
+    for (wt in wts) {
+      nlsur_created_weights[[wt]] <- eval(as.name(wt), data)
+    }
+    nlsur_created_weights <- as.data.frame(nlsur_created_weights)
+    names(nlsur_created_weights) <- paste0("nlsur_crt_wts",
+                                           seq_along(nlsur_created_weights))
+    # print(nlsur_created_weights)
+
+    data <- cbind(data, nlsur_created_weights)
   }
+
+  nlsur_crt_wts <- "nlsur_crt_wts1"
+  if (length(wts) > 1)
+    nlsur_crt_wts <- names(nlsur_created_weights)
 
   # include weights to assure the correct length
   # of weights if missings are excluded.
-  data <- na.omit(data[unique(c(parms,"nlsur_created_weights"))])
+  data <- na.omit(data[unique(c(parms, nlsur_crt_wts))])
 
   nls  <- fgnls <- ifgnls <- FALSE
   n    <- nrow(data)
   z    <- NULL
 
   # normwts
-  data$nlsur_created_weights <- data$nlsur_created_weights /
-    sum(data$nlsur_created_weights) * n
+  for (nlsur_weight in nlsur_crt_wts) {
+    data[[nlsur_weight]] <- data[[nlsur_weight]] /
+      sum(data[[nlsur_weight]]) * n
+  }
 
   cl <- match.call()
 
@@ -696,7 +740,17 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
         theta <- coef(z)
 
         s   <- chol(qr.solve(S, tol = tol))
-        rss <- ssr_est(r, s, data$nlsur_created_weights)
+
+        wts_pos <- which(grepl("^nlsur_crt_wts", names(data)))
+        wts  <- as.matrix(data[wts_pos], ncol = length(wts_pos))
+
+        if (ncol(wts) < ncol(r)) {
+          wts <- matrix(rep(wts, ncol(r)), ncol = ncol(r))
+        }
+
+        wts <- wts / sum(wts) * nrow(wts)
+
+        rss <- ssr_est(r, s, wts)
 
         iter <- iter +1
 
@@ -746,11 +800,11 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
   N <- unique(n)
   M <- nrow(S)
 
-  LL <- ( sum(log(data$nlsur_created_weights)) -
+  LL <- ( sum(log(data$nlsur_crt_wts1)) -
             (M*N) * (log(2 * pi) +
                        1 - log(N) +
                        log(det(S)) / M  +
-                       log(sum(data$nlsur_created_weights))) )/2
+                       log(sum(data$nlsur_crt_wts1))) )/2
 
 
   # Fitted values ##############################################################

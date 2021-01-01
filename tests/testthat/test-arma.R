@@ -22,7 +22,7 @@ r <- do.call(cbind, ri)
 R <- matrix(r, ncol = 1)
 n <- nrow(r)
 k <- ncol(r)
-w <- rep(1, n)
+w <- matrix(rep(rep(1, n), k), ncol = k)
 
 I <- diag(n)
 

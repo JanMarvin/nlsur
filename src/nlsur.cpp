@@ -13,18 +13,18 @@ using namespace arma;
 //' @param w vector of weights
 //' @export
 // [[Rcpp::export]]
-SEXP ssr_est(arma::Mat<double> r, arma::Mat<double> s, arma::Col<double> w) {
+SEXP ssr_est(arma::Mat<double> r, arma::Mat<double> s, arma::Mat<double> w) {
 
   arma::mat ssr(1,1, fill::zeros);
   int n = r.n_rows, k = r.n_cols;
 
   // n / sum(w) : only w contains information about the size of n
-  double scale = w.n_elem / sum(w);
+  double scale = w.n_elem / accu(w);
 
   // s is transposed to avoid incompatible matrix dimensions
   for (int j = 0; j < k; ++j) {
     for (int i = 0; i < n; ++i) {
-      ssr += w(i) * pow( r.row(i) * s.row(j).t(), 2);
+      ssr += w(i,j) * pow( r.row(i) * s.row(j).t(), 2);
     }
 
     Rcpp::checkUserInterrupt();
@@ -79,7 +79,7 @@ arma::Mat<double> arma_reshape(arma::Mat<double> mm, int sizetheta) {
 //' @export
 // [[Rcpp::export]]
 SEXP wls_est(arma::Mat<double> x, arma::Mat<double> r, arma::Mat<double> qS,
-             arma::Col<double> w, int sizetheta, bool fullreg, double tol) {
+             arma::Mat<double> w, int sizetheta, bool fullreg, double tol) {
 
   arma::Mat<double> XDX(sizetheta, sizetheta, fill::zeros);
   arma::Mat<double> XDy(sizetheta, 1, fill::zeros);
@@ -89,18 +89,23 @@ SEXP wls_est(arma::Mat<double> x, arma::Mat<double> r, arma::Mat<double> qS,
 
   int n = r.n_rows, k = r.n_cols;
 
-  for (int i = 0; i < n; ++i) {
+  // for (int j = 0; j < k; ++j) {
+    for (int i = 0; i < n; ++i) {
 
-    arma::Mat<double> XI = arma_reshape(x.row(i), k);
-    XDX += w(i) * XI.t() * qS * XI;
+      arma::Mat<double> wts = w.row(i) % qS.each_row();
+      // Rcpp::Rcout<< wts << std::endl;
 
-    if (fullreg) {
-      arma::Mat<double> YI = r.row(i).t();
-      XDy += w(i) * XI.t() * qS * YI;
+      arma::Mat<double> XI = arma_reshape(x.row(i), k);
+      XDX +=   (XI.t() * wts * XI);
+
+      if (fullreg) {
+        arma::Mat<double> YI = r.row(i).t();
+        XDy += (XI.t() * wts * YI);
+      }
+
+      Rcpp::checkUserInterrupt();
     }
-
-    Rcpp::checkUserInterrupt();
-  }
+  // }
 
   // force symetry on the matrix
   XDX = 0.5 * (XDX + XDX.t());
@@ -140,12 +145,15 @@ SEXP cov_robust(arma::Mat<double> x, arma::Mat<double> u, arma::Mat<double> qS,
   int n = u.n_rows, k = u.n_cols;
 
   for (int i = 0; i < n; ++i) {
+    arma::Mat<double> wts = w.row(i) % qS.each_row();
 
     arma::Mat<double> XI = arma_reshape(x.row(i), k);
 
     arma::Mat<double> UI = u.row(i).t();
 
-    XDuuDX += w(i) * XI.t() * qS * UI * UI.t() * qS * XI;
+    // prev was w(i) * XI.t()
+    // to avoid dual weighting, only weight the first matrix. Correct?
+    XDuuDX += XI.t() * wts * UI * UI.t() * qS * XI;
   }
 
   // force symetry on the matrix

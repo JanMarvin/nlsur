@@ -5,7 +5,7 @@ X <- matrix(abs(rnorm(450,2)), 150, 3)
 Y <- matrix(abs(rnorm(150,2)), 150, 1)
 W <- diag(x = 3)
 qW <- qr.solve(qr(W))
-w <- rep(x = 1, 150)
+w <- matrix(rep(rep(x = 1, 150), 3), ncol = 3)
 
 erg.1 <- lm_gls(X = X, Y = Y, W = W, neqs = 3)
 
@@ -38,7 +38,7 @@ X <- matrix(abs(rnorm(450,2)), 150, 3)
 Y <- matrix(abs(rnorm(150,2)), 150, 1)
 W <- matrix(c(2, 1, 0, 1, 2, 1, 0, 1, 2), 3, 3)
 qW <- qr.solve(qr(W))
-w <- rep(x = 1, 150)
+w <- matrix(rep(rep(x = 1, 150), 3), ncol = 3)
 
 erg.1 <- lm_gls(X = X, Y = Y, W = W, neqs = 3)
 
@@ -70,7 +70,7 @@ X <- matrix(abs(rnorm(450,2)), 150, 3)
 Y <- matrix(abs(rnorm(150,2)), 150, 1)
 W <- diag(x = 3)
 qW <- qr.solve(qr(W))
-w <- rep(x = 1, 150)
+w <- matrix(rep(rep(x = 1, 150), 3), ncol = 3)
 
 erg.1 <- lm_gls(X = X, Y = Y, W = W, neqs = 3, covb = 1)
 

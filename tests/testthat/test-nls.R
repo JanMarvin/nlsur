@@ -37,11 +37,11 @@ cw <- coef(nls(model[[1]], data = dat, start = c(a=0, b=0),
                weights = W))
 
 Aw <- coef(nlsur(Y ~ a + b * X, data = dat,
-                 weights = W))
+                 weights = "W"))
 Bw <- coef(nlsur("Y ~ a + b * X", data = dat,
-                 weights = W))
+                 weights = "W"))
 Cw <- coef(nlsur(model, data = dat, startvalues = c(a = 0, b=0),
-                 weights = W))
+                 weights = "W"))
 
 
 # predict
