@@ -6,7 +6,9 @@
 \title{PRICE AND QUANTITY  INDEXES OF CAPITAL, LABOR, ENERGY, AND OTHER INTERMEDIATE
 INPUTS and TOTAL COST AND COST SHARES OF CAPITAL, LABOR, ENERGY,  AND OTHER
 INTERMEDIATE MATERIALS -  U.S.  MANUFACTURING 1947-1971}
-\format{A data frame with 25 rows and 14 cols}
+\format{
+A data frame with 25 rows and 14 cols
+}
 \usage{
 data(costs)
 }
