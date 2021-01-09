@@ -89,23 +89,21 @@ SEXP wls_est(arma::Mat<double> x, arma::Mat<double> r, arma::Mat<double> qS,
 
   int n = r.n_rows, k = r.n_cols;
 
-  // for (int j = 0; j < k; ++j) {
-    for (int i = 0; i < n; ++i) {
+  for (int i = 0; i < n; ++i) {
 
-      arma::Mat<double> wts = w.row(i) % qS.each_row();
-      // Rcpp::Rcout<< wts << std::endl;
+    arma::Mat<double> wts = w.row(i) % qS.each_row();
+    // Rcpp::Rcout<< wts << std::endl;
 
-      arma::Mat<double> XI = arma_reshape(x.row(i), k);
-      XDX +=   (XI.t() * wts * XI);
+    arma::Mat<double> XI = arma_reshape(x.row(i), k);
+    XDX +=   (XI.t() * wts * XI);
 
-      if (fullreg) {
-        arma::Mat<double> YI = r.row(i).t();
-        XDy += (XI.t() * wts * YI);
-      }
-
-      Rcpp::checkUserInterrupt();
+    if (fullreg) {
+      arma::Mat<double> YI = r.row(i).t();
+      XDy += (XI.t() * wts * YI);
     }
-  // }
+
+    Rcpp::checkUserInterrupt();
+  }
 
   // force symetry on the matrix
   XDX = 0.5 * (XDX + XDX.t());

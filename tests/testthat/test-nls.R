@@ -29,19 +29,27 @@ C <- coef(M3)
 
 
 # weighted nls
-aw <- coef(nls(Y ~ a + b * X, data = dat, start = c(a=0, b=0),
-               weights = W))
-bw <- coef(nls("Y ~ a + b * X", data = dat, start = c(a=0, b=0),
-               weights = W))
-cw <- coef(nls(model[[1]], data = dat, start = c(a=0, b=0),
-               weights = W))
+wm1 <- nls(Y ~ a + b * X, data = dat, start = c(a=0, b=0),
+           weights = W)
+wm2 <- nls("Y ~ a + b * X", data = dat, start = c(a=0, b=0),
+           weights = W)
+wm3 <- nls(model[[1]], data = dat, start = c(a=0, b=0),
+           weights = W)
 
-Aw <- coef(nlsur(Y ~ a + b * X, data = dat,
-                 weights = "W"))
-Bw <- coef(nlsur("Y ~ a + b * X", data = dat,
-                 weights = "W"))
-Cw <- coef(nlsur(model, data = dat, startvalues = c(a = 0, b=0),
-                 weights = "W"))
+aw <- coef(wm1)
+bw <- coef(wm2)
+cw <- coef(wm3)
+
+wM1 <- nlsur(Y ~ a + b * X, data = dat,
+             weights = "W")
+wM2 <- nlsur("Y ~ a + b * X", data = dat,
+             weights = "W")
+wM3 <- nlsur(model, data = dat, startvalues = c(a = 0, b=0),
+             weights = "W")
+
+Aw <- coef(wM1)
+Bw <- coef(wM2)
+Cw <- coef(wM3)
 
 
 # predict
@@ -67,3 +75,13 @@ test_that("predict", {
   expect_equal(pm1, c(pM1)[["Y"]])
 })
 
+
+#### logLik ####
+test_that("logLik", {
+  expect_equal(as.numeric(logLik(m1)), as.numeric(logLik(M1)))
+  expect_equal(as.numeric(logLik(m2)), as.numeric(logLik(M2)))
+  expect_equal(as.numeric(logLik(m3)), as.numeric(logLik(M3)))
+  expect_equal(as.numeric(logLik(wm1)), as.numeric(logLik(wM1)))
+  expect_equal(as.numeric(logLik(wm2)), as.numeric(logLik(wM2)))
+  expect_equal(as.numeric(logLik(wm3)), as.numeric(logLik(wM3)))
+})

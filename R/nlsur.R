@@ -98,7 +98,7 @@
   eqnames <- sapply(X = eqns_lhs, FUN = function(x)capture.output(print(x)))
 
   ## assign theta: make them available for eval
-  for (i in 1:length(theta)) {
+  for (i in seq_len(length(theta))) {
     name <- names(theta)[i]
     val <- theta[i]
     storage.mode(val) <- "double"
@@ -156,8 +156,6 @@
   if (ncol(wts) < ncol(r)) {
     wts <- matrix(rep(wts, ncol(r)), ncol = ncol(r))
   }
-
-  wts <- wts / sum(wts) * nrow(wts)
 
   # Evaluate initial ssr
   ssr.old <- ssr_est(r, s, wts)
@@ -246,7 +244,7 @@
       theta.new[is.na(theta.new)] <- 0
 
       ## assign new thetas thetas = makes them available to eval
-      for (i in 1:length(theta.new)) {
+      for (i in seq_len(length(theta.new))) {
         name <- names(theta.new)[i]
         val <- theta.new[i]
         storage.mode(val) <- "double"
@@ -748,8 +746,6 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
           wts <- matrix(rep(wts, ncol(r)), ncol = ncol(r))
         }
 
-        wts <- wts / sum(wts) * nrow(wts)
-
         rss <- ssr_est(r, s, wts)
 
         iter <- iter +1
@@ -800,11 +796,11 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
   N <- unique(n)
   M <- nrow(S)
 
-  LL <- ( sum(log(data$nlsur_crt_wts1)) -
+  LL <- ( sum(log(data[nlsur_crt_wts])) -
             (M*N) * (log(2 * pi) +
                        1 - log(N) +
                        log(det(S)) / M  +
-                       log(sum(data$nlsur_crt_wts1))) )/2
+                       log(sum(data[nlsur_crt_wts]))) )/2
 
 
   # Fitted values ##############################################################
@@ -815,7 +811,7 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
   theta      <- coef(z)
 
   # assign theta: make them available for eval
-  for (i in 1:length(theta)) {
+  for (i in seq_len(length(theta))) {
     name <- names(theta)[i]
     val <- theta[i]
     storage.mode(val) <- "double"
@@ -876,15 +872,6 @@ summary.nlsur <- function(object, noconst = TRUE, ...) {
 
   hasconst <- sapply(eqconst, is.character)
 
-  # check weights
-  if (is.null(w)) {
-    w <- rep(1, nrow(data))
-  } else {
-    # check maleformed weights
-    if (!all(w > 0))
-      stop("Negative or zero weight found.")
-  }
-
   eqns_lhs <- lapply(X = eqns, FUN = function(x)x[[2L]])
 
 
@@ -905,7 +892,7 @@ summary.nlsur <- function(object, noconst = TRUE, ...) {
   nlsur_coef <- new.env(hash = TRUE)
 
   # Assign values for eval
-  for (i in 1:length(est)) {
+  for (i in seq_len(length(est))) {
     name <- names(est)[i]
     val <- est[i]
     storage.mode(val) <- "double"
@@ -913,13 +900,26 @@ summary.nlsur <- function(object, noconst = TRUE, ...) {
   }
 
   lhs   <- lapply(X = eqns_lhs, FUN = eval, envir = data, enclos = nlsur_coef)
-  scale <- n/sum(w)
   div   <- n -1
 
+  # check weights
+  if (is.null(w)) {
+    # TODO might be better to have a length per equation?
+    # w <- lapply(lhs, FUN = function(x) rep(1, length(x)))
+    w <- matrix(1,
+                ncol = ncol(r),
+                nrow = unique(n))
+  } else {
+    # check maleformed weights
+    if (!all(w >= 0))
+      stop("Negative weight found.")
+  }
+
+  scale <- n/sum(w)
 
 
   # Evaluate everything required for summary printing
-  for (i in 1:neqs) {
+  for (i in seq_len(neqs)) {
 
     # if lhs is a constant eg 0, size of lhs_i and w differs
     lhs_i <- lhs[[i]]
@@ -927,22 +927,22 @@ summary.nlsur <- function(object, noconst = TRUE, ...) {
     if (length(lhs_i) < NROW(data))
       lhs_i  <- rep(lhs_i, NROW(data))
 
-    ssr[i]   <- sum( r[,i]^2 * w) * scale[i]
+    ssr[i]   <- sum( r[ , i]^2 * w[ , i]) * scale[i]
 
     # No constant found
     if (hasconst[i]) {
-      wi     <- w/sum(w) * n[i]
+      wi     <- w[ , i]/sum(w[ , i]) * n[i]
 
       lhs_wm <- wt_mean(x = lhs_i, w = wi)
       wvar   <- (1/div[i]) * sum( wi * (lhs_i - lhs_wm)^2)
       mss[i] <- wvar * div[i] - ssr[i]
     } else{
-      mss[i] <- sum(w * lhs_i^2) * scale[i] - ssr[i]
+      mss[i] <- sum(w[ , i] * lhs_i^2) * scale[i] - ssr[i]
     }
 
     mse[i]   <- ssr[i] / n[i]
     rmse[i]  <- sqrt(mse[i])
-    mae[i]   <- sum(abs(r[, i]))/n[i]
+    mae[i]   <- sum(abs(r[ , i]))/n[i]
 
     r2[i]    <- mss[i] / (mss[i] + ssr[i])
 
@@ -990,7 +990,7 @@ summary.nlsur <- function(object, noconst = TRUE, ...) {
   zi <- as.data.frame(zi)
 
   # replace all character(0) if a equation does not contain a constant
-  for (i in 1:neqs) {
+  for (i in seq_len(neqs)) {
     eqconst[[i]][identical(eqconst[[i]], character(0))] <- ""
   }
 
