@@ -136,7 +136,7 @@ SEXP wt_mean(arma::Col<double>& x, arma::Col<double>& w) {
 //' @export
 // [[Rcpp::export]]
 SEXP cov_robust(arma::Mat<double> x, arma::Mat<double> u, arma::Mat<double> qS,
-                arma::Col<double> w, int sizetheta) {
+                arma::Mat<double> w, int sizetheta) {
 
   arma::Mat<double> XDuuDX(sizetheta, sizetheta, fill::zeros);
 

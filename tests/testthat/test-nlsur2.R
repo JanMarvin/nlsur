@@ -99,3 +99,8 @@ test_that("Compare nlsur options", {
 test_that("Compare Greene to nlsur", {
   expect_equal(res_n, res_g)
 })
+
+test_that("robust estimation thows no error",  {
+  expect_message(tmp <- nlsur(eqns = model, data = dat, type = "IFGNLS",
+                             MASS = TRUE), "startvalues created with val = 0")
+})

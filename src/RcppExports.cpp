@@ -61,7 +61,7 @@ BEGIN_RCPP
 END_RCPP
 }
 // cov_robust
-SEXP cov_robust(arma::Mat<double> x, arma::Mat<double> u, arma::Mat<double> qS, arma::Col<double> w, int sizetheta);
+SEXP cov_robust(arma::Mat<double> x, arma::Mat<double> u, arma::Mat<double> qS, arma::Mat<double> w, int sizetheta);
 RcppExport SEXP _nlsur_cov_robust(SEXP xSEXP, SEXP uSEXP, SEXP qSSEXP, SEXP wSEXP, SEXP sizethetaSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
@@ -69,7 +69,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< arma::Mat<double> >::type x(xSEXP);
     Rcpp::traits::input_parameter< arma::Mat<double> >::type u(uSEXP);
     Rcpp::traits::input_parameter< arma::Mat<double> >::type qS(qSSEXP);
-    Rcpp::traits::input_parameter< arma::Col<double> >::type w(wSEXP);
+    Rcpp::traits::input_parameter< arma::Mat<double> >::type w(wSEXP);
     Rcpp::traits::input_parameter< int >::type sizetheta(sizethetaSEXP);
     rcpp_result_gen = Rcpp::wrap(cov_robust(x, u, qS, w, sizetheta));
     return rcpp_result_gen;
