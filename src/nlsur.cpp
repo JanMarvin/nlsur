@@ -19,18 +19,18 @@ SEXP ssr_est(arma::Mat<double> r, arma::Mat<double> s, arma::Mat<double> w) {
   int n = r.n_rows, k = r.n_cols;
 
   // n / sum(w) : only w contains information about the size of n
-  double scale = w.n_elem / accu(w);
+  arma::rowvec scale = w.n_rows / arma::sum(w, 0);
 
   // s is transposed to avoid incompatible matrix dimensions
   for (int j = 0; j < k; ++j) {
     for (int i = 0; i < n; ++i) {
-      ssr += w(i,j) * pow( r.row(i) * s.row(j).t(), 2);
+      ssr += (w(i,j) * pow( r.row(i) * s.row(j).t(), 2)) * scale(j);
     }
 
     Rcpp::checkUserInterrupt();
   }
 
-  return wrap(ssr * scale);
+  return wrap(ssr);
 }
 
 //' Reshape matrix for blockwise WLS estimation
