@@ -67,6 +67,8 @@
   wts_pos <- which(grepl("^nlsur_crt_wts", names(data)))
   wts  <- as.matrix(data[wts_pos], ncol = length(wts_pos))
 
+  # dat <<- data
+
   nlsur_coef <- new.env(hash = TRUE)
 
   # set initial theta, if it contains NA values replace them with 0
@@ -152,10 +154,6 @@
   # r <<- r
   # s <<- s
   # wts <<- wts
-
-  if (ncol(wts) < ncol(r)) {
-    wts <- matrix(rep(wts, ncol(r)), ncol = ncol(r))
-  }
 
   # Evaluate initial ssr
   ssr.old <- ssr_est(r, s, wts)
@@ -384,6 +382,10 @@
   z$n            <- n
   z$deviance     <- as.numeric(ssr)
 
+  wts <- as.matrix(data[wts_pos], ncol = length(wts_pos))
+  if (ncol(wts) < ncol(r)) {
+    wts <- matrix(rep(wts, ncol(r)), ncol = ncol(r))
+  }
   z$weights      <- wts
   z$cov          <- covb
 
@@ -591,29 +593,28 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
 
   # Check for wts
   if ( is.null(wts) ) {
-    data$nlsur_crt_wts1 <- 1
+    nlsur_crt_wts <- paste0("nlsur_crt_wts", seq_len(length(eqns)))
+    data[nlsur_crt_wts] <- 1
   } else {
     # print(wts)
     # wts <- sapply(wts, as.name)
     # print(wts)
     # print(data)
 
+    if (length(wts) < length(eqns))
+      wts <- rep(wts, length(eqns))
+
     nlsur_created_weights <- vector(mode = "list", length = length(wts))
-    names(nlsur_created_weights) <- wts
-    for (wt in wts) {
-      nlsur_created_weights[[wt]] <- eval(as.name(wt), data)
+    for (wt in seq_len(length(wts))) {
+      nlsur_created_weights[[wt]] <- eval(as.name(wts[wt]), data)
     }
     nlsur_created_weights <- as.data.frame(nlsur_created_weights)
-    names(nlsur_created_weights) <- paste0("nlsur_crt_wts",
-                                           seq_along(nlsur_created_weights))
+    nlsur_crt_wts <- paste0("nlsur_crt_wts", seq_along(nlsur_created_weights))
+    names(nlsur_created_weights) <- nlsur_crt_wts
     # print(nlsur_created_weights)
 
     data <- cbind(data, nlsur_created_weights)
   }
-
-  nlsur_crt_wts <- "nlsur_crt_wts1"
-  if (length(wts) > 1)
-    nlsur_crt_wts <- names(nlsur_created_weights)
 
   # include weights to assure the correct length
   # of weights if missings are excluded.
@@ -623,11 +624,16 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
   n    <- nrow(data)
   z    <- NULL
 
+  # nlsur_crt_wts <<- nlsur_crt_wts
+  onlsur_crt_wts <- paste0("o_", nlsur_crt_wts)
+  data[onlsur_crt_wts] <- data[nlsur_crt_wts]
+
   # normwts
   for (nlsur_weight in nlsur_crt_wts) {
     data[[nlsur_weight]] <- data[[nlsur_weight]] /
       sum(data[[nlsur_weight]]) * n
   }
+
 
   cl <- match.call()
 
@@ -835,6 +841,7 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
   z$nlsonly     <- all(nls & !stata)
   z$robust      <- robust
   z$fitted      <- fitted
+  z$weights     <- data[onlsur_crt_wts]
 
   # if call did not contain weights: drop them
   if (is.null(wts))
@@ -915,7 +922,7 @@ summary.nlsur <- function(object, noconst = TRUE, ...) {
       stop("Negative weight found.")
   }
 
-  scale <- n/sum(w)
+  scale <- n/colSums(w)
 
 
   # Evaluate everything required for summary printing
@@ -954,7 +961,7 @@ summary.nlsur <- function(object, noconst = TRUE, ...) {
     }
   }
 
-  nE <- sum(n) / sum ( w/sum(w) )
+  nE <- sum(n) / sum ( w/colSums(w) )
   kE  <- sum(k)
 
 
