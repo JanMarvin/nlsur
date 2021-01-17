@@ -585,7 +585,7 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
 
 
   # remove observation, if observation a parameter contains NA.
-  modelparameters <- c(unlist(lapply(eqns, all.vars)), wts)
+  modelparameters <- c(unlist(lapply(eqns, all.vars)))
   parms <- modelparameters[which(!modelparameters %in% names(startvalues))]
 
   # check for equation constants
@@ -606,7 +606,11 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
 
     nlsur_created_weights <- vector(mode = "list", length = length(wts))
     for (wt in seq_len(length(wts))) {
-      nlsur_created_weights[[wt]] <- eval(as.name(wts[wt]), data)
+      if (wts[wt] != "NA"){
+        nlsur_created_weights[[wt]] <- eval(as.name(wts[wt]), data)
+      }else{
+        nlsur_created_weights[[wt]] <- 1
+      }
     }
     nlsur_created_weights <- as.data.frame(nlsur_created_weights)
     nlsur_crt_wts <- paste0("nlsur_crt_wts", seq_along(nlsur_created_weights))
