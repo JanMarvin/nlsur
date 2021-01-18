@@ -801,12 +801,13 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
   S <- z$sigma
   N <- unique(n)
   M <- nrow(S)
+  k <- length(eqns)
 
   LL <- ( sum(log(data[nlsur_crt_wts])) -
             (M*N) * (log(2 * pi) +
                        1 - log(N) +
                        log(det(S)) / M  +
-                       log(sum(data[nlsur_crt_wts]))) )/2
+                       log(sum(data[nlsur_crt_wts])/k)) )/2
 
 
   # Fitted values ##############################################################
