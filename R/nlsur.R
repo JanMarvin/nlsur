@@ -752,10 +752,6 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
         wts_pos <- which(grepl("^nlsur_crt_wts", names(data)))
         wts  <- as.matrix(data[wts_pos], ncol = length(wts_pos))
 
-        if (ncol(wts) < ncol(r)) {
-          wts <- matrix(rep(wts, ncol(r)), ncol = ncol(r))
-        }
-
         rss <- ssr_est(r, s, wts)
 
         iter <- iter +1
