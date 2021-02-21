@@ -91,7 +91,7 @@ SEXP wls_est(arma::Mat<double> x, arma::Mat<double> r, arma::Mat<double> qS,
 
   for (int i = 0; i < n; ++i) {
 
-    arma::Mat<double> wts = w.row(i) % qS.each_row();
+    arma::Mat<double> wts = w.row(i).as_col() % qS.each_col();
     // Rcpp::Rcout<< wts << std::endl;
 
     arma::Mat<double> XI = arma_reshape(x.row(i), k);
