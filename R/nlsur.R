@@ -125,11 +125,11 @@
   )
   # end equation loop
 
-  n <- as.integer(lapply(X = x, FUN = nrow))
+  n <- sapply(X = x, FUN = nrow)
 
   # rankMatrix uses svd and is slow use once only
   if (initial) {
-    k <- as.integer(lapply(X = x, FUN = rankMatrix))
+    k <- sapply(X = x, FUN = rankMatrix)
 
     z$k  <- k
     z$df <- n - k
