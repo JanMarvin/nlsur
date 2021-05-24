@@ -30,7 +30,6 @@ jobs:
         config:
           - {os: macOS-latest,   r: 'release'}
           - {os: windows-latest, r: 'release'}
-          - {os: windows-latest, r: '3.5'}
           - {os: ubuntu-latest,  r: 'devel'}
           - {os: ubuntu-latest,  r: 'release'}
           - {os: ubuntu-latest,  r: 'oldrel'}
