@@ -67,6 +67,7 @@
   wts  <- data$nlsur_created_weights
 
   nlsur_coef <- new.env(hash = TRUE)
+  nlsur_env <- new.env(hash = TRUE)
 
   # set initial theta, if it contains NA values replace them with 0
   theta <- theta.old <- startvalues
@@ -96,22 +97,28 @@
 
   eqnames <- sapply(X = eqns_lhs, FUN = function(x)capture.output(print(x)))
 
-  ## assign theta: make them available for eval
-  for (i in 1:length(theta)) {
+  # move everything to nlsur_env: make it available for numericDeriv
+  for (i in seq_len(length(data))) {
+    name <- names(data)[i]
+    val <- data[[i]]
+    storage.mode(val) <- "double"
+    assign(name, val, envir = nlsur_env)
+  }
+  for (i in seq_len(length(theta))) {
     name <- names(theta)[i]
     val <- theta[i]
     storage.mode(val) <- "double"
-    assign(name, val, envir = nlsur_coef)
+    assign(name, val, envir = nlsur_env)
   }
 
   #### Initial evaluation ------------------------------------------------------
 
   # begin equation loop: for (i in 1:neqs) {}
   lhs <- suppressWarnings(
-    lapply(X = eqns_lhs, FUN = eval, envir = data, enclos = nlsur_coef)
+    lapply(X = eqns_lhs, FUN = eval, envir = data, enclos = nlsur_env)
   )
   rhs <- suppressWarnings(
-    lapply(X = eqns_rhs, FUN = eval, envir = data, enclos = nlsur_coef)
+    lapply(X = eqns_rhs, FUN = eval, envir = data, enclos = nlsur_env)
   )
   ri  <- mapply("-", lhs, rhs, SIMPLIFY = FALSE)
 
@@ -119,11 +126,13 @@
 
   x <- suppressWarnings(
     lapply(X = eqns, FUN = function(x) {
-      attr(eval(deriv(x, names(theta)),
-                envir = data, enclos = nlsur_coef), "gradient")
+      attr(
+        numericDeriv(expr = x[[3L]], theta = names(theta), rho = nlsur_env),
+        "gradient")
+        # eval(deriv(x, names(theta)),
+        #         envir = data, enclos = nlsur_coef),
     })
   )
-  # end equation loop
 
   n <- sapply(X = x, FUN = nrow)
 
@@ -229,11 +238,11 @@
       theta.new[is.na(theta.new)] <- 0
 
       ## assign new thetas thetas = makes them available to eval
-      for (i in 1:length(theta.new)) {
+      for (i in seq_len(length(theta.new))) {
         name <- names(theta.new)[i]
         val <- theta.new[i]
         storage.mode(val) <- "double"
-        assign(name, val, envir = nlsur_coef)
+        assign(name, val, envir = nlsur_env)
       }
 
       # eval eqn with the new theta
@@ -244,10 +253,10 @@
       # suppressWarnings() since eval of log(x) for x <= 0 will result in NaNs
       # which must not result in a total estimation failure.
       lhs <- suppressWarnings(
-        lapply(X = eqns_lhs, FUN = eval, envir = data, enclos = nlsur_coef)
+        lapply(X = eqns_lhs, FUN = eval, envir = data, enclos = nlsur_env)
       )
       rhs <- suppressWarnings(
-        lapply(X = eqns_rhs, FUN = eval, envir = data, enclos = nlsur_coef)
+        lapply(X = eqns_rhs, FUN = eval, envir = data, enclos = nlsur_env)
       )
       ri  <- mapply("-", lhs, rhs, SIMPLIFY = FALSE)
 
@@ -255,8 +264,11 @@
 
       x <- suppressWarnings(
         lapply(X = eqns, FUN = function(x) {
-          attr(eval(deriv(x, names(theta)),
-                    envir = data, enclos = nlsur_coef), "gradient")
+          attr(
+            numericDeriv(expr = x[[3L]], theta = names(theta), rho = nlsur_env),
+            "gradient")
+          # attr(eval(deriv(x, names(theta)),
+          #           envir = data, enclos = nlsur_coef), "gradient")
         })
       )
       # end equation loop
