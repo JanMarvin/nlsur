@@ -773,7 +773,7 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
   theta      <- coef(z)
 
   # assign theta: make them available for eval
-  for (i in 1:length(theta)) {
+  for (i in seq_len(length(theta))) {
     name <- names(theta)[i]
     val <- theta[i]
     storage.mode(val) <- "double"
@@ -863,7 +863,7 @@ summary.nlsur <- function(object, noconst = TRUE, ...) {
   nlsur_coef <- new.env(hash = TRUE)
 
   # Assign values for eval
-  for (i in 1:length(est)) {
+  for (i in seq_len(length(est))) {
     name <- names(est)[i]
     val <- est[i]
     storage.mode(val) <- "double"
@@ -877,7 +877,7 @@ summary.nlsur <- function(object, noconst = TRUE, ...) {
 
 
   # Evaluate everything required for summary printing
-  for (i in 1:neqs) {
+  for (i in seq_len(neqs)) {
 
     # if lhs is a constant eg 0, size of lhs_i and w differs
     lhs_i <- lhs[[i]]
@@ -948,7 +948,7 @@ summary.nlsur <- function(object, noconst = TRUE, ...) {
   zi <- as.data.frame(zi)
 
   # replace all character(0) if a equation does not contain a constant
-  for (i in 1:neqs) {
+  for (i in seq_len(neqs)) {
     eqconst[[i]][identical(eqconst[[i]], character(0))] <- ""
   }
 
