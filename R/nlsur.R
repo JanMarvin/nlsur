@@ -66,7 +66,6 @@
 
   wts  <- data$nlsur_created_weights
 
-  nlsur_coef <- new.env(hash = TRUE)
   nlsur_env <- new.env(hash = TRUE)
 
   # set initial theta, if it contains NA values replace them with 0
@@ -115,10 +114,10 @@
 
   # begin equation loop: for (i in 1:neqs) {}
   lhs <- suppressWarnings(
-    lapply(X = eqns_lhs, FUN = eval, envir = data, enclos = nlsur_env)
+    lapply(X = eqns_lhs, FUN = eval, envir = nlsur_env)
   )
   rhs <- suppressWarnings(
-    lapply(X = eqns_rhs, FUN = eval, envir = data, enclos = nlsur_env)
+    lapply(X = eqns_rhs, FUN = eval, envir = nlsur_env)
   )
   ri  <- mapply("-", lhs, rhs, SIMPLIFY = FALSE)
 
@@ -253,10 +252,10 @@
       # suppressWarnings() since eval of log(x) for x <= 0 will result in NaNs
       # which must not result in a total estimation failure.
       lhs <- suppressWarnings(
-        lapply(X = eqns_lhs, FUN = eval, envir = data, enclos = nlsur_env)
+        lapply(X = eqns_lhs, FUN = eval, envir = nlsur_env)
       )
       rhs <- suppressWarnings(
-        lapply(X = eqns_rhs, FUN = eval, envir = data, enclos = nlsur_env)
+        lapply(X = eqns_rhs, FUN = eval, envir = nlsur_env)
       )
       ri  <- mapply("-", lhs, rhs, SIMPLIFY = FALSE)
 
