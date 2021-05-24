@@ -126,7 +126,7 @@
   x <- suppressWarnings(
     lapply(X = eqns, FUN = function(x) {
       attr(
-        numericDeriv(expr = x[[3L]], theta = names(theta), rho = nlsur_env),
+        numericDeriv(expr = x[[3L]], theta = names(theta), rho = nlsur_env, central = FALSE, eps = eps),
         "gradient")
         # eval(deriv(x, names(theta)),
         #         envir = data, enclos = nlsur_coef),
@@ -264,7 +264,7 @@
       x <- suppressWarnings(
         lapply(X = eqns, FUN = function(x) {
           attr(
-            numericDeriv(expr = x[[3L]], theta = names(theta), rho = nlsur_env),
+            numericDeriv(expr = x[[3L]], theta = names(theta), rho = nlsur_env, central = FALSE, eps = eps),
             "gradient")
           # attr(eval(deriv(x, names(theta)),
           #           envir = data, enclos = nlsur_coef), "gradient")
