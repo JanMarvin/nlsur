@@ -93,6 +93,8 @@ names(res_g) <- rownames(greene)
 
 test_that("Compare nlsur options", {
   expect_equal(coef(e1), coef(e2))
+  # not exact due to numericDeriv
+  # expect_equal(round(coef(E1),5), round(coef(E2),5))
   expect_equal(coef(E1), coef(E2))
 })
 

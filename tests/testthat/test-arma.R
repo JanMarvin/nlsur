@@ -116,5 +116,7 @@ test_that("wt_mean", {
 
 #### calc_robust ####
 test_that("cov_robust", {
+  # not exact due to numericDeriv
+  # expect_equal(round(sandwich_se, 3), round(nlsur_se, 3))
   expect_equal(sandwich_se, nlsur_se)
 })
