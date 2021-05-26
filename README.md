@@ -33,7 +33,6 @@ dat$Pe[dat$Year == 1950] <- 1.12442
 dat$Pm[dat$Year == 1949] <- 1.06625
 
 # model
-
 model <- list(
   Sk ~ bk + dkk * log(Pk/Pm) + dkl * log(Pl/Pm) + dke * log(Pe/Pm),
   Sl ~ bl + dkl * log(Pk/Pm) + dll * log(Pl/Pm) + dle * log(Pe/Pm),
@@ -48,15 +47,12 @@ Additional parameters may be obtained using `nlcom()` a wrapper for the delta me
 
 ```R
 # indirect estimation of translog parameters
-bm <- nlcom(object = erg2, form = "1 -be -bk -bl", rname= "bm")
-
-dkm <- nlcom(object = erg2, form = "-dkk -dkl -dke", rname = "dkm")
-
-dlm <- nlcom(object = erg2, form = "-dkl -dll -dle", rname = "dlm")
-
-dem <- nlcom(object = erg2, form = "-dke -dle -dee", rname = "dem")
+bm  <- nlcom(object = erg, form = "1 -be -bk -bl",  rname = "bm")
+dkm <- nlcom(object = erg, form = "-dkk -dkl -dke", rname = "dkm")
+dlm <- nlcom(object = erg, form = "-dkl -dll -dle", rname = "dlm")
+dem <- nlcom(object = erg, form = "-dke -dle -dee", rname = "dem")
 
 # and now dmm (nlcom can search for parameters)
-dmm <- nlcom(object = erg2, form = "-dkm -dlm -dem", rname = "dmm")
+dmm <- nlcom(object = erg, form = "-dkm -dlm -dem", rname = "dmm")
 ```
 
