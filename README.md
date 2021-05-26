@@ -23,7 +23,7 @@ devtools::install_github("JanMarvin/nlsur")
 
 With `nlsur()` it is rather straight forward to estimate nonlinear demand systems. As example the following Translog demand system can be estimated.
 
-```{r}
+```R
 data(costs)
 
 dat <- costs
@@ -46,7 +46,7 @@ erg
 
 Additional parameters may be obtained using `nlcom()` a wrapper for the delta method.
 
-```{r}
+```R
 # indirect estimation of translog parameters
 bm <- nlcom(object = erg2, form = "1 -be -bk -bl", rname= "bm")
 
