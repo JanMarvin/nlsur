@@ -57,7 +57,7 @@
   itr  <- 0
   conv <- FALSE
 
-  lhs  <- rhs <- ri <- xi <- list()
+  lhs  <- rhs <- ri <- list()
   r    <-   x <- NULL
 
   neqs <- length(eqns)
@@ -237,7 +237,7 @@
       }
 
       # eval eqn with the new theta
-      lhs <- rhs <- ri <- xi <- list()
+      lhs <- rhs <- ri <- list()
       r <- x <- NULL
 
       # begin equation loop: for (i in 1:neqs) {}. Everything is embedded in

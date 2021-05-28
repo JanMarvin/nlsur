@@ -80,9 +80,6 @@ nlcom <- function(object, form, alpha = 0.05, rname, envir) {
   z   <- cbind(z, tval, prob)
   colnames(z) <- c("Estimate", "Std. Error", "z value", "Pr(>|z|)" )
 
-  lk <- length(coef(object))
-  neqs <- length(object$n)
-
   if(missing(rname))
     attr(z, "rname")   <- oform
   else
