@@ -11,7 +11,7 @@ The packages supports a variety of functions like `print()`, `coef()`, `summary(
 With `drat`:
 ```R
 drat::addRepo("JanMarvin")
-install.packages("readspss")
+install.packages("nlsur")
 ```
 
 With `devtools`:
