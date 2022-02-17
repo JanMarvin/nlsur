@@ -10,9 +10,9 @@ model[[1]] <- Y ~ a + b * X
 
 # nls
 
-m1 <- nls(Y ~ a + b * X, data = dat, start = c(a=0, b=0))
-m2 <- nls("Y ~ a + b * X", data = dat, start = c(a=0, b=0))
-m3 <- nls(model[[1]], data = dat, start = c(a=0, b=0))
+m1 <- nls(Y ~ a + b * X, data = dat, start = c(a = 0, b = 0))
+m2 <- nls("Y ~ a + b * X", data = dat, start = c(a = 0, b = 0))
+m3 <- nls(model[[1]], data = dat, start = c(a = 0, b = 0))
 
 a <- coef(m1)
 b <- coef(m2)
@@ -21,7 +21,7 @@ c <- coef(m3)
 
 M1 <- nlsur(Y ~ a + b * X, data = dat)
 M2 <- nlsur("Y ~ a + b * X", data = dat)
-M3 <- nlsur(model, data = dat, startvalues = c(a = 0, b=0))
+M3 <- nlsur(model, data = dat, startvalues = c(a = 0, b = 0))
 
 A <- coef(M1)
 B <- coef(M2)
@@ -29,18 +29,18 @@ C <- coef(M3)
 
 
 # weighted nls
-aw <- coef(nls(Y ~ a + b * X, data = dat, start = c(a=0, b=0),
+aw <- coef(nls(Y ~ a + b * X, data = dat, start = c(a = 0, b = 0),
                weights = W))
-bw <- coef(nls("Y ~ a + b * X", data = dat, start = c(a=0, b=0),
+bw <- coef(nls("Y ~ a + b * X", data = dat, start = c(a = 0, b = 0),
                weights = W))
-cw <- coef(nls(model[[1]], data = dat, start = c(a=0, b=0),
+cw <- coef(nls(model[[1]], data = dat, start = c(a = 0, b = 0),
                weights = W))
 
 Aw <- coef(nlsur(Y ~ a + b * X, data = dat,
                  weights = W))
 Bw <- coef(nlsur("Y ~ a + b * X", data = dat,
                  weights = W))
-Cw <- coef(nlsur(model, data = dat, startvalues = c(a = 0, b=0),
+Cw <- coef(nlsur(model, data = dat, startvalues = c(a = 0, b = 0),
                  weights = W))
 
 # newly added nls test

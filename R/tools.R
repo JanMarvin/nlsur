@@ -45,7 +45,7 @@ is.formula <- function(x) {
 #' @export
 constant <- function(x) {
 
-  if(!is.formula(x))
+  if (!is.formula(x))
     # try if call can be written as formula
     x <- as.formula(x)
   # try again
@@ -55,10 +55,10 @@ constant <- function(x) {
   rhs <- x[[3L]]
 
   # check front side of formula
-  while ( !(is.symbol(rhs) | is.numeric(rhs)) ) {
+  while (!(is.symbol(rhs) | is.numeric(rhs))) {
     # go down one level and check if formula contains a new part
     # not multiplied containing a rhs
-    if ( (rhs[[1]] == "+") | (rhs[[1]] == "-") | rhs[[1]] == "(") {
+    if ((rhs[[1]] == "+") | (rhs[[1]] == "-") | rhs[[1]] == "(") {
       rhs <- rhs[[2L]]
     } else {
       # reset rhs no constant found
@@ -68,9 +68,9 @@ constant <- function(x) {
   }
 
   # check back side of formula
-  while ( !(is.symbol(rhs) | is.numeric(rhs)) ) {
+  while (!(is.symbol(rhs) | is.numeric(rhs))) {
     # go down one level and check if formula contains a constant
-    if ( (rhs[[1]] == "+") | (rhs[[1]] == "-") ) {
+    if ((rhs[[1]] == "+") | (rhs[[1]] == "-")) {
       rhs <- rhs[[3L]]
     } else {
       if (rhs[[1]] == "(") {

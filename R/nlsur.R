@@ -51,18 +51,17 @@
 .nlsur <- function(eqns, data, startvalues, S = NULL, robust = robust,
                    nls = FALSE, fgnls = FALSE, ifgnls = FALSE, qrsolve = FALSE,
                    MASS = FALSE, trace = FALSE, eps = eps, tau = tau,
-                   maxiter = maxiter, tol = tol, initial = initial)
-{
+                   maxiter = maxiter, tol = tol, initial = initial) {
   z    <- list()
   itr  <- 0
   conv <- FALSE
 
-  lhs  <- rhs <- ri <- xi <- list()
+  lhs  <- rhs <- ri <- list()
   r    <-   x <- NULL
 
   neqs <- length(eqns)
-  n    <- vector("integer", length=neqs)
-  k    <- vector("integer", length=neqs)
+  n    <- vector("integer", length = neqs)
+  k    <- vector("integer", length = neqs)
 
   wts  <- data$nlsur_created_weights
 
@@ -77,7 +76,7 @@
     if (is.null(S)) {
       if (trace)
         cat("create initial weight matrix Sigma.\n")
-      S <- diag(1, ncol=neqs, nrow=neqs)
+      S <- diag(1, ncol = neqs, nrow = neqs)
       nls <- TRUE # keep nls flag.
     } else {
       if (trace)
@@ -152,7 +151,7 @@
   }
 
   # eval might return NaN
-  if ( any (is.nan(x))) {
+  if (any(is.nan(x))) {
     stop("NA/NaN/Inf in derivation found. Most likely due to artificial data.")
   }
 
@@ -182,7 +181,7 @@
     }
 
     # If alpha < alph increase it again. Spotted in nls.c
-    alpha <- min(divi*alpha, alph)
+    alpha <- min(divi * alpha, alph)
     # Alt: Stata variant, set alpha to alph
     # alpha <- alph
 
@@ -201,8 +200,7 @@
     } else {
 
       # MASS for calculation of wls
-      if (MASS)
-      {
+      if (MASS) {
 
         r <- matrix(r, ncol = 1)
 
@@ -226,8 +224,7 @@
     names(theta.new) <- names(theta)
     theta            <- theta.new
 
-    while ( ssr > ssr.old )
-    { # begin iter
+    while (ssr > ssr.old) { # begin iter
 
       # use the scalar to get a new theta
       theta.new <- theta.old + alpha * theta
@@ -245,7 +242,7 @@
       }
 
       # eval eqn with the new theta
-      lhs <- rhs <- ri <- xi <- list()
+      lhs <- rhs <- ri <- list()
       r <- x <- NULL
 
       # begin equation loop: for (i in 1:neqs) {}. Everything is embedded in
@@ -290,7 +287,7 @@
       }
 
       # divide stepsizeparameter
-      alpha <- alpha/divi
+      alpha <- alpha / divi
 
     } # end iter
 
@@ -312,8 +309,8 @@
     #                    eps * (norm(as.matrix(theta)) + tau))
 
     # alpha was already divided
-    conv2 <- all( (alpha*divi) * abs(theta) <=
-                    eps * (abs(theta.old) + tau), na.rm = TRUE )
+    conv2 <- all((alpha * divi) * abs(theta) <=
+                   eps * (abs(theta.old) + tau), na.rm = TRUE)
 
     # this is what Stata documents what they do for nl. include alpha?
     # conv2 <- all( alpha * abs(theta.new) <= eps * (abs(theta) + tau) )
@@ -369,7 +366,7 @@
   z$coefficients <- theta
   z$residuals    <- r
   z$eqnames      <- eqnames
-  z$sigma        <- 1/n * crossprod(r, wts * r)
+  z$sigma        <- 1 / n * crossprod(r, wts * r)
 
   z$n            <- n
   z$deviance     <- as.numeric(ssr)
@@ -543,7 +540,7 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
     wts <- as.character(substitute(weights))
 
   # If no startvalues supplied, create them.
-  if (missing (startvalues)) {
+  if (missing(startvalues)) {
     msg <- paste("startvalues created with val =", val)
     message(msg)
 
@@ -553,7 +550,7 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
   # Check if all variables that are not startvalues exist in data.
   vars <- unlist(lapply(eqns, all.vars))
   vars <- vars[which(!vars %in% names(startvalues))]
-  ok   <- all(vars%in%names(data))
+  ok   <- all(vars %in% names(data))
 
   # if not ok bail out
   if (!ok) {
@@ -576,7 +573,7 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
   eqconst <- lapply(X = eqns, FUN = constant)
 
   # Check for wts
-  if ( is.null(wts) ) {
+  if (is.null(wts)) {
     data$nlsur_created_weights <- 1
   } else {
     wts <- as.name(wts)
@@ -586,7 +583,7 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
 
   # include weights to assure the correct length
   # of weights if missings are excluded.
-  data <- na.omit(data[unique(c(parms,"nlsur_created_weights"))])
+  data <- na.omit(data[unique(c(parms, "nlsur_created_weights"))])
 
   nls  <- fgnls <- ifgnls <- FALSE
   n    <- nrow(data)
@@ -618,10 +615,10 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
   if (trace)
     cat("-- NLS\n")
 
-  z <- .nlsur( eqns = eqns, data = data, startvalues = startvalues, S = S,
-               robust = robust, nls = TRUE, trace = trace, qrsolve = qrsolve,
-               MASS = MASS, eps = eps, tau = tau, maxiter = maxiter,
-               tol = tol, initial = TRUE)
+  z <- .nlsur(eqns = eqns, data = data, startvalues = startvalues, S = S,
+              robust = robust, nls = TRUE, trace = trace, qrsolve = qrsolve,
+              MASS = MASS, eps = eps, tau = tau, maxiter = maxiter,
+              tol = tol, initial = TRUE)
 
   # evaluated at initial stage
   n <- z$n; k <- z$k; df <- z$df
@@ -633,10 +630,10 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
     # backup of theta and S, remove z
     theta.old <- coef(z); S <- z$sigma; rm(z)
 
-    z <- .nlsur( eqns = eqns, data = data, startvalues = theta.old, S = S,
-                 robust = robust, nls = nls, trace = trace, qrsolve = FALSE,
-                 MASS = MASS, eps = eps, tau = tau, maxiter = maxiter,
-                 tol = tol, initial = initial)
+    z <- .nlsur(eqns = eqns, data = data, startvalues = theta.old, S = S,
+                robust = robust, nls = nls, trace = trace, qrsolve = FALSE,
+                MASS = MASS, eps = eps, tau = tau, maxiter = maxiter,
+                tol = tol, initial = initial)
 
     # Stata uses the original sigma for covb
     z$sigma <- diag(diag(S), nrow = n, ncol = n)
@@ -678,8 +675,7 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
       iter <- 0
 
       # repeat nlsur estimation until convergence is reached
-      while (!conv)
-      {
+      while (!conv) {
 
         # if convergence is not reached
         if (iter == maxiter) {
@@ -707,11 +703,11 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
         s   <- chol(qr.solve(S, tol = tol))
         rss <- ssr_est(r, s, data$nlsur_created_weights)
 
-        iter <- iter +1
+        iter <- iter + 1
 
         maxthetachange <- max(abs(theta.old - theta) /
-                                ( abs(theta) +1),
-                              na.rm = TRUE )
+                                (abs(theta) + 1),
+                              na.rm = TRUE)
         maxSigmachange <- max(abs(S.old - S) /
                                 (abs(S.old) + 1),
                               na.rm = TRUE)
@@ -736,7 +732,7 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
           cat("Iteration", iter, ": SSR", rss, "\n")
 
       }
-      message <- paste("Convergence after iteration:", iter,".")
+      message <- paste("Convergence after iteration:", iter, ".")
 
 
       z$message   <- message
@@ -755,11 +751,11 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
   N <- unique(n)
   M <- nrow(S)
 
-  LL <- ( sum(log(data$nlsur_created_weights)) -
-            (M*N) * (log(2 * pi) +
-                       1 - log(N) +
-                       log(det(S)) / M  +
-                       log(sum(data$nlsur_created_weights))) )/2
+  LL <- (sum(log(data$nlsur_created_weights)) -
+           (M * N) * (log(2 * pi) +
+                        1 - log(N) +
+                        log(det(S)) / M  +
+                        log(sum(data$nlsur_created_weights)))) / 2
 
 
   # Fitted values ##############################################################
@@ -840,21 +836,21 @@ summary.nlsur <- function(object, noconst = TRUE, ...) {
       stop("Negative or zero weight found.")
   }
 
-  eqns_lhs <- lapply(X = eqns, FUN = function(x)x[[2L]])
+  eqns_lhs <- lapply(X = eqns, FUN = function(x) x[[2L]])
 
 
   #### Estimation of covariance matrix, standard errors and z/t-values ####
   lhs   <- list()
-  scale <- vector("numeric", length=neqs)      # scalefactor
-  div   <- vector("numeric", length=neqs)      # divisor
-  wi    <- vector("numeric", length=neqs)      # normalized wts
-  ssr   <- vector("numeric", length=neqs)      # sum of squared residuals
-  mss   <- vector("numeric", length=neqs)
-  mse   <- vector("numeric", length=neqs)      # mean square error
-  rmse  <- vector("numeric", length=neqs)      # root of mse
-  mae   <- vector("numeric", length=neqs)      # mean absolute error
-  r2    <- vector("numeric", length=neqs)      # R-squared value
-  adjr2 <- vector("numeric", length=neqs)      # adjusted R-squared value
+  scale <- vector("numeric", length = neqs)      # scalefactor
+  div   <- vector("numeric", length = neqs)      # divisor
+  wi    <- vector("numeric", length = neqs)      # normalized wts
+  ssr   <- vector("numeric", length = neqs)      # sum of squared residuals
+  mss   <- vector("numeric", length = neqs)
+  mse   <- vector("numeric", length = neqs)      # mean square error
+  rmse  <- vector("numeric", length = neqs)      # root of mse
+  mae   <- vector("numeric", length = neqs)      # mean absolute error
+  r2    <- vector("numeric", length = neqs)      # R-squared value
+  adjr2 <- vector("numeric", length = neqs)      # adjusted R-squared value
 
 
   nlsur_coef <- new.env(hash = TRUE)
@@ -868,8 +864,8 @@ summary.nlsur <- function(object, noconst = TRUE, ...) {
   }
 
   lhs   <- lapply(X = eqns_lhs, FUN = eval, envir = data, enclos = nlsur_coef)
-  scale <- n/sum(w)
-  div   <- n -1
+  scale <- n / sum(w)
+  div   <- n - 1
 
 
 
@@ -882,14 +878,14 @@ summary.nlsur <- function(object, noconst = TRUE, ...) {
     if (length(lhs_i) < NROW(data))
       lhs_i  <- rep(lhs_i, NROW(data))
 
-    ssr[i]   <- sum( r[,i]^2 * w) * scale[i]
+    ssr[i]   <- sum(r[, i]^2 * w) * scale[i]
 
     # No constant found
     if (hasconst[i]) {
-      wi     <- w/sum(w) * n[i]
+      wi     <- w / sum(w) * n[i]
 
       lhs_wm <- wt_mean(x = lhs_i, w = wi)
-      wvar   <- (1/div[i]) * sum( wi * (lhs_i - lhs_wm)^2)
+      wvar   <- (1 / div[i]) * sum(wi * (lhs_i - lhs_wm)^2)
       mss[i] <- wvar * div[i] - ssr[i]
     } else{
       mss[i] <- sum(w * lhs_i^2) * scale[i] - ssr[i]
@@ -897,7 +893,7 @@ summary.nlsur <- function(object, noconst = TRUE, ...) {
 
     mse[i]   <- ssr[i] / n[i]
     rmse[i]  <- sqrt(mse[i])
-    mae[i]   <- sum(abs(r[, i]))/n[i]
+    mae[i]   <- sum(abs(r[, i])) / n[i]
 
     r2[i]    <- mss[i] / (mss[i] + ssr[i])
 
@@ -909,7 +905,7 @@ summary.nlsur <- function(object, noconst = TRUE, ...) {
     }
   }
 
-  nE <- sum(n) / sum ( w/sum(w) )
+  nE <- sum(n) / sum(w / sum(w))
   kE  <- sum(k)
 
 
@@ -935,7 +931,7 @@ summary.nlsur <- function(object, noconst = TRUE, ...) {
   tval <- est / se
 
   # z vs t
-  prob <- 2 * (1 - pt(abs(tval), (nE * kE )))
+  prob <- 2 * (1 - pt(abs(tval), (nE * kE)))
   # if single equation
   if (neqs == 1 & nlsonly)
     prob <- 2 * pt(abs(tval), df, lower.tail = FALSE)
@@ -957,19 +953,19 @@ summary.nlsur <- function(object, noconst = TRUE, ...) {
     zi <- data.frame(cbind(zi, eqconst))
   }
 
-  zi <- data.frame(as.character(z$eqnames),zi)
+  zi <- data.frame(as.character(z$eqnames), zi)
 
   cnst <- character(0)
   # if a equation contains more than one const only add it once and fill the
   # rest with blanks
   if (any(hasconst)) {
     cnst <- c("Const")
-    if (neqconst>1) {
-      cnst <- c(cnst, rep(x = "", (neqconst-1)))
+    if (neqconst > 1) {
+      cnst <- c(cnst, rep(x = "", (neqconst - 1)))
     }
   }
 
-  colnames(zi) <- c("","n", "k", "RMSE", "MAE", "R-squared",
+  colnames(zi) <- c("", "n", "k", "RMSE", "MAE", "R-squared",
                     "Adj-R-sqr.", cnst)
 
   # ans: returned object
@@ -1123,7 +1119,7 @@ lm_gls <- function(X, Y, W, neqs, tol = 1e-7, covb = FALSE) {
             nrow = length(d),
             ncol = length(d)) %*% t(eW$vectors)
 
-  n <- nrow(X)/neqs
+  n <- nrow(X) / neqs
 
   A <- Matrix::kronecker(X = A,
                          Y = Matrix::Diagonal(n))

@@ -2,17 +2,17 @@
 set.seed(123)
 
 xi <- list()
-xi[[1]] <- matrix( rnorm(225), ncol = 9, nrow = 25)
-xi[[2]] <- matrix( rnorm(225), ncol = 9, nrow = 25)
-xi[[3]] <- matrix( rnorm(225), ncol = 9, nrow = 25)
+xi[[1]] <- matrix(rnorm(225), ncol = 9, nrow = 25)
+xi[[2]] <- matrix(rnorm(225), ncol = 9, nrow = 25)
+xi[[3]] <- matrix(rnorm(225), ncol = 9, nrow = 25)
 
 colnames(xi[[1]]) <- colnames(xi[[2]]) <- colnames(xi[[3]]) <- letters[1:9]
 
 
 ri <- list()
-ri[[1]] <- matrix( rnorm(25), ncol = 1)
-ri[[2]] <- matrix( rnorm(25), ncol = 1)
-ri[[3]] <- matrix( rnorm(25), ncol = 1)
+ri[[1]] <- matrix(rnorm(25), ncol = 1)
+ri[[2]] <- matrix(rnorm(25), ncol = 1)
+ri[[3]] <- matrix(rnorm(25), ncol = 1)
 
 theta <- colnames(xi[[1]])
 
@@ -26,7 +26,7 @@ w <- rep(1, n)
 
 I <- diag(n)
 
-s <- 1/n * crossprod(r)
+s <- 1 / n * crossprod(r)
 qS <- qr.solve(s)
 
 S <- s %x% I
@@ -38,19 +38,19 @@ XDY <- t(X) %*% W %*% R
 # calc_ssr
 rss_a <- ssr_est(r = r, s = s, w = w)
 
-rss_m <- crossprod( S %*% R)
+rss_m <- crossprod(S %*% R)
 
 
 # reshape
-mm <- matrix(c(11,21,31,41,
-               12,22,32,42,
-               13,23,33,43,
-               14,24,34,44),
+mm <- matrix(c(11, 21, 31, 41,
+               12, 22, 32, 42,
+               13, 23, 33, 43,
+               14, 24, 34, 44),
              ncol = 4)
 
 mm_a <- arma_reshape(mm, 2)
 
-mm_m <- matrix(t(mm), nrow = 2, byrow =T )
+mm_m <- matrix(t(mm), nrow = 2, byrow = T)
 
 # wls
 BB <- t(qr.coef(qr(XDX), XDY))
@@ -75,7 +75,7 @@ wtm_a <- wt_mean(x = X[, "a"], w = X[, "b"])
 
 # calc_robust
 
-data( costs )
+data(costs)
 # library(sandwich)
 # res <- lm("Cost ~ Sk + Sl + Se", data = costs)
 # sandwich_se <- sqrt(diag(vcovHC(res, type = "HC0")))
@@ -89,7 +89,7 @@ eqs <- "Cost ~ b0 + b1 * Sk  + b2 * Sl  + b3 * Se"
 nes <- nlsur(eqns = eqs, data = costs,
              type = "NLS", stata = TRUE, robust = TRUE)
 
-nlsur_se <- summary(nes)$coefficients[,2]
+nlsur_se <- summary(nes)$coefficients[, 2]
 names(nlsur_se) <- NULL
 
 #### calc_ssr ####
