@@ -123,9 +123,9 @@
   rm(lhs, rhs)
 
   x <- suppressWarnings(
-    lapply(X = eqns, FUN = function(x) {
+    lapply(X = eqns_rhs, FUN = function(x) {
       attr(
-        numericDeriv(expr = x[[3L]], theta = names(theta), rho = nlsur_env, central = FALSE, eps = eps),
+        numericDeriv(expr = x, theta = names(theta), rho = nlsur_env, central = FALSE, eps = eps),
         "gradient")
     })
   )
