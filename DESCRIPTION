@@ -4,7 +4,7 @@ Version: 0.7
 Title: Estimating Nonlinear Least Squares for Equation Systems
 Author: Jan Marvin Garbuszus
 Maintainer: Jan Marvin Garbuszus <jan.garbuszus@ruhr-uni-bochum.de>
-Depends: R (>= 3.0.1)
+Depends: R (>= 4.1.0)
 Suggests:
     testthat
 Imports:
