@@ -660,9 +660,9 @@ qai <- function(w, p, x, z, a0 = 0, data, scale = FALSE,
   res
 }
 
-#' Estimation of elasticies of the (Quadratic) Almost-Ideal Demand System
+#' Estimation of elasticities of the (Quadratic) Almost-Ideal Demand System
 #'
-#' Estimates the income/expeditute elasticity, the uncompensated price
+#' Estimates the income/expenditure elasticity, the uncompensated price
 #'  elasticity and the compensated price elasticity
 #'
 #' @param object qai result
@@ -688,7 +688,7 @@ qai <- function(w, p, x, z, a0 = 0, data, scale = FALSE,
 #'   \ln \left\{ \frac{m}{a(\mathbf{p})} \right\}\right]
 #' }
 #'
-#' Compensated price elasticitys (Slutsky equation)
+#' Compensated price elasticities (Slutsky equation)
 #' \deqn{
 #'  \epsilon_{ij}^{C} = \epsilon_{ij} + \mu_i w_j
 #' }
