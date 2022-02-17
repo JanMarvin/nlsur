@@ -45,7 +45,7 @@
 #' @references
 #' Gallant, A. Ronald (1987): Nonlinear Statistical Models. Wiley: New York
 #' @importFrom Matrix diag kronecker rankMatrix
-#' @importFrom stats as.formula coef deriv
+#' @importFrom stats as.formula coef numericDeriv
 #' @useDynLib nlsur, .registration=TRUE
 #' @export .nlsur
 .nlsur <- function(eqns, data, startvalues, S = NULL, robust = robust,
@@ -127,8 +127,6 @@
       attr(
         numericDeriv(expr = x[[3L]], theta = names(theta), rho = nlsur_env, central = FALSE, eps = eps),
         "gradient")
-        # eval(deriv(x, names(theta)),
-        #         envir = data, enclos = nlsur_coef),
     })
   )
 
