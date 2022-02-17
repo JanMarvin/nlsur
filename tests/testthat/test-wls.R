@@ -1,8 +1,8 @@
 # WLS test 1 -------------------------------------------------------------------
 
 set.seed(123)
-X <- matrix(abs(rnorm(450,2)), 150, 3)
-Y <- matrix(abs(rnorm(150,2)), 150, 1)
+X <- matrix(abs(rnorm(450, 2)), 150, 3)
+Y <- matrix(abs(rnorm(150, 2)), 150, 1)
 W <- diag(x = 3)
 qW <- qr.solve(qr(W))
 w <- rep(x = 1, 150)
@@ -10,9 +10,9 @@ w <- rep(x = 1, 150)
 erg.1 <- lm_gls(X = X, Y = Y, W = W, neqs = 3)
 
 X <- cbind(
-  X[1:50,],
-  X[51:100,],
-  X[101:150,]
+  X[1:50, ],
+  X[51:100, ],
+  X[101:150, ]
 )
 
 Y <- cbind(
@@ -34,8 +34,8 @@ test_that("wls_est 1", {
 # WLS test 2 -------------------------------------------------------------------
 
 set.seed(123)
-X <- matrix(abs(rnorm(450,2)), 150, 3)
-Y <- matrix(abs(rnorm(150,2)), 150, 1)
+X <- matrix(abs(rnorm(450, 2)), 150, 3)
+Y <- matrix(abs(rnorm(150, 2)), 150, 1)
 W <- matrix(c(2, 1, 0, 1, 2, 1, 0, 1, 2), 3, 3)
 qW <- qr.solve(qr(W))
 w <- rep(x = 1, 150)
@@ -43,9 +43,9 @@ w <- rep(x = 1, 150)
 erg.1 <- lm_gls(X = X, Y = Y, W = W, neqs = 3)
 
 X <- cbind(
-  X[1:50,],
-  X[51:100,],
-  X[101:150,]
+  X[1:50, ],
+  X[51:100, ],
+  X[101:150, ]
 )
 
 Y <- cbind(
@@ -66,8 +66,8 @@ test_that("wls_est 2", {
 # Cov test 1 -------------------------------------------------------------------
 
 set.seed(123)
-X <- matrix(abs(rnorm(450,2)), 150, 3)
-Y <- matrix(abs(rnorm(150,2)), 150, 1)
+X <- matrix(abs(rnorm(450, 2)), 150, 3)
+Y <- matrix(abs(rnorm(150, 2)), 150, 1)
 W <- diag(x = 3)
 qW <- qr.solve(qr(W))
 w <- rep(x = 1, 150)
@@ -75,9 +75,9 @@ w <- rep(x = 1, 150)
 erg.1 <- lm_gls(X = X, Y = Y, W = W, neqs = 3, covb = 1)
 
 X <- cbind(
-  X[1:50,],
-  X[51:100,],
-  X[101:150,]
+  X[1:50, ],
+  X[51:100, ],
+  X[101:150, ]
 )
 
 Y <- cbind(

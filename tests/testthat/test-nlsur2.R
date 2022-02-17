@@ -20,7 +20,7 @@ dem,-0.01797,0.01075
 dke,-0.00820,0.00406
 dmm,0.11134,0.02239",
 row.names = 1)
-greene <- greene[order(row.names(greene)),]
+greene <- greene[order(row.names(greene)), ]
 
 dat  <- NULL
 erg2 <- NULL
@@ -39,9 +39,9 @@ dat$Pm[dat$Year == 1949] <- 1.06625
 # model
 
 model <- list(
-  Sk ~ bk + dkk * log(Pk/Pm) + dkl * log(Pl/Pm) + dke * log(Pe/Pm),
-  Sl ~ bl + dkl * log(Pk/Pm) + dll * log(Pl/Pm) + dle * log(Pe/Pm),
-  Se ~ be + dke * log(Pk/Pm) + dle * log(Pl/Pm) + dee * log(Pe/Pm)
+  Sk ~ bk + dkk * log(Pk / Pm) + dkl * log(Pl / Pm) + dke * log(Pe / Pm),
+  Sl ~ bl + dkl * log(Pk / Pm) + dll * log(Pl / Pm) + dle * log(Pe / Pm),
+  Se ~ be + dke * log(Pk / Pm) + dle * log(Pl / Pm) + dee * log(Pe / Pm)
 )
 
 e1   <- nlsur(eqns = model, data = dat, type = "NLS", stata = FALSE,
@@ -60,7 +60,7 @@ erg2 <- nlsur(eqns = model, data = dat, type = "FGNLS")
 erg2
 
 # indirect estimation of translog parameters
-bm <- nlcom(object = erg2, form = "1 -be -bk -bl", rname= "bm")
+bm <- nlcom(object = erg2, form = "1 -be -bk -bl", rname = "bm")
 # bm
 
 dkm <- nlcom(object = erg2, form = "-dkk -dkl -dke", rname = "dkm")
@@ -82,7 +82,7 @@ est <- summary(erg2)$coefficients
 ind <- rbind(bm, dkm, dlm, dem, dmm)
 
 res <- rbind(est, ind)
-res <- res[order(rownames(res)),]
+res <- res[order(rownames(res)), ]
 
 
 res_n <- round(unlist(res[, "Estimate"]), digits = 5)
