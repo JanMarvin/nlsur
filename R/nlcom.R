@@ -47,14 +47,17 @@ nlcom <- function(object, form, alpha = 0.05, rname, envir) {
 
   # if form contains other nlcom estimates, fetch their formula and update
   # the current form with the older formula.
-  if( !identical(vars, character(0)) ){
-    for (i in vars){
+  if (!identical(vars, character(0))) {
+    for (i in vars) {
       tmp <- get0(x = i, envir = envir)
 
-      if(class(tmp) == "nlcom") {
+      if (class(tmp) == "nlcom") {
         fname <- paste("(", attr(tmp, "form"), ")")
 
         form <- gsub(pattern = i, replacement = fname, x = form, fixed = TRUE)
+      } else {
+        if (class(tmp) == "numeric" || class(tmp) == "integer")
+          form <- gsub(pattern = i, replacement = tmp, x = form, fixed = TRUE)
       }
     }
   }
@@ -74,13 +77,13 @@ nlcom <- function(object, form, alpha = 0.05, rname, envir) {
 
   # calculate prob
   nE <- sum(object$n); kE <- sum(object$k)
-  prob <- 2 * (1 - pt(abs(tval), (nE * kE )))
+  prob <- 2 * (1 - pt(abs(tval), (nE * kE)))
 
   # create output
   z   <- cbind(z, tval, prob)
-  colnames(z) <- c("Estimate", "Std. Error", "z value", "Pr(>|z|)" )
+  colnames(z) <- c("Estimate", "Std. Error", "z value", "Pr(>|z|)")
 
-  if(missing(rname))
+  if (missing(rname))
     attr(z, "rname")   <- oform
   else
     attr(z, "rname")   <- rname
@@ -103,7 +106,7 @@ print.nlcom <- function(x, ...) {
 
   cat("nlcom: ", attr(x, "oform"), "\n\n")
 
-  printCoefmat(mat, signif.legend = FALSE , ...)
+  printCoefmat(mat, signif.legend = FALSE, ...)
 
   if (attr(x, "oform") != attr(x, "form"))
     cat("\nnlcom object estimated with prior nlcom estimate.\n")
@@ -116,7 +119,7 @@ print.nlcom <- function(x, ...) {
 #' @param form formula e.g. "be/bk".
 #' @param level value for conf. interval default is 0.05
 #' @importFrom stats D vcov
-dm <- function (object, form, level=0.05) {
+dm <- function(object, form, level=0.05) {
 
   df   <- as.data.frame(t(coef(object)))
   nams <- names(df)
@@ -130,7 +133,7 @@ dm <- function (object, form, level=0.05) {
     t(der) %*% vcov(object) %*% der
   ))
 
-  p <- (1 - level)/2
+  p <- (1 - level) / 2
   z <- - qnorm(p)
 
   lwr <- est - z * se

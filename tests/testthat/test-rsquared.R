@@ -8,7 +8,7 @@ set.seed(123)
 
 dd <- data.frame(y = rnorm(n = 100, mean = 5, sd = 5),
                  x = rnorm(n = 100, mean = 2, sd = 5),
-                 w = sample(x = seq(0.1,1,0.1), size = 100, replace = TRUE))
+                 w = sample(x = seq(0.1, 1, 0.1), size = 100, replace = TRUE))
 
 
 model <- "y ~ b * x"
@@ -24,7 +24,7 @@ x1.2 <- res_2$zi["R-squared"]
 # res weighted
 res_a <- summary(lm("y~0+x", data = dd, weights = w))
 res_1 <- summary(nls(formula = model, data = dd, weights = w, start = c(b = 0)))
-res_2 <- summary(nlsur(eqns = model, data = dd, weights = w, type =1,
+res_2 <- summary(nlsur(eqns = model, data = dd, weights = w, type = 1,
                        stata = FALSE, multicores = 1), multicores = 1)
 
 x1.3 <- res_a$r.squared
@@ -48,7 +48,7 @@ res_a <- summary(lm("y~x", data = dd, weights = w))
 res_1 <- summary(nls(formula = model, data = dd, weights = w,
                      start = c(a = 0, b = 0)))
 res_2 <- summary(nlsur(eqns = model, data = dd, weights = w,
-                       type =1, stata = FALSE, multicores = 1), multicores = 1)
+                       type = 1, stata = FALSE, multicores = 1), multicores = 1)
 
 x2.3 <- res_a$r.squared
 x2.4 <- res_2$zi["R-squared"]

@@ -2,7 +2,7 @@
 % Please edit documentation in R/ai_model.R
 \name{elasticities}
 \alias{elasticities}
-\title{Estimation of elasticies of the (Quadratic) Almost-Ideal Demand System}
+\title{Estimation of elasticities of the (Quadratic) Almost-Ideal Demand System}
 \usage{
 elasticities(object, data, type = 1, usemean = FALSE)
 }
@@ -16,7 +16,7 @@ elasticities(object, data, type = 1, usemean = FALSE)
 \item{usemean}{evaluate at mean}
 }
 \description{
-Estimates the income/expeditute elasticity, the uncompensated price
+Estimates the income/expenditure elasticity, the uncompensated price
  elasticity and the compensated price elasticity
 }
 \details{
@@ -38,7 +38,7 @@ Formula for the uncompensated price elasticity
   \ln \left\{ \frac{m}{a(\mathbf{p})} \right\}\right]
 }
 
-Compensated price elasticitys (Slutsky equation)
+Compensated price elasticities (Slutsky equation)
 \deqn{
  \epsilon_{ij}^{C} = \epsilon_{ij} + \mu_i w_j
 }
