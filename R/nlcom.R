@@ -51,12 +51,12 @@ nlcom <- function(object, form, alpha = 0.05, rname, envir) {
     for (i in vars) {
       tmp <- get0(x = i, envir = envir)
 
-      if (class(tmp) == "nlcom") {
+      if (inherits(tmp, "nlcom")) {
         fname <- paste("(", attr(tmp, "form"), ")")
 
         form <- gsub(pattern = i, replacement = fname, x = form, fixed = TRUE)
       } else {
-        if (class(tmp) == "numeric" || class(tmp) == "integer")
+        if (inherits(tmp, "numeric") || inherits(tmp, "integer"))
           form <- gsub(pattern = i, replacement = tmp, x = form, fixed = TRUE)
       }
     }
