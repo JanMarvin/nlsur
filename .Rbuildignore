@@ -1,6 +1,6 @@
 ^.*\.Rproj$
 ^.lintr$
 ^\.Rproj\.user$
-data-raw/
-.github/
+^data-raw$
+^\.github$
 LICENSE
