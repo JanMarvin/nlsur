@@ -563,10 +563,13 @@ ai.model <- function(w, p, exp, alph0 = 10, logp = TRUE, logexp = TRUE,
 ai <- function(w, p, x, z, a0 = 0, data, scale = FALSE,
                logp = TRUE, logexp = TRUE, ...) {
 
-  if (missing(z))
-    z <- character(0)
-
-  vars <- c(w, p, x, z)
+  vars <- c(w, p, x)
+  if (missing(z)) {
+    z <- substitute()
+    scale <- FALSE
+  } else {
+    vars <- c(vars, z)
+  }
   ndat <- names(data)
 
   if (!all(vars %in% ndat)) {
@@ -588,7 +591,7 @@ ai <- function(w, p, x, z, a0 = 0, data, scale = FALSE,
   attr(res, "w") <- w
   attr(res, "p") <- p
   attr(res, "x") <- x
-  attr(res, "z") <- z
+  if (!missing(z)) attr(res, "z") <- z
   attr(res, "a0")     <- a0
   attr(res, "logp")   <- logp
   attr(res, "logexp") <- logexp
@@ -625,10 +628,14 @@ ai <- function(w, p, x, z, a0 = 0, data, scale = FALSE,
 qai <- function(w, p, x, z, a0 = 0, data, scale = FALSE,
                 logp = TRUE, logexp = TRUE, ...) {
 
-  if (missing(z))
-    z <- character(0)
+  vars <- c(w, p, x)
+  if (missing(z)) {
+    z <- substitute()
+    scale <- FALSE
+  } else {
+    vars <- c(vars, z)
+  }
 
-  vars <- c(w, p, x, z)
   ndat <- names(data)
 
   if (!all(vars %in% ndat)) {
@@ -650,7 +657,7 @@ qai <- function(w, p, x, z, a0 = 0, data, scale = FALSE,
   attr(res, "w") <- w
   attr(res, "p") <- p
   attr(res, "x") <- x
-  attr(res, "z") <- z
+  if (!missing(z)) attr(res, "z") <- z
   attr(res, "a0")     <- a0
   attr(res, "logp")   <- logp
   attr(res, "logexp") <- logexp
