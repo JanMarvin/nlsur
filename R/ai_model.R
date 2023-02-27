@@ -17,6 +17,10 @@
 #' demographic vector.
 #' @param demogr character vector of k demographic variables.
 #'
+#' @details While Ray and Stata use log(m0) for the demographic variables, there
+#' is no guarantee, that m0 is positive. The model relies much on the correct
+#' starting values. Therefore log(abs(m0)) is used.
+#'
 #' @references Deaton, Angus S., Muellbauer, John: An Almost Ideal Demand
 #'  System, The American Economic Review 70(3), American Economic Association,
 #'  312-326, 1980
@@ -96,7 +100,8 @@ ai.model <- function(w, p, exp, alph0 = 10, logp = TRUE, logexp = TRUE,
     m0 <- paste("( 1 + ", paste(rho, "*", demogr, collapse = " + "), ")")
 
     # log(m0) + translog
-    m0 <- paste("log(", m0, ")")
+    # m0 >= 0 otherwise log(-1) == NaN
+    m0 <- paste("log(abs(", m0, "))")
 
     # sum ( eta_i ) = 0.
     eta <- matrix(NA, length(demogr), neqs)
