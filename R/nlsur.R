@@ -703,11 +703,9 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
 
         iter <- iter + 1
 
-        maxthetachange <- max(abs(theta.old - theta) /
-                                (abs(theta) + 1),
+        maxthetachange <- max(abs(theta / theta.old) - 1,
                               na.rm = TRUE)
-        maxSigmachange <- max(abs(S.old - S) /
-                                (abs(S.old) + 1),
+        maxSigmachange <- max(abs(S / S.old) -1,
                               na.rm = TRUE)
 
         # conv1 <- abs(rss.old - rss) < eps * (rss.old + tau)
