@@ -17,6 +17,10 @@
 #' demographic vector.
 #' @param demogr character vector of k demographic variables.
 #'
+#' @details While Ray and Stata use log(m0) for the demographic variables, there
+#' is no guarantee, that m0 is positive. The model relies much on the correct
+#' starting values. Therefore log(abs(m0)) is used.
+#'
 #' @references Deaton, Angus S., Muellbauer, John: An Almost Ideal Demand
 #'  System, The American Economic Review 70(3), American Economic Association,
 #'  312-326, 1980
@@ -96,7 +100,8 @@ ai.model <- function(w, p, exp, alph0 = 10, logp = TRUE, logexp = TRUE,
     m0 <- paste("( 1 + ", paste(rho, "*", demogr, collapse = " + "), ")")
 
     # log(m0) + translog
-    m0 <- paste("log(", m0, ")")
+    # m0 >= 0 otherwise log(-1) == NaN
+    m0 <- paste("log(abs(", m0, "))")
 
     # sum ( eta_i ) = 0.
     eta <- matrix(NA, length(demogr), neqs)
@@ -563,10 +568,13 @@ ai.model <- function(w, p, exp, alph0 = 10, logp = TRUE, logexp = TRUE,
 ai <- function(w, p, x, z, a0 = 0, data, scale = FALSE,
                logp = TRUE, logexp = TRUE, ...) {
 
-  if (missing(z))
-    z <- character(0)
-
-  vars <- c(w, p, x, z)
+  vars <- c(w, p, x)
+  if (missing(z)) {
+    z <- substitute()
+    scale <- FALSE
+  } else {
+    vars <- c(vars, z)
+  }
   ndat <- names(data)
 
   if (!all(vars %in% ndat)) {
@@ -588,7 +596,7 @@ ai <- function(w, p, x, z, a0 = 0, data, scale = FALSE,
   attr(res, "w") <- w
   attr(res, "p") <- p
   attr(res, "x") <- x
-  attr(res, "z") <- z
+  if (!missing(z)) attr(res, "z") <- z
   attr(res, "a0")     <- a0
   attr(res, "logp")   <- logp
   attr(res, "logexp") <- logexp
@@ -625,10 +633,14 @@ ai <- function(w, p, x, z, a0 = 0, data, scale = FALSE,
 qai <- function(w, p, x, z, a0 = 0, data, scale = FALSE,
                 logp = TRUE, logexp = TRUE, ...) {
 
-  if (missing(z))
-    z <- character(0)
+  vars <- c(w, p, x)
+  if (missing(z)) {
+    z <- substitute()
+    scale <- FALSE
+  } else {
+    vars <- c(vars, z)
+  }
 
-  vars <- c(w, p, x, z)
   ndat <- names(data)
 
   if (!all(vars %in% ndat)) {
@@ -650,7 +662,7 @@ qai <- function(w, p, x, z, a0 = 0, data, scale = FALSE,
   attr(res, "w") <- w
   attr(res, "p") <- p
   attr(res, "x") <- x
-  attr(res, "z") <- z
+  if (!missing(z)) attr(res, "z") <- z
   attr(res, "a0")     <- a0
   attr(res, "logp")   <- logp
   attr(res, "logexp") <- logexp

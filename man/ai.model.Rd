@@ -45,6 +45,11 @@ Modelfunction to create Deatons and Muellbauers (1980) famous
 Almost-Ideal Demand System or the Quadratic Almost-Ideal Demand System by
 Banks et al. (1997).
 }
+\details{
+While Ray and Stata use log(m0) for the demographic variables, there
+is no guarantee, that m0 is positive. The model relies much on the correct
+starting values. Therefore log(abs(m0)) is used.
+}
 \references{
 Deaton, Angus S., Muellbauer, John: An Almost Ideal Demand
  System, The American Economic Review 70(3), American Economic Association,
