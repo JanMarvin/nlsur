@@ -1,3 +1,5 @@
-0.8: switch to numeriDeriv
-0.7: Implement elasticities function for the estmation of expenditure/income
-elastisticesa and uncompensated and compensatend prices elasticities
+# nlsur 0.8
+* switch to `numericDeriv()`
+
+# nlsur 0.7
+* Implement elasticities function for the estmation of expenditure/income elastistices and uncompensated and compensatend prices elasticities
