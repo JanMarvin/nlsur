@@ -8,13 +8,12 @@ The packages supports a variety of functions like `print()`, `coef()`, `summary(
 
 ## Installation
 
-With `drat`:
+Via `r-universe`:
 ```R
-drat::addRepo("JanMarvin")
-install.packages("nlsur")
+install.packages("nlsur", repos = c("https://janmarvin.r-universe.dev", "https://cloud.r-project.org"))
 ```
 
-With `devtools`:
+Via `devtools`:
 ```R
 devtools::install_github("JanMarvin/nlsur")
 ```
@@ -55,4 +54,3 @@ dem <- nlcom(object = erg, form = "-dke -dle -dee", rname = "dem")
 # and now dmm (nlcom can search for parameters)
 dmm <- nlcom(object = erg, form = "-dkm -dlm -dem", rname = "dmm")
 ```
-
