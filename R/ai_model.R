@@ -37,7 +37,7 @@ ai.model <- function(w, p, exp, alph0 = 10, logp = TRUE, logexp = TRUE,
                      priceindex = "translog", modeltype = "AI",
                      ray = FALSE, demogr) {
 
-  if (missing(demogr) & ray)
+  if (missing(demogr) && ray)
     stop("Demogr. scaling selected, but no demographic variables specified.")
 
   if (missing(demogr))
@@ -53,7 +53,7 @@ ai.model <- function(w, p, exp, alph0 = 10, logp = TRUE, logexp = TRUE,
   # restricted
   alpha <- NULL
   alpha <- paste0("a", sprintf("%02d", seq_len(neqs)))
-  if (priceindex == "translog" | priceindex == "S")
+  if (priceindex == "translog" || priceindex == "S")
     alpha[neqs] <- paste0("(1-", paste(alpha[-neqs], collapse = "-"), ")")
 
   #### gammas ####
@@ -182,7 +182,7 @@ ai.model <- function(w, p, exp, alph0 = 10, logp = TRUE, logexp = TRUE,
   #### combine everything to the final model ####
   eqs <- list()
 
-  if (modeltype == "AI" & !ray) {
+  if (modeltype == "AI" && !ray) {
 
     #### eqs ####
     for (i in seq_len(neqs)) {
@@ -192,7 +192,7 @@ ai.model <- function(w, p, exp, alph0 = 10, logp = TRUE, logexp = TRUE,
     }
   }
 
-  if (modeltype == "eAI" & !ray) {
+  if (modeltype == "eAI" && !ray) {
 
     mu <- paste0("mu_", seq_len(neqs))
 
@@ -204,7 +204,7 @@ ai.model <- function(w, p, exp, alph0 = 10, logp = TRUE, logexp = TRUE,
     }
   }
 
-  if (modeltype == "uceAI" & !ray) {
+  if (modeltype == "uceAI" && !ray) {
 
     ue <- sort(rep(paste0("ue_", seq_len(neqs)), neqs))
     ue <- paste0(ue, "_", seq_len(neqs))
@@ -229,7 +229,7 @@ ai.model <- function(w, p, exp, alph0 = 10, logp = TRUE, logexp = TRUE,
     }
   }
 
-  if (modeltype == "ceAI" & !ray) {
+  if (modeltype == "ceAI" && !ray) {
 
     ce <- sort(rep(paste0("ce_", seq_len(neqs)), neqs))
     ce <- paste0(ce, "_", seq_len(neqs))
@@ -255,7 +255,7 @@ ai.model <- function(w, p, exp, alph0 = 10, logp = TRUE, logexp = TRUE,
     }
   }
 
-  if (modeltype == "QAI" & !ray) {
+  if (modeltype == "QAI" && !ray) {
 
     #### eqs ####
     for (i in seq_len(neqs)) {
@@ -266,7 +266,7 @@ ai.model <- function(w, p, exp, alph0 = 10, logp = TRUE, logexp = TRUE,
     }
   }
 
-  if (modeltype == "eQAI" & !ray) {
+  if (modeltype == "eQAI" && !ray) {
 
     mu <- paste0("mu_", seq_len(neqs))
 
@@ -279,7 +279,7 @@ ai.model <- function(w, p, exp, alph0 = 10, logp = TRUE, logexp = TRUE,
     }
   }
 
-  if (modeltype == "uceQAI" & !ray) {
+  if (modeltype == "uceQAI" && !ray) {
 
     ue <- sort(rep(paste0("ue_", seq_len(neqs)), neqs))
     ue <- paste0(ue, "_", seq_len(neqs))
@@ -309,7 +309,7 @@ ai.model <- function(w, p, exp, alph0 = 10, logp = TRUE, logexp = TRUE,
     }
   }
 
-  if (modeltype == "ceQAI" & !ray) {
+  if (modeltype == "ceQAI" && !ray) {
 
     ce <- sort(rep(paste0("ce_", seq_len(neqs)), neqs))
     ce <- paste0(ce, "_", seq_len(neqs))
@@ -343,7 +343,7 @@ ai.model <- function(w, p, exp, alph0 = 10, logp = TRUE, logexp = TRUE,
     }
   }
 
-  if (modeltype == "AI" & ray) {
+  if (modeltype == "AI" && ray) {
 
     translog_star <- paste("(", m0, "+", translog, ")")
 
@@ -355,7 +355,7 @@ ai.model <- function(w, p, exp, alph0 = 10, logp = TRUE, logexp = TRUE,
     }
   }
 
-  if (modeltype == "eAI" & ray) {
+  if (modeltype == "eAI" && ray) {
 
     mu <- paste0("mu_", seq_len(neqs))
 
@@ -367,7 +367,7 @@ ai.model <- function(w, p, exp, alph0 = 10, logp = TRUE, logexp = TRUE,
     }
   }
 
-  if (modeltype == "uceAI" & ray) {
+  if (modeltype == "uceAI" && ray) {
 
     ue <- sort(rep(paste0("ue_", seq_len(neqs)), neqs))
     ue <- paste0(ue, "_", seq_len(neqs))
@@ -392,7 +392,7 @@ ai.model <- function(w, p, exp, alph0 = 10, logp = TRUE, logexp = TRUE,
     }
   }
 
-  if (modeltype == "ceAI" & ray) {
+  if (modeltype == "ceAI" && ray) {
 
     ce <- sort(rep(paste0("ce_", seq_len(neqs)), neqs))
     ce <- paste0(ce, "_", seq_len(neqs))
@@ -420,7 +420,7 @@ ai.model <- function(w, p, exp, alph0 = 10, logp = TRUE, logexp = TRUE,
   }
 
 
-  if (modeltype == "QAI" & ray) {
+  if (modeltype == "QAI" && ray) {
 
     translog_star <- paste("(", m0, "+", translog, ")")
 
@@ -434,7 +434,7 @@ ai.model <- function(w, p, exp, alph0 = 10, logp = TRUE, logexp = TRUE,
     }
   }
 
-  if (modeltype == "eQAI" & ray) {
+  if (modeltype == "eQAI" && ray) {
 
     mu <- paste0("mu_", seq_len(neqs))
     translog_star <- paste("(", m0, "+", translog, ")")
@@ -448,7 +448,7 @@ ai.model <- function(w, p, exp, alph0 = 10, logp = TRUE, logexp = TRUE,
     }
   }
 
-  if (modeltype == "uceQAI" & ray) {
+  if (modeltype == "uceQAI" && ray) {
 
     ue <- sort(rep(paste0("ue_", seq_len(neqs)), neqs))
     ue <- paste0(ue, "_", seq_len(neqs))
@@ -481,7 +481,7 @@ ai.model <- function(w, p, exp, alph0 = 10, logp = TRUE, logexp = TRUE,
     }
   }
 
-  if (modeltype == "ceQAI" & ray) {
+  if (modeltype == "ceQAI" && ray) {
 
     ce <- sort(rep(paste0("ce_", seq_len(neqs)), neqs))
     ce <- paste0(ce, "_", seq_len(neqs))
@@ -525,8 +525,8 @@ ai.model <- function(w, p, exp, alph0 = 10, logp = TRUE, logexp = TRUE,
 
   model <- list()
 
-  if (!(modeltype == "eAI" | modeltype == "uceAI" | modeltype == "ceAI")
-    & !(modeltype == "eQAI" | modeltype == "uceQAI" | modeltype == "ceQAI")) {
+  if (!(modeltype == "eAI" || modeltype == "uceAI" || modeltype == "ceAI")
+      && !(modeltype == "eQAI" || modeltype == "uceQAI" || modeltype == "ceQAI")) {
 
     # drop one equation
     for (i in seq_len(neqs - 1))
@@ -781,8 +781,8 @@ elasticities <- function(object, data, type = 1, usemean = FALSE) {
 
   if (!usemean) {
 
-    eqns_lhs <- lapply(X = eqs, FUN = function(x)x[[2L]])
-    eqns_rhs <- lapply(X = eqs, FUN = function(x)x[[3L]])
+    eqns_lhs <- lapply(X = eqs, FUN = function(x) x[[2L]])
+    eqns_rhs <- lapply(X = eqs, FUN = function(x) x[[3L]])
     vnam     <- sapply(X = eqns_lhs, FUN = as.character)
 
     data2 <- data.frame(data, as.list(coef(object)))

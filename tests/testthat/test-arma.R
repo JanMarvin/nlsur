@@ -50,7 +50,7 @@ mm <- matrix(c(11, 21, 31, 41,
 
 mm_a <- arma_reshape(mm, 2)
 
-mm_m <- matrix(t(mm), nrow = 2, byrow = T)
+mm_m <- matrix(t(mm), nrow = 2, byrow = TRUE)
 
 # wls
 BB <- t(qr.coef(qr(XDX), XDY))

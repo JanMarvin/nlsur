@@ -90,10 +90,10 @@
   s  <- chol(qS)
 
 
-  eqns_lhs <- lapply(X = eqns, FUN = function(x)x[[2L]])
-  eqns_rhs <- lapply(X = eqns, FUN = function(x)x[[3L]])
+  eqns_lhs <- lapply(X = eqns, FUN = function(x) x[[2L]])
+  eqns_rhs <- lapply(X = eqns, FUN = function(x) x[[3L]])
 
-  eqnames <- sapply(X = eqns_lhs, FUN = function(x)capture.output(print(x)))
+  eqnames <- sapply(X = eqns_lhs, FUN = function(x) capture.output(print(x)))
 
   # move everything to nlsur_env: make it available for numericDeriv
   for (i in seq_len(length(data))) {
@@ -142,7 +142,7 @@
 
   r <- do.call(cbind, ri)
 
-  if (qrsolve | MASS) {
+  if (qrsolve || MASS) {
     x <- do.call(rbind, x)
   } else {
     x <- do.call(cbind, x)
@@ -189,7 +189,7 @@
 
     # begin regression
     # Regression of residuals on derivs
-    if (nls & qrsolve) {
+    if (nls && qrsolve) {
 
       r <- matrix(r, ncol = 1)
 
@@ -267,7 +267,7 @@
 
       r <- do.call(cbind, ri)
 
-      if (qrsolve | MASS) {
+      if (qrsolve || MASS) {
         x <- do.call(rbind, x)
       } else {
         x <- do.call(cbind, x)
@@ -329,7 +329,7 @@
 
   ## Create covb matrix ##
 
-  if (qrsolve | MASS) {
+  if (qrsolve || MASS) {
 
     r <- do.call(cbind, ri)
     r <- matrix(r, ncol = 1)
@@ -497,7 +497,7 @@
 #' @useDynLib nlsur
 #'
 #' @export
-nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
+nlsur <- function(eqns, data, startvalues, type = NULL, S = NULL,
                   trace = FALSE, robust = FALSE, stata = TRUE, qrsolve = FALSE,
                   weights, MASS = FALSE, maxiter = 1000, val = 0,
                   tol = 1e-7, eps = 1e-5, ifgnlseps = 1e-10,
@@ -512,8 +512,9 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
       if (!is.formula(gl))
         stop("No equation specified.")
 
-    } else
+    } else {
       gl <- eqns
+    }
 
     eqns <- list()
     eqns[[1]] <- gl
@@ -559,7 +560,7 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
   }
 
   # lm_gls does not allow weights
-  if ((isTRUE(qrsolve) | isTRUE(MASS)) & !is.null(wts))
+  if ((isTRUE(qrsolve) || isTRUE(MASS)) && !is.null(wts))
     stop("With qrsolve and MASS you can not use weights.")
 
 
@@ -595,13 +596,11 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
 
   # define what will be done
   if (!is.null(type)) {
-    if (type == "NLS" | type == 1) {
+    if (type == "NLS" || type == 1) {
       nls <- TRUE
-    }
-    else if (type == "FGNLS" | type == 2) {
+    } else if (type == "FGNLS" || type == 2) {
       fgnls <- TRUE
-    }
-    else if (type == "IFGNLS" | type == 3) {
+    } else if (type == "IFGNLS" || type == 3) {
       fgnls  <- TRUE
       ifgnls <- TRUE
     }
@@ -623,7 +622,7 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
 
   # To update standard errors in nls case Stata estimates a second nls with
   # diag(S) instead of I.
-  if (nls & stata) {
+  if (nls && stata) {
 
     # backup of theta and S, remove z
     theta.old <- coef(z); S <- z$sigma; rm(z)
@@ -758,9 +757,9 @@ nlsur <- function(eqns, data, startvalues, type=NULL, S = NULL,
 
   # Fitted values ##############################################################
   nlsur_coef <- new.env(hash = TRUE)
-  eqns_lhs   <- lapply(X = eqns, FUN = function(x)x[[2L]])
-  eqns_rhs   <- lapply(X = eqns, FUN = function(x)x[[3L]])
-  eqnames    <- sapply(X = eqns_lhs, FUN = function(x)capture.output(print(x)))
+  eqns_lhs   <- lapply(X = eqns, FUN = function(x) x[[2L]])
+  eqns_rhs   <- lapply(X = eqns, FUN = function(x) x[[3L]])
+  eqnames    <- sapply(X = eqns_lhs, FUN = function(x) capture.output(print(x)))
   theta      <- coef(z)
 
   # assign theta: make them available for eval
@@ -885,7 +884,7 @@ summary.nlsur <- function(object, noconst = TRUE, ...) {
       lhs_wm <- wt_mean(x = lhs_i, w = wi)
       wvar   <- (1 / div[i]) * sum(wi * (lhs_i - lhs_wm)^2)
       mss[i] <- wvar * div[i] - ssr[i]
-    } else{
+    } else {
       mss[i] <- sum(w * lhs_i^2) * scale[i] - ssr[i]
     }
 
@@ -909,7 +908,7 @@ summary.nlsur <- function(object, noconst = TRUE, ...) {
 
   resvar <- 1
   # for single equation
-  if (neqs == 1 & nlsonly)
+  if (neqs == 1 && nlsonly)
     resvar <- ssr / df
 
   # Estimate se, tval and prob
@@ -931,7 +930,7 @@ summary.nlsur <- function(object, noconst = TRUE, ...) {
   # z vs t
   prob <- 2 * (1 - pt(abs(tval), (nE * kE)))
   # if single equation
-  if (neqs == 1 & nlsonly)
+  if (neqs == 1 && nlsonly)
     prob <- 2 * pt(abs(tval), df, lower.tail = FALSE)
 
   # per equation statistics
@@ -974,7 +973,7 @@ summary.nlsur <- function(object, noconst = TRUE, ...) {
 
   cnames <- c("Estimate", "Std. Error", "z value", "Pr(>|z|)")
   # for single equation return t values
-  if (neqs == 1 & nlsonly)
+  if (neqs == 1 && nlsonly)
     cnames <- c("Estimate", "Std. Error", "t value", "Pr(>|t|)")
 
   dimnames(ans$coefficients) <- list(
@@ -1072,8 +1071,8 @@ predict.nlsur <- function(object, newdata, ...) {
 
   eqs <- object$model
 
-  eqns_lhs <- lapply(X = eqs, FUN = function(x)x[[2L]])
-  eqns_rhs <- lapply(X = eqs, FUN = function(x)x[[3L]])
+  eqns_lhs <- lapply(X = eqs, FUN = function(x) x[[2L]])
+  eqns_rhs <- lapply(X = eqs, FUN = function(x) x[[3L]])
   vnam     <- sapply(X = eqns_lhs, FUN = as.character)
 
   # check for newdata

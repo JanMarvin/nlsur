@@ -53,7 +53,7 @@ res_nls <- nls(fml, dat, start = list(b0 = 0))
 # nlsur model with options to calculate it numerically stable
 # and comparable to nls
 res_nlsur <- nlsur(eqns = fml, data = dat, startvalues = c(b0 = 0),
-                   stata = F, type = "NLS", qrsolve = TRUE, MASS = TRUE)
+                   stata = FALSE, type = "NLS", qrsolve = TRUE, MASS = TRUE)
 
 # predict
 pm1 <- predict(m1)

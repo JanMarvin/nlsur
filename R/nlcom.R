@@ -119,7 +119,7 @@ print.nlcom <- function(x, ...) {
 #' @param form formula e.g. "be/bk".
 #' @param level value for conf. interval default is 0.05
 #' @importFrom stats D vcov
-dm <- function(object, form, level=0.05) {
+dm <- function(object, form, level = 0.05) {
 
   df   <- as.data.frame(t(coef(object)))
   nams <- names(df)
